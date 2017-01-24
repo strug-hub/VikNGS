@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RVS", "RVS\RVS.vcxproj", "{2C25FDAA-B09F-4E11-B147-47114606EA7F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{661436AE-8932-499C-A75B-0DE999F9A9B2}"
+	ProjectSection(SolutionItems) = preProject
+		RVS\SimpleFunctions.cpp = RVS\SimpleFunctions.cpp
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
