@@ -1,5 +1,3 @@
-*.ipch
-*.tlog
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -48,3 +46,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 *.opendb
+*.tlog
+*.ipch
+*.log
