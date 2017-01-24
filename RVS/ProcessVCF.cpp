@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include "MemoryMapped.h"
+#include "MemoryMapped/MemoryMapped.h"
 
 #include <iostream>  
 #include <string>

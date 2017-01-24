@@ -365,12 +365,13 @@
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RVS.h" />
-    <ClInclude Include="MemoryMapped.h" />
+    <ClInclude Include="MemoryMapped\MemoryMapped.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MemoryMapped.cpp" />
+    <ClCompile Include="CompQuadForm.cpp" />
+    <ClCompile Include="MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="ProcessVCF.cpp" />
     <ClCompile Include="Tests.cpp" />
     <ClCompile Include="Statistics.cpp" />

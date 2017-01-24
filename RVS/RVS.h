@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include "MemoryMapped.h"
+#include "MemoryMapped/MemoryMapped.h"
 
 #include <string>
 #include <vector>

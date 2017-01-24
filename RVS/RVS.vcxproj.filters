@@ -21,9 +21,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryMapped.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RVS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -693,12 +690,12 @@
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryMapped\MemoryMapped.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryMapped.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ProcessVCF.cpp">
@@ -711,6 +708,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryMapped\MemoryMapped.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CompQuadForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
