@@ -1,3 +1,12 @@
+﻿//CompQuadForm: Distribution Function of Quadratic Forms in Normal Variables
+//
+//	Computes the distribution function of quadratic forms in normal variables using Imhof's method, Davies's algorithm, Farebrother's algorithm or Liu et al.'s algorithm.
+//	Version : 1.4.2
+//	Published : 2016 - 09 - 20
+//	Author: 	P.Lafaye de Micheaux
+//  License: 	GPL-2 | GPL-3 [expanded from: GPL (≥ 2)]
+//  https://CRAN.R-project.org/package=CompQuadForm 
+
 #include "stdafx.h"
 #include "RVS.h"
 
@@ -17,8 +26,6 @@ static double intl, ersm;
 static int count, r, lim;  static BOOL ndtsrt, fail;
 static int *n, *th; static double *lb, *nc;
 static jmp_buf env;
-
-
 
 static double exp1(double x)               /* to avoid underflows  */
 {

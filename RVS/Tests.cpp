@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "RVS.h"
+#include "Eigen/Dense"
+using Eigen::MatrixXd;
 
 #include <iostream>
 #include <vector>
@@ -318,8 +320,7 @@ double pnorm(double x)
 	return 0.5*(1.0 + sign*y);
 }
 
-#include "Eigen/Dense"
-using Eigen::MatrixXd;
+
 
 void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs, int njoint, int hom, int multiplier) {
 	SNP snp = snps[0];
@@ -553,137 +554,5 @@ void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool r
 	}
 
 	std::cout << sigma.eigenvalues();
-
+	//qfc...
 }
-
-
-/*
-# RVS analysis with rare variants
-# Robust Variance Estimate
-# Get p-values from RVS with CAST and C-alpha (Resampling: Bootstrap, Variance Estimate: Robust)
-# paper mentioned the permutation does not work when have external controls, so use centered X to bootrstap
-#' It calls functions \code{calc_ScoreV},\code{calc_ScoreV_RVS},\code{calc_ScoreV_likely},\code{test_CAST}, \code{test_Calpha},\code{sample_bootstrap}
-# Input values matrix of expected values of genotypes given sequence data
-#' @param Y - phenotype value, 1-cases and 0-controls
-#' @param X - matrix of conditional expected values, it has dimensions n by J, J - number of variants, n - sample size
-#' @param nboot - number of bootstrap
-#' @param njoint - number of SNPs grouping together for one test, default is 5
-#' @param P - genotype frequency for J variants P(G=0), P(G=1) and P(G=2), J by 3 matrix
-#' @param RVS, logic variable to indicate the estimation of variance of the score statistic.
-#' @return two p-values for CAST and C-alpha
-#' @export
-RVS_rare= function(Y,X,P,njoint=5,nboot,RVS='TRUE',hom=1,multiplier=1){
-if(!RVS %in% c('TRUE','True','true','T','t','FALSE','False','false','F','f')) {
-cat('Wrong input for option RVS in RVS_rare, should be True or False.\n')
-return(NULL)
-}
-
-nsnp=nrow(P)
-if(nsnp%%njoint!=0) {nloop=(nsnp-nsnp%%njoint)/njoint ## the last couple of snps(<5) combined to the last group
-}else {nloop=nsnp/njoint}
-
-p.RVS.rare=NULL
-for(i in 1:nloop){
-t1<-(i-1)*njoint+1;
-if(i < nloop) {t2<-i*njoint;
-}else{t2 <- nsnp}
-Xsub=X[,t1:t2]
-
-tt=RVS_rare1(Y,X[,t1:t2],P[t1:t2,],njoint,nboot,RVS,hom=hom,multiplier=multiplier,snp_loop=i)
-p.RVS.rare<-rbind(p.RVS.rare,tt)
-}
-
-row.names(p.RVS.rare)=paste0('loop',1:nloop)
-p.RVS.rare=data.frame(p.RVS.rare)
-colnames(p.RVS.rare)=c('p.CAST','p.Calpha')
-return (p.RVS.rare)
-}
-
-
-
-#' Function to calculate the score test for given expected genotype probability for case and controls seperately (M1, M2)
-#'
-#' This function calcuates the score test \eqn{T=S^2/var(S)}, for a given \eqn{j, S_j=\sum_i (Y_i-bar(Y))E(G_{ij}|D_{ij})=\sum_{case}(1-bar(Y))E(G|D)-\sum_{cont}bar(Y)E(G|D)}. It is called in \code{\link{regScore_perm}}.
-#' @param M1   a vector of the expected  genotype probability for case \eqn{E(G_{ij}|D_{ij})} on one snp
-#' @param M2   a vector of the expected genotype probability for control \eqn{E(G_{ij}|D_{ij})} on one snp
-#' @return the score test statistic calculated from M1 and M2
-calc_score_test = function(M1,M2){
-X = c(M1,M2)
-Y = c(rep(1,length(M1)),rep(0,length(M2)))
-p = length(M1)/length(X)
-q = 1 - p
-S = q*sum(M1)-p*sum(M2)
-vs = p*q*(length(X))*var(X)
-x = S^2/vs
-return (x)
-}
-
-
-
-
-
-
-
-
-
-
-#' use RVS to test associaton by bootrtrap, given phenotype (Y), expected values of genotypes for case and controls (X)
-#' estimated genotype frequency (P) and number of times of bootstrap (nboot)
-#' @param Y - a vector with the phenotype for n individuals (=ncase+ncont), first ncase (y=1) then ncont (y=0)  (integar)
-#' @param X - a vector of genotype for a snp, first ncase and then ncont
-#' @param P (vector with length 3  (double)) - estimated genotype frequency for a variant P(G=0), P(G=1) and P(G=2)
-#' @param nboot - number of bootstrap
-#' @param RVS, logic variable to indicate the estimation of variance of the score statistic. 
-#' @return   p-values for the snp
-#' @export
-RVS_btrap = function(Y, X, P, nboot, RVS = 'TRUE') {
-	if (!RVS %in% c('TRUE', 'True', 'true', 'T', 't', 'FALSE', 'False', 'false', 'F', 'f')) {
-		cat('Wrong input for option RVS in RVS_brap, should be True or False.\n')
-			return(NULL)
-	}
-	Y = Y[!is.na(X)]
-		X = X[!is.na(X)]
-		maf = sum(X) / (length(X) * 2); maf0 = min(maf, 1 - maf)
-		if (maf0<0.05) { cat('Warning: MAF of the SNP is', maf0, ', try to group with other rare variants and use RVS_rare1.\n') }
-
-	ncase1 = sum(Y == 1)
-		ncont1 = sum(Y == 0)
-		p = length(X[Y == 1]) / length(X)
-		q = 1 - p
-#  if(RVS %in% c('TRUE','True','true','T','t')) {
-		vcase = as.numeric(calc_robust_Var(P))
-#  } else{
-		#    vcase = var(X[Y == 1])
-#  }
-		vcont = var(X[Y == 0])
-		if (RVS %in% c('TRUE', 'True', 'true', 'T', 't')) {
-			Tobs = (mean(X[Y == 1]) - mean(X[Y == 0])) / sqrt(vcase / ncase1 + vcont / ncont1)
-		}
-		else {
-			X1 = X[Y == 1]; X2 = X[Y == 0]
-				Tobs = calc_score_test(X1, X2)
-		}
-		X1 = X[Y == 1] - mean(X[Y == 1])
-			X2 = X[Y == 0] - mean(X[Y == 0])
-			C = NULL
-			if (RVS %in% c('TRUE', 'True', 'true', 'T', 't')) {
-				for (j in 1 : nboot) {
-					Xca = sample(X1[], ncase1, replace = TRUE)
-						Xco = sample(X2[], ncont1, replace = TRUE)
-						vcase = var(Xca)
-						vcont = var(Xco)
-						C = c(C, (mean(Xca) - mean(Xco)) / sqrt(vcase / ncase1 + vcont / ncont1))
-				}## enf for j
-			}
-			else {
-				for (j in 1 : nboot) {
-					k = sample(length(X));
-					Xnew = X[k]
-						X1 = Xnew[Y == 1]; X2 = Xnew[Y == 0]
-						C = c(C, calc_score_test(X1, X2))
-				} ## end for j
-			}## else if RVS
-				cc = (sum(abs(C) >= abs(Tobs)) + 1) / (nboot + 1)
-						return(cc)
-}
-*/
