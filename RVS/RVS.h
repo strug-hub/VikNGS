@@ -71,7 +71,7 @@ double RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool = true);
 void RVSrare(std::vector<SNP> &, std::vector<bool> &, int, bool = true, int = 5, int = 1, int = 1);
 
 //CompQuadForm.cpp
-void qfc(double* lb1, double* nc1, int* n1, int *r1, double *sigma, double *c1, int *lim1, double *acc, double* trace, int* ifault, double *res);
+double qfc(std::vector<double>, double, int);
 
 //========================================================
 // inline functions

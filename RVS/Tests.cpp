@@ -2,6 +2,7 @@
 #include "RVS.h"
 #include "Eigen/Dense"
 using Eigen::MatrixXd;
+using Eigen::VectorXd;
 
 #include <iostream>
 #include <vector>
@@ -330,7 +331,6 @@ void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool r
 	typedef std::vector<std::vector<double>> Matrix;
 	typedef std::vector<double> Row;
 	MatrixXd sigma(njoint, njoint);
-	std::cout << sigma << std::endl;
 
 	double sum;
 	double SLobs;
@@ -539,20 +539,10 @@ void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool r
 
 	SLobs = 2 * pnorm(s / sqrt(sum));
 	//SQobs
-	std::cout << SLobs;
 
-	std::cout << '\n';
 
-	for (size_t i = 0; i < njoint; i++) {
-		for (size_t j = 0; j < njoint; j++) {
-			std::cout << sigma(i, j);
-			std::cout << '\t';
-
-		}
-		std::cout << '\n';
-
-	}
-
-	std::cout << sigma.eigenvalues();
-	//qfc...
+	VectorXd e = sigma.eigenvalues().real();
+	std::vector<double> eigenvals(e.data(), e.data() + e.size());
+	
+	std::cout << qfc(eigenvals, s2, njoint);
 }
