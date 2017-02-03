@@ -107,9 +107,13 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
 	std::cout << " variants satisfy the MAF condition provided\n";
 	
 	//remove SNPs that failed MAF condition
-	for (size_t i = 0; i < snps.size(); i++) 
-		if(snps[i].maf == NULL)
+	int i = 0;
+	while (i < snps.size()) {
+		if (snps[i].maf == NULL) 
 			snps.erase(snps.begin() + i);
+		else 
+			i++;
+	}
 }
 
 /*
@@ -152,7 +156,7 @@ int main() {
 	std::vector<SNP> snps = vcf_process(vcfDir, caseIDDir, mafCut, common, IDmap);
 
 	calcMeanVar(IDmap, snps);
-	std::vector<double> pvals = RVSasy(snps, IDmap, false);
+	std::vector<double> pvals = RVSasy(snps, IDmap, true);
 	//RVSbtrap(snps, IDmap, true, 1000);
 
 	std::cout << "Chr\tLoc\tMAF\tp-value\n";
@@ -169,8 +173,7 @@ int main() {
 		}
 	}
 
-
-	RVSrare(snps, IDmap, 1000);
+	RVSrare(snps, IDmap, 10000);
 
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!

@@ -371,5 +371,5 @@ l2:
 
 endofproc:
 	free((char*)th);
-	return 1 - qfval;
+	return std::abs(1 - qfval);
 }
