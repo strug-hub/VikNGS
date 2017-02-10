@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iostream>  
 
 //========================================================
 // SNP struct
@@ -55,20 +56,15 @@ std::vector<std::string> parseHeader(MemoryMapped &, int &);
 std::vector<bool> getIDs(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
 std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<bool> &);
-
-//Statistics.cpp
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
-std::vector<double> logisticRegression(std::vector<bool> &, std::vector<double> &);
-double logisticRegressionInterceptOnly(std::vector<bool> &, std::vector<double> &);
-double scoreTest(std::vector<bool> &y, std::vector<double> &x);
-double chiSquareOneDOF(double);
 
-//Tests.cpp
-void calcMeanVar(std::vector<bool> &, std::vector<SNP> &);
+//CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<bool> &, bool = true);
-double RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool = true);
-void RVSrare(std::vector<SNP> &, std::vector<bool> &, int, bool = true, int = 5, int = 1, int = 1);
+std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool = true);
+
+//RareTest.cpp
+std::vector<double> RVSrare(std::vector<SNP> &, std::vector<bool> &, int, bool = true, int = 5, int = 1, int = 1);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
@@ -110,7 +106,41 @@ Finds a string in a vector of strings.
 @param v The vector to search in.
 @return Index of query in v or -1 if query is not found in v.
 */
-inline int findIndex(std::string query, std::vector<std::string> v) {
+inline size_t findIndex(std::string query, std::vector<std::string> v) {
 	auto index = std::find(v.begin(), v.end(), query);
 	return index != v.end() ? -1 : index - v.begin();
+}
+
+/*
+Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
+
+@param p Genotype frequency from EM algorithm
+@return Robust variance of E(G | D)
+*/
+inline double calcRobustVar(std::vector<double> p) {
+	return (4 * p[2] + p[1]) - pow(2 * p[2] + p[1], 2);
+}
+
+//========================================================
+// timing functions
+//========================================================
+
+#include <time.h>
+
+inline clock_t startTime() {
+	clock_t t;
+	t = clock();
+	return t;
+}
+
+inline void endTime(clock_t t, std::string label) {
+	t = clock() - t;
+	std::cout << "Timer " + label + " took ";
+	std::cout << (float)t / CLOCKS_PER_SEC;
+	std::cout << " seconds\n";
+}
+
+inline double endTime(clock_t t) {
+	t = clock() - t;
+	return (double)t / CLOCKS_PER_SEC;
 }

@@ -701,19 +701,19 @@
     <ClCompile Include="ProcessVCF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Statistics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HelperVCF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MemoryMapped\MemoryMapped.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CompQuadForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RareTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

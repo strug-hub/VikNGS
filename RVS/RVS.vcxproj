@@ -370,11 +370,11 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
     <ClCompile Include="MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="ProcessVCF.cpp" />
-    <ClCompile Include="Tests.cpp" />
-    <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="RareTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

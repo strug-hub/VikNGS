@@ -117,7 +117,11 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
 }
 
 /*
-Gets the expected probabilities of the genotypes E(G_ij | D_ij) from a VCF file
+Parses a VCF file to get the expected probabilities of the genotypes E(G_ij | D_ij) 
+and expected minor allele frequency.
+@param vcfDir Path of VCF file.
+@param caseIDDir Path of file that specifies cases.
+@return Vector of SNPs parsed from VCF file.
 */
 std::vector<SNP> vcf_process(std::string vcfDir, std::string caseIDDir,
 	double mafCut, bool common, std::vector<bool> IDmap) {
@@ -142,6 +146,93 @@ std::vector<SNP> vcf_process(std::string vcfDir, std::string caseIDDir,
 	return snps;
 }
 
+/**
+Calculates the mean and variance of expected genotypes
+and saves them to reduce computation.
+
+@param snps Vector of SNPs.
+@param IDmap Vector with phenotypes (case/control).
+@return None.
+@effect Stores mean and variance values inside SNP structs.
+
+*/
+void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
+	double var;
+	double mean;
+	double n;
+	double controlvar;
+	double controlmean;
+	double ncontrol;
+	double casevar;
+	double casemean;
+	double ncase;
+	double eg;
+
+	for (size_t j = 0; j < snps.size(); j++) {
+
+		var = 0;
+		mean = 0;
+		n = 0;
+		controlvar = 0;
+		controlmean = 0;
+		ncontrol = 0;
+		casevar = 0;
+		casemean = 0;
+		ncase = 0;
+
+		for (size_t i = 0; i < snps[j].EG.size(); i++) {
+			eg = snps[j].EG[i];
+			if (eg != NULL) {
+				if (!IDmap[i]) {
+					ncontrol++;
+					controlmean += eg;
+				}
+				else {
+					ncase++;
+					casemean += eg;
+				}
+			}
+		}
+
+		mean = casemean + controlmean;
+		n = ncase + ncontrol;
+
+		mean /= n;
+		controlmean /= ncontrol;
+		casemean /= ncase;
+
+		for (size_t i = 0; i < snps[j].EG.size(); i++) {
+			eg = snps[j].EG[i];
+
+			if (eg != NULL) {
+				var += pow((eg - mean), 2);
+
+				if (!IDmap[i])
+					controlvar += pow((eg - controlmean), 2);
+				else {
+					casevar += pow((eg - casemean), 2);
+				}
+			}
+		}
+
+		var /= n - 1;
+		controlvar /= ncontrol - 1;
+		casevar /= ncase - 1;
+
+		snps[j].var = var;
+		snps[j].mean = mean;
+		snps[j].n = n;
+		snps[j].controlvar = controlvar;
+		snps[j].controlmean = controlmean;
+		snps[j].ncontrol = ncontrol;
+		snps[j].casevar = casevar;
+		snps[j].casemean = casemean;
+		snps[j].ncase = ncase;
+	}
+
+	return;
+}
+
 int main() {
 	//TODO: take as input from command line
 	//---------------------------------------
@@ -152,12 +243,19 @@ int main() {
 	//---------------------------------------
 
 	std::vector<bool> IDmap = getIDs(vcfDir, caseIDDir, 9);
-
 	std::vector<SNP> snps = vcf_process(vcfDir, caseIDDir, mafCut, common, IDmap);
 
 	calcMeanVar(IDmap, snps);
 	std::vector<double> pvals = RVSasy(snps, IDmap, true);
-	//RVSbtrap(snps, IDmap, true, 1000);
+
+	/*
+	for (size_t i = 2; i <= 6; i++) {
+	int nboot = pow(10, i);
+	auto t = startTime();
+	RVSbtrap(snps, IDmap, nboot, true);
+	endTime(t, std::to_string(nboot));
+	}
+	*/
 
 	std::cout << "Chr\tLoc\tMAF\tp-value\n";
 	for (size_t i = 0; i < snps.size(); i++) {
@@ -174,6 +272,7 @@ int main() {
 	}
 
 	RVSrare(snps, IDmap, 10000);
+
 
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!

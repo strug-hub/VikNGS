@@ -7,277 +7,9 @@ using Eigen::VectorXd;
 #include <iostream>
 #include <vector>
 #include <random>
-#include <time.h>
-
-/*
-Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
-
-@param p Genotype frequency from EM algorithm
-@return Robust variance of E(G | D)
-*/
-inline double calcRobustVar(std::vector<double> p) {
-	return (4 * p[2] + p[1]) - pow(2 * p[2] + p[1], 2);
-}
 
 
-void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
-	double var;
-	double mean;
-	double n;
-	double controlvar;
-	double controlmean;
-	double ncontrol;
-	double casevar;
-	double casemean;
-	double ncase;
-	double eg;
-
-	for (size_t j = 0; j < snps.size(); j++) {
-
-		var = 0;
-		mean = 0;
-		n = 0;
-		controlvar = 0;
-		controlmean = 0;
-		ncontrol = 0;
-		casevar = 0;
-		casemean = 0;
-		ncase = 0;
-
-		for (size_t i = 0; i < snps[j].EG.size(); i++) {
-			eg = snps[j].EG[i];
-			if (eg != NULL) {
-				if (!IDmap[i]) {
-					ncontrol++;
-					controlmean += eg;
-				}
-				else {
-					ncase++;
-					casemean += eg;
-				}
-			}
-		}
-		
-		mean = casemean + controlmean;
-		n = ncase + ncontrol;
-	
-		mean /= n;
-		controlmean /= ncontrol;
-		casemean /= ncase;
-
-		for (size_t i = 0; i < snps[j].EG.size(); i++) {
-			eg = snps[j].EG[i];
-
-			if (eg != NULL) {
-				var += pow((eg - mean), 2);
-
-				if (!IDmap[i])
-					controlvar += pow((eg - controlmean), 2);
-				else {
-					casevar += pow((eg - casemean), 2);
-				}
-			}
-		}
-
-		var /= n - 1;
-		controlvar /= ncontrol - 1;
-		casevar /= ncase - 1;
-
-		snps[j].var = var;
-		snps[j].mean = mean;
-		snps[j].n = n;
-		snps[j].controlvar = controlvar;
-		snps[j].controlmean = controlmean;
-		snps[j].ncontrol = ncontrol;
-		snps[j].casevar = casevar;
-		snps[j].casemean = casemean;
-		snps[j].ncase = ncase;
-	}
-	
-	return;
-}
-
-
-/*
-RVS using asymptotic distribution for score test statistic. This functions includes
-two association tests which differ in the estimation of the variance of score. It uses
-var_case(E(G | D)) when rvs = false and var_case(G) when rvs = true.
-
-Reference: http://www.ncbi.nlm.nih.gov/pubmed/22570057
-Reference: http://www.ncbi.nlm.nih.gov/pubmed/24733292
-@param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
-@param rvs Indicates how to calculate variance
-@return p-values for the SNPs
-*/
-std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<bool> &IDmap, bool rvs) {
-	
-	std::vector<double> pvals;
-	SNP snp;
-	double v;
-	double p;
-
-	for (size_t j = 0; j < snps.size(); j++) {
-		snp = snps[j];
-
-		if (rvs) {
-			p = snp.ncase / snp.n;
-			v = (1-p) * calcRobustVar(snp.p) + p * snp.controlvar;
-			v = snp.var / v;
-		}
-		else
-			v = 1;
-
-		pvals.push_back(chiSquareOneDOF(scoreTest(IDmap, snp.EG) * v));
-	}
-
-	return pvals;
-}
-
-
-double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
-	srand(time(NULL));
-
-	std::vector<double> x0;
-	std::vector<double> x1;
-	std::vector<double> counter0;
-	std::vector<double> counter1;
-
-	for (size_t i = 0; i < snp.EG.size(); i++) {
-		if (snp.EG[i] != NULL) {
-			if (IDmap[i]) {
-				x1.push_back(snp.EG[i] - snp.casemean);
-				counter1.push_back(0);
-			}
-			else {
-				x0.push_back(snp.EG[i] - snp.controlmean);
-				counter0.push_back(0);
-			}
-		}
-	}
-
-	double bootmean0;
-	double bootvar0;
-	double bootmean1;
-	double bootvar1;
-	double statistic;
-	double bootScoreCount = 1;
-	int ncase = int(snp.ncase);
-	int ncontrol = int(snp.ncontrol);
-
-	for (int k = 0; k < nboot; k++) {
-		bootmean0 = 0;
-		bootvar0 = 0;
-		bootmean1 = 0;
-		bootvar1 = 0;
-		//reset counters
-		for (int i = 0; i < ncontrol; i++)
-			counter0[i] = 0;
-		for (int i = 0; i < ncase; i++)
-			counter1[i] = 0;
-
-		//sample from observed values
-		for (int i = 0; i < ncontrol; i++)
-			counter0[rand() % ncontrol]++;
-		for (int i = 0; i < ncase; i++)
-			counter1[rand() % ncase]++;
-
-		//calculate means
-		for (int i = 0; i < ncontrol; i++)
-			bootmean0 += counter0[i] * x0[i];
-		for (int i = 0; i < ncase; i++)
-			bootmean1 += counter1[i] * x1[i];
-
-		bootmean0 /= snp.ncontrol;
-		bootmean1 /= snp.ncase;
-
-		//calculate variances
-		for (int i = 0; i < ncontrol; i++)
-			bootvar0 += counter0[i] * pow(x0[i] - bootmean0, 2);
-		for (int i = 0; i < ncase; i++)
-			bootvar1 += counter1[i] * pow(x1[i] - bootmean1, 2);
-
-		bootvar0 /= snp.ncontrol - 1;
-		bootvar1 /= snp.ncase - 1;
-
-		statistic = (bootmean1 - bootmean0) / sqrt(bootvar1 / snp.ncase + bootvar0 / snp.ncontrol);
-		if (abs(statistic) >= tobs)
-			bootScoreCount++;
-	}
-
-	return 	bootScoreCount / nboot;
-}
-
-double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
-	srand(time(NULL));
-
-	std::vector<double> x;
-	double bootScoreCount = 1;
-	double p = snp.ncase / snp.n;
-	double q = 1 - p;
-	double vs = p * q * snp.n * snp.var;
-	double statistic;
-	double casesum;
-	double controlsum;
-
-	double xindex;
-
-	for (size_t i = 0; i < snp.EG.size(); i++)
-		if (snp.EG[i] != NULL)
-			x.push_back(i);
-
-	for (int k = 0; k < nboot; k++) {
-		casesum = 0;
-		controlsum = 0;
-		xindex = 0;
-		std::random_shuffle(x.begin(), x.end());
-
-		for (size_t i = 0; i < snp.EG.size(); i++) {
-			if (snp.EG[i] != NULL) {
-				if (IDmap[i])
-					casesum += snp.EG[x[xindex]];
-				else
-					controlsum += snp.EG[x[xindex]];
-				xindex++;
-			}
-		}
-
-		statistic = pow(q * casesum - p * controlsum, 2) / vs;
-
-		if (abs(statistic) >= tobs)
-			bootScoreCount++;
-	}
-	return 	bootScoreCount / nboot;
-}
-
-double RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs) {
-	SNP snp = snps[0];
-
-	double maf = 0;
-	double p;
-	double s;
-	double tobs;
-
-	//calculate observed score statistic
-	if (rvs)
-		tobs = (snp.casemean - snp.controlmean) / 
-		sqrt(calcRobustVar(snp.p) / snp.ncase + snp.controlvar / snp.ncontrol);
-	else {
-		p = snp.ncase / snp.n;
-		s = (1 - p) * snp.casemean * snp.ncase - p * snp.controlmean * snp.ncontrol;
-		tobs = pow(s, 2) / (p * (1 - p) * snp.n * snp.var);
-	}
-	tobs = abs(tobs);
-
-	//bootstrap test
-	if (rvs)
-		return bstrapHelp1(snp, IDmap, nboot, tobs);
-	else
-		return bstrapHelp2(snp, IDmap, nboot, tobs);
-}
-
-
-//TODO
+//TODO!!
 //takes matrix
 //finds columns which are all identical (except NULLs)
 //picks first row without *any* NULL or random row  without *any* NULL (depends on hom)
@@ -296,7 +28,14 @@ double RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, boo
 //[9, ]	1	3	0			[9, ]	1	3	0.00E+00
 //[10,]	1	2	0			[10, ]	1	2	0.00E+00
 //void checkHomMatrix()
-	
+
+
+/*
+Approximates the p-value from the pdf of the normal distribution where x is a Z-score
+
+@param x Z-score.
+@return p-value.
+*/
 double pnorm(double x)
 {
 	// constants
@@ -484,13 +223,28 @@ void CovariateMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njoin
 
 }
 
+/*
+RVS analysis with rare variants for one group. Get p-values from RVS
+with CAST and C-alpha (resampling: bootstrap; variance estimate : robust)
 
+@param snps Vector of SNPs.
+@param IDmap Vector with phenotypes (case/control).
+@param nboot Number of bootstrap iterations.
+@param rvs Indicates how to calculate variance of score statistic.
+@param njoint Number of SNPs grouping together for one test, default is 5.
 
-void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs, int njoint, int hom, int multiplier) {
+checkHomMatrix parameters:
+@param hom 1 or 2; 1 means making changes with the 1st non-NULL element, 2 means making changes with a random non-NULL element
+@param multiplier Value 1 or 2; 1 is dividing by 2 and 2 is multiplying by 2.
+
+@return Vector with two p-values. First element is CAST p-value, second is C-alpha.
+*/
+std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs, int njoint, int hom, int multiplier) {
 	size_t i, j, k;
 	srand((unsigned int)time(NULL));
 	SNP snp = snps[0];
 	double temp;
+	size_t tempint;
 	double s = 0;
 	double s2 = 0;
 	MatrixXd sigma(njoint, njoint);
@@ -626,21 +380,23 @@ void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool r
 
 	for (int h = 0; h < nboot; h++) {
 
+		/*
 		if (h % 1000 == 0) {
 			std::cout << h;
 			std::cout << '\n';
 		}
+		*/
 
 		//randomize
 		for (j = 0; j < ncase; j++) {
-			temp = rand() % ncase;
+			tempint = rand() % ncase;
 			for (i = 0; i < njoint; i++)
-				randomCase[i][j] = centralizedCase[i][temp];
+				randomCase[i][j] = centralizedCase[i][tempint];
 		}
 		for (j = 0; j < ncontrol; j++) {
-			temp = rand() % ncontrol;
+			tempint = rand() % ncontrol;
 			for (i = 0; i < njoint; i++)
-				randomControl[i][j] = centralizedControl[i][temp];
+				randomControl[i][j] = centralizedControl[i][tempint];
 		}
 
 		s = 0;
@@ -742,11 +498,11 @@ void RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool r
 		if (pnorm(s / sqrt(sum)) <= SLobs) {
 			bootCountSL++;
 		}
-
 	}
 
-	std::cout << bootCountSL / nboot;
-	std::cout << "   \t";
-	std::cout << bootCountSQ / nboot;
-	std::cout << "   \n";
+	std::vector<double> out;
+	out.push_back(bootCountSL / nboot);
+	out.push_back(bootCountSQ / nboot);
+	
+	return out;
 }
