@@ -42,11 +42,14 @@ double scoreTest(std::vector<bool> &y, std::vector<double> &x) {
 
 	for (size_t i = 0; i < y.size(); i++)
 		if (x[i] != NULL) {
+
 			temp = y[i] - ybar;
 
 			score += temp * x[i];
 			dnom += pow(temp, 2) * xvar;
 		}
+
+
 	return pow(score, 2) / dnom;
 }
 
@@ -129,9 +132,16 @@ Bootstrap test called from RVSbtrap when rvs = true
 @param IDmap Vector with phenotypes (case/control).
 @param nboot Number of bootstrap iterations.
 @param tobs Observed test statistic.
+@param earlyStop Stop bootstrapping with p-value is large.
 @return p-value from the bootstrap test.
 */
-double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
+double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, bool earlyStop) {
+
+	int bootcount = 0;
+	double a = 1000;
+	double c = 0.0141;  // delta = 0.4, p_0 = 0.01
+	double pstar;
+
 	srand((int)time(NULL));
 
 	std::vector<double> x0;
@@ -199,9 +209,36 @@ double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
 		statistic = (bootmean1 - bootmean0) / sqrt(bootvar1 / snp.ncase + bootvar0 / snp.ncontrol);
 		if (abs(statistic) >= tobs)
 			bootScoreCount++;
+
+		bootcount++;
+
+		if (earlyStop && bootcount > 1000) {
+			pstar = a / ((bootcount + c)*(1 + c));
+
+			if (bootScoreCount / bootcount > pstar) {
+				std::cout << "early stop";
+				break;
+			}
+		}
+	}
+	
+	if (bootcount == nboot)
+	{
+		std::cout << "Ran to completion";
 	}
 
-	return 	bootScoreCount / nboot;
+	std::cout << "\t";
+	std::cout << "nboot: ";
+	std::cout << bootcount;
+	std::cout << "\t";
+	std::cout << "p-val: ";
+
+	std::cout << bootScoreCount / bootcount;
+
+	std::cout << "\n";
+
+
+	return 	bootScoreCount / bootcount;
 }
 
 /*
@@ -211,9 +248,10 @@ Bootstrap test called from RVSbtrap when rvs = false
 @param IDmap Vector with phenotypes (case/control).
 @param nboot Number of bootstrap iterations.
 @param tobs Observed test statistic.
+@param earlyStop Stop bootstrapping with p-value is large.
 @return p-value from the bootstrap test.
 */
-double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
+double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, bool earlyStop) {
 	srand((int)time(NULL));
 
 	std::vector<size_t> x;
@@ -252,6 +290,7 @@ double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs) {
 		if (abs(statistic) >= tobs)
 			bootScoreCount++;
 	}
+	//TODO:early stopping here
 	return 	bootScoreCount / nboot;
 }
 
@@ -262,10 +301,11 @@ estimated genotype frequency and number of bootstrap iterations.
 @param snps Vector of SNPs.
 @param IDmap Vector with phenotypes (case/control).
 @param nboot Number of bootstrap iterations.
+@param earlyStop Stop bootstrapping with p-value is large.
 @param rvs Indicates how to calculate variance of score statistic.
 @return Vector of p-values for the SNPs.
 */
-std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs) {
+std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool earlyStop, bool rvs) {
 	std::vector<double> pvals;
 	SNP snp;
 
@@ -290,9 +330,9 @@ std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, i
 
 		//bootstrap test
 		if (rvs)
-			pvals.push_back(bstrapHelp1(snp, IDmap, nboot, tobs));
+			pvals.push_back(bstrapHelp1(snp, IDmap, nboot, tobs, earlyStop));
 		else
-			pvals.push_back(bstrapHelp2(snp, IDmap, nboot, tobs));
+			pvals.push_back(bstrapHelp2(snp, IDmap, nboot, tobs, earlyStop));
 	}
 
 	return pvals;

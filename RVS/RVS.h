@@ -61,7 +61,7 @@ std::vector<double> calcEG(SNP &);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<bool> &, bool = true);
-std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool = true);
+std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool, bool = true);
 
 //RareTest.cpp
 std::vector<double> RVSrare(std::vector<SNP> &, std::vector<bool> &, int, bool = true, int = 5, int = 1, int = 1);
@@ -106,7 +106,7 @@ Finds a string in a vector of strings.
 @param v The vector to search in.
 @return Index of query in v or -1 if query is not found in v.
 */
-inline size_t findIndex(std::string query, std::vector<std::string> v) {
+inline int findIndex(std::string query, std::vector<std::string> v) {
 	auto index = std::find(v.begin(), v.end(), query);
 	return index != v.end() ? -1 : index - v.begin();
 }

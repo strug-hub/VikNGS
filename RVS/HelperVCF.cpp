@@ -61,7 +61,8 @@ std::vector<bool> getIDs(std::string vcfDir, std::string caseIDDir, int ncolID) 
 	int countControl = 0;
 
 	for (size_t i = ncolID; i < IDs.size(); i++) {
-		size_t index = findIndex(IDs[i], caseIDs);
+		int index = findIndex(IDs[i], caseIDs);
+
 		if (index > -1) {
 			IDmap.push_back(false);
 			countControl++;

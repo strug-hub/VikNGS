@@ -378,6 +378,11 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, in
 	// Bootstrap 
 	//================
 
+	int bootcount = 0;
+	double a = 5;
+	double c = 0.0141;  // delta = 0.4, p_0 = 0.01
+	double pstar;
+
 	for (int h = 0; h < nboot; h++) {
 
 		/*
@@ -498,11 +503,22 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, in
 		if (pnorm(s / sqrt(sum)) <= SLobs) {
 			bootCountSL++;
 		}
+
+		bootcount++;
+
+		pstar = a / ((bootcount + c)*(1 + c));
+
+		if (bootCountSQ / bootcount > pstar && bootCountSL / bootcount > pstar) {
+			std::cout << "early stop";
+			std::cout << "\n";
+
+			break;
+		}
 	}
 
 	std::vector<double> out;
-	out.push_back(bootCountSL / nboot);
-	out.push_back(bootCountSQ / nboot);
+	out.push_back(bootCountSL / bootcount);
+	out.push_back(bootCountSQ / bootcount);
 	
 	return out;
 }
