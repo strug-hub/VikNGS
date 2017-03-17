@@ -12,11 +12,11 @@
 Seperates the case and control IDs
 
 @param vcfDir Full directory path of the VCF file.
-@param vcfDir Full directory path of the caseID file.
+@param sampleInfoDir Full directory path of the sampleInfo file.
 @param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
 @return A vector indicating whether samples are case (true) or control (false).
 */
-std::vector<bool> getIDs(std::string vcfDir, std::string caseIDDir, int ncolID) {
+std::vector<bool> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, int ncolID) {
 
 	//open VCF file and find the line with column names
 	MemoryMapped vcf(vcfDir);
@@ -25,21 +25,26 @@ std::vector<bool> getIDs(std::string vcfDir, std::string caseIDDir, int ncolID) 
 
 	int lineCounter = 0;
 
-	//open caseID file
-	MemoryMapped caseID(caseIDDir);
+	//open sampleInfo file
+	MemoryMapped sampleInfo(sampleInfoDir);
+
 	pos = 0;
 	int startPos = pos;
-	std::vector<std::string> caseIDs;
+	std::vector<std::string> sampleInfos;
 
-	//extract every ID from caseID file, assumes one ID per line
+	//extract every sample from sampleInfo file, assumes one sample per line
 	std::string ID;
+	std::string line;
+	std::vector<std::string> lineSplit;
 
-	while (pos < caseID.mappedSize()) {
-		if (caseID[pos] == '\n') {
+	while (pos < sampleInfo.mappedSize()) {
+		if (sampleInfo[pos] == '\n') {
 
-			ID = trim(getString(caseID, startPos, pos));
-			if (ID.size() > 0) {
-				caseIDs.push_back(ID);
+			line = trim(getString(sampleInfo, startPos, pos));
+			lineSplit = split(line, '\t');
+
+			if (lineSplit[1] == "1") {
+				sampleInfos.push_back(lineSplit[0]);
 				lineCounter++;
 				startPos = pos + 1;
 			}
@@ -48,9 +53,9 @@ std::vector<bool> getIDs(std::string vcfDir, std::string caseIDDir, int ncolID) 
 	}
 
 	//last line may not end with return character
-	std::string lastLine = trim(getString(caseID, startPos, pos));
+	std::string lastLine = trim(getString(sampleInfo, startPos, pos));
 	if (lastLine.size() > 0) {
-		caseIDs.push_back(lastLine);
+		sampleInfos.push_back(lastLine);
 		lineCounter++;
 	}
 
@@ -61,7 +66,7 @@ std::vector<bool> getIDs(std::string vcfDir, std::string caseIDDir, int ncolID) 
 	int countControl = 0;
 
 	for (size_t i = ncolID; i < IDs.size(); i++) {
-		int index = findIndex(IDs[i], caseIDs);
+		int index = findIndex(IDs[i], sampleInfos);
 
 		if (index > -1) {
 			IDmap.push_back(false);

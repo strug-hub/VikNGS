@@ -120,10 +120,10 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
 Parses a VCF file to get the expected probabilities of the genotypes E(G_ij | D_ij) 
 and expected minor allele frequency.
 @param vcfDir Path of VCF file.
-@param caseIDDir Path of file that specifies cases.
+@param sampleInfoDir Path of file that specifies cases.
 @return Vector of SNPs parsed from VCF file.
 */
-std::vector<SNP> vcf_process(std::string vcfDir, std::string caseIDDir,
+std::vector<SNP> vcf_process(std::string vcfDir, std::string sampleInfoDir,
 	double mafCut, bool common, std::vector<bool> IDmap) {
 	
 	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, IDmap);
@@ -239,11 +239,15 @@ int main() {
 	bool common = true;
 	double mafCut = 0.05;
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
-	std::string caseIDDir = "C:/Users/Scott/Desktop/RVS-master/example/caseID.txt";
+	std::string sampleInfoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
 	//---------------------------------------
 
-	std::vector<bool> IDmap = getIDs(vcfDir, caseIDDir, 9);
-	std::vector<SNP> snps = vcf_process(vcfDir, caseIDDir, mafCut, common, IDmap);
+
+	//TODO: check to see if file can be opened when another application is using it (excel)
+	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
+
+	std::vector<bool> IDmap = getSampleInfo(vcfDir, sampleInfoDir, 9);
+	std::vector<SNP> snps = vcf_process(vcfDir, sampleInfoDir, mafCut, common, IDmap);
 
 	calcMeanVar(IDmap, snps);
 	std::vector<double> pvals = RVSasy(snps, IDmap, true);
@@ -273,7 +277,7 @@ int main() {
 
 	auto t = startTime();
 
-	pvals = RVSbtrap(snps, IDmap, 1000000, false, true);
+	pvals = RVSbtrap(snps, IDmap, 1000000, true, true);
 	endTime(t, "btrp=1000000");
 
 

@@ -43,6 +43,8 @@ struct SNP {
 	double casemean = 0;
 	double ncase = 0;
 
+	int group = 0;
+	bool hrg = false;
 };
 
 inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
@@ -53,7 +55,7 @@ inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 
 //HelperVCF.cpp
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
-std::vector<bool> getIDs(std::string, std::string, int);
+std::vector<bool> getSampleInfo(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
 std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<bool> &);
 std::vector<double> calcEM(SNP &);
@@ -97,6 +99,26 @@ inline std::string getString(MemoryMapped &charArray, int start, int end) {
 	std::string ret;
 	for (; start < end; start++) { ret += charArray[start]; }
 	return ret;
+}
+
+/**
+Separates a string into a vector, splitting at every postion with
+the sep character
+
+@param s String to split.
+@param sep Character to split the string at.
+@return Split string.
+*/
+inline std::vector<std::string> split(std::string s, char sep) {
+	std::vector<std::string> split;
+	int start = 0;
+	for (int i = 0; i <= s.length(); i++) {
+		if (s[i] == sep || i == s.length()) {
+			split.push_back(s.substr(start, i- start));
+			start = i+1;
+		}
+	}
+	return split;
 }
 
 /**

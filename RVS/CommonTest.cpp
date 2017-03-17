@@ -125,6 +125,9 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<bool> &IDmap, boo
 	return pvals;
 }
 
+//  v = sum((Y.lrd - mean(Y)) ^ 2)* var(X.lrd) + sum((Y.hrd1 - mean(Y)) ^ 2 * as.numeric(calc_robust_Var(P))) + sum((Y.hrd2 - mean(Y)) ^ 2 * as.numeric(calc_robust_Var(P)))
+
+
 /*
 Bootstrap test called from RVSbtrap when rvs = true
 
@@ -138,7 +141,7 @@ Bootstrap test called from RVSbtrap when rvs = true
 double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, bool earlyStop) {
 
 	int bootcount = 0;
-	double a = 1000;
+	double a = 100000;
 	double c = 0.0141;  // delta = 0.4, p_0 = 0.01
 	double pstar;
 
