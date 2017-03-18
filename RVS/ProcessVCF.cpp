@@ -246,7 +246,7 @@ int main() {
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
-	std::vector<bool> IDmap = getSampleInfo(vcfDir, sampleInfoDir, 9);
+	std::vector<Sample> IDmap = getSampleInfo(vcfDir, sampleInfoDir, 9);
 	std::vector<SNP> snps = vcf_process(vcfDir, sampleInfoDir, mafCut, common, IDmap);
 
 	calcMeanVar(IDmap, snps);

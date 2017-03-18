@@ -14,9 +14,9 @@ Seperates the case and control IDs
 @param vcfDir Full directory path of the VCF file.
 @param sampleInfoDir Full directory path of the sampleInfo file.
 @param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
-@return A vector indicating whether samples are case (true) or control (false).
+@return A vector of Samples with information parsed from sampleInfo file
 */
-std::vector<bool> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, int ncolID) {
+std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, int ncolID) {
 
 	//open VCF file and find the line with column names
 	MemoryMapped vcf(vcfDir);
@@ -30,7 +30,10 @@ std::vector<bool> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, i
 
 	pos = 0;
 	int startPos = pos;
-	std::vector<std::string> sampleInfos;
+	std::vector<std::string> sampleID;
+	std::vector<std::string> groupID;
+	std::vector<std::string> y;
+	std::vector<std::string> depth;
 
 	//extract every sample from sampleInfo file, assumes one sample per line
 	std::string ID;
@@ -43,49 +46,68 @@ std::vector<bool> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, i
 			line = trim(getString(sampleInfo, startPos, pos));
 			lineSplit = split(line, '\t');
 
-			if (lineSplit[1] == "1") {
-				sampleInfos.push_back(lineSplit[0]);
-				lineCounter++;
-				startPos = pos + 1;
-			}
+			sampleID.push_back(lineSplit[0]);
+			y.push_back(lineSplit[1]);
+			groupID.push_back(lineSplit[2]);
+			depth.push_back(lineSplit[3]);
+
 		}
 		pos++;
 	}
 
 	//last line may not end with return character
-	std::string lastLine = trim(getString(sampleInfo, startPos, pos));
-	if (lastLine.size() > 0) {
-		sampleInfos.push_back(lastLine);
-		lineCounter++;
+	line = trim(getString(sampleInfo, startPos, pos));
+	if (line.size() > 0) {
+		line = trim(getString(sampleInfo, startPos, pos));
+		lineSplit = split(line, '\t');
+
+		sampleID.push_back(lineSplit[0]);
+		y.push_back(lineSplit[1]);
+		groupID.push_back(lineSplit[2]);
+		depth.push_back(lineSplit[3]);
 	}
 
 	//map each ID to true or false:
 	//control -> false
 	//case -> true
-	std::vector<bool> IDmap;
+	std::vector<Sample> samples;
 	int countControl = 0;
 
 	for (size_t i = ncolID; i < IDs.size(); i++) {
-		int index = findIndex(IDs[i], sampleInfos);
-
+		int index = findIndex(IDs[i], sampleID);
 		if (index > -1) {
-			IDmap.push_back(false);
-			countControl++;
+			Sample s;
+			s.ID = sampleID[index];
+			s.y = std::stod(y[index]);
+			s.groupID = groupID[index];
+
+			if (depth[index] == "H" || depth[index] == "h")
+				s.hrg = true;
+
+			samples.push_back(s);
+
+			if (s.y == 0)
+				countControl++;
 		}
-		else 
-			IDmap.push_back(true);
+		else
+			std::cout << "Could not find associated information with sample " + IDs[i];
 	}
 
-	int countCase = (int)IDmap.size() - countControl;
+	int countCase = (int)IDs.size() - countControl;
 
-	std::cout << "This VCF includes " + std::to_string(IDmap.size()) + " samples with " + std::to_string(countControl) +
+	//TODO: dummyproofing parsing here before finalized product
+
+	
+	std::cout << "This VCF includes " + std::to_string(IDs.size()) + " samples with " + std::to_string(countControl) +
 		" controls and " + std::to_string(countCase) + " cases.\n";
-
+	
+	/*
 	if (lineCounter != countCase)
 		std::cout << "Warning: " + std::to_string(lineCounter) + " lines were counted in case ID file but only " +
 		std::to_string(countCase) + " were found to correspond to columns in .vcf file.\n";
+	*/
 
-	return IDmap;
+	return samples;
 }
 
 

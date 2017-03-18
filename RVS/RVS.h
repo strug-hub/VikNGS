@@ -8,6 +8,18 @@
 #include <iostream>  
 
 //========================================================
+// Sample struct
+//========================================================
+
+struct Sample {
+	std::string ID = "";
+	std::string groupID = "";
+	double y = 0;
+	bool hrg = false;
+};
+
+
+//========================================================
 // SNP struct
 //========================================================
 
@@ -55,7 +67,7 @@ inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 
 //HelperVCF.cpp
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
-std::vector<bool> getSampleInfo(std::string, std::string, int);
+std::vector<Sample> getSampleInfo(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
 std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<bool> &);
 std::vector<double> calcEM(SNP &);
