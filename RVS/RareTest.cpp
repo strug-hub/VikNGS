@@ -53,7 +53,7 @@ double pnorm(double x)
 	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }
 
-void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njoint, MatrixXd &sigma, double totalncase, double vary, double p, double q) {
+void CorrelationMatrix(std::vector<SNP> &snps, std::vector<Sample> &sample, int njoint, MatrixXd &sigma, double totalncase, double vary, double p, double q) {
 	size_t i; size_t j; size_t k;
 	double n;
 	double vari;
@@ -79,8 +79,8 @@ void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njo
 				meani = 0;
 				meanj = 0;
 
-				for (k = 0; k < IDmap.size(); k++) {
-					if (IDmap[k] && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+				for (k = 0; k < sample.size(); k++) {
+					if (sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
 						n++;
 						meani += snps[i].EG[k];
 						meanj += snps[j].EG[k];
@@ -90,8 +90,8 @@ void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njo
 				meani /= n;
 				meanj /= n;
 
-				for (k = 0; k < IDmap.size(); k++) {
-					if (IDmap[k] && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+				for (k = 0; k < sample.size(); k++) {
+					if (sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
 						vari += pow((snps[i].EG[k] - meani), 2);
 						varj += pow((snps[j].EG[k] - meanj), 2);
 						sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
@@ -123,8 +123,8 @@ void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njo
 		for (j = 0; j < njoint; j++) {
 			if (i == j) {
 				sum = 0;
-				for (k = 0; k < IDmap.size(); k++)
-					if (!IDmap[k] && snps[i].EG[k] != NULL)
+				for (k = 0; k < sample.size(); k++)
+					if (!sample[k].y && snps[i].EG[k] != NULL)
 						sum += pow(snps[i].EG[k] - snps[i].controlmean, 2);
 
 				sigma(i, i) += q * sum;
@@ -132,8 +132,8 @@ void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njo
 			}
 			else if (i < j) {
 				sum = 0;
-				for (k = 0; k < IDmap.size(); k++)
-					if (!IDmap[k] && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL)
+				for (k = 0; k < sample.size(); k++)
+					if (!sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL)
 						sum += (snps[i].EG[k] - snps[i].controlmean) * (snps[j].EG[k] - snps[j].controlmean);
 
 				sigma(i, j) += q * sum;
@@ -144,7 +144,7 @@ void CorrelationMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njo
 	}
 }
 
-void CovariateMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njoint, MatrixXd &sigma, double totalncontrol, double totalncase) {
+void CovariateMatrix(std::vector<SNP> &snps, std::vector<Sample> &sample, int njoint, MatrixXd &sigma, double totalncontrol, double totalncase) {
 	size_t i; size_t j; size_t k;
 
 	double sumcase;
@@ -174,9 +174,9 @@ void CovariateMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njoin
 				meancontroli = 0;
 				meancontrolj = 0;
 
-				for (k = 0; k < IDmap.size(); k++) {
+				for (k = 0; k < sample.size(); k++) {
 					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
-						if (IDmap[k]) {
+						if (sample[k].y) {
 							ncase++;
 							meancasei += snps[i].EG[k];
 							meancasej += snps[j].EG[k];
@@ -194,9 +194,9 @@ void CovariateMatrix(std::vector<SNP> &snps, std::vector<bool> &IDmap, int njoin
 				meancontroli /= ncontrol;
 				meancontrolj /= ncontrol;
 
-				for (k = 0; k < IDmap.size(); k++) {
+				for (k = 0; k < sample.size(); k++) {
 					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
-						if (IDmap[k])
+						if (sample[k].y)
 							sumcase += (snps[i].EG[k] - meancasei) * (snps[j].EG[k] - meancasej);
 						else
 							sumcontrol += (snps[i].EG[k] - meancontroli) * (snps[j].EG[k] - meancontrolj);
@@ -228,7 +228,7 @@ RVS analysis with rare variants for one group. Get p-values from RVS
 with CAST and C-alpha (resampling: bootstrap; variance estimate : robust)
 
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param nboot Number of bootstrap iterations.
 @param rvs Indicates how to calculate variance of score statistic.
 @param njoint Number of SNPs grouping together for one test, default is 5.
@@ -239,7 +239,7 @@ checkHomMatrix parameters:
 
 @return Vector with two p-values. First element is CAST p-value, second is C-alpha.
 */
-std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool rvs, int njoint, int hom, int multiplier) {
+std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample, int nboot, bool rvs, int njoint, int hom, int multiplier) {
 	size_t i, j, k;
 	srand((unsigned int)time(NULL));
 	SNP snp = snps[0];
@@ -259,11 +259,11 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, in
 	double meany = 0;
 	double vary = 0;
 
-	for (k = 0; k < IDmap.size(); k++)
-		if (IDmap[k])
+	for (k = 0; k < sample.size(); k++)
+		if (sample[k].y)
 			totalncase++;
-	totalncontrol = IDmap.size() - totalncase;
-	meany = totalncase / IDmap.size();
+	totalncontrol = sample.size() - totalncase;
+	meany = totalncase / sample.size();
 
 	vary += totalncase * pow(1 - meany, 2);
 	vary += totalncontrol * pow(meany, 2);
@@ -286,9 +286,9 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, in
 	//TODO: check_hom_matrix
 
 	if (rvs)
-		CorrelationMatrix(snps, IDmap, njoint, sigma, totalncase, vary, p, q);
+		CorrelationMatrix(snps, sample, njoint, sigma, totalncase, vary, p, q);
 	else
-		CovariateMatrix(snps, IDmap, njoint, sigma, totalncontrol, totalncase);
+		CovariateMatrix(snps, sample, njoint, sigma, totalncontrol, totalncase);
 
 	sum = 0;
 	for (i = 0; i < njoint; i++)
@@ -318,9 +318,9 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<bool> &IDmap, in
 		ncontrol = 0;
 		n = 0;
 
-		for (j = 0; j < IDmap.size(); j++) {
+		for (j = 0; j < sample.size(); j++) {
 			n++;
-			if (IDmap[j]) {
+			if (sample[j].y) {
 				ncase++;
 				if (snps[i].EG[j] == NULL)
 					cse.push_back(NULL);

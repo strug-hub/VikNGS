@@ -45,12 +45,12 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 
 			line = trim(getString(sampleInfo, startPos, pos));
 			lineSplit = split(line, '\t');
-
 			sampleID.push_back(lineSplit[0]);
 			y.push_back(lineSplit[1]);
 			groupID.push_back(lineSplit[2]);
 			depth.push_back(lineSplit[3]);
 
+			startPos = pos + 1;
 		}
 		pos++;
 	}
@@ -70,10 +70,11 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 	//map each ID to true or false:
 	//control -> false
 	//case -> true
-	std::vector<Sample> samples;
+	std::vector<Sample> sample;
 	int countControl = 0;
 
 	for (size_t i = ncolID; i < IDs.size(); i++) {
+
 		int index = findIndex(IDs[i], sampleID);
 		if (index > -1) {
 			Sample s;
@@ -84,21 +85,22 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 			if (depth[index] == "H" || depth[index] == "h")
 				s.hrg = true;
 
-			samples.push_back(s);
+			sample.push_back(s);
 
 			if (s.y == 0)
 				countControl++;
 		}
 		else
-			std::cout << "Could not find associated information with sample " + IDs[i];
+			std::cout << "Could not find associated information with sample " + IDs[i] + "\n";
 	}
 
-	int countCase = (int)IDs.size() - countControl;
+
+	int countCase = (int)sample.size() - countControl;
 
 	//TODO: dummyproofing parsing here before finalized product
 
 	
-	std::cout << "This VCF includes " + std::to_string(IDs.size()) + " samples with " + std::to_string(countControl) +
+	std::cout << "This VCF includes " + std::to_string(sample.size()) + " samples with " + std::to_string(countControl) +
 		" controls and " + std::to_string(countCase) + " cases.\n";
 	
 	/*
@@ -107,7 +109,7 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 		std::to_string(countCase) + " were found to correspond to columns in .vcf file.\n";
 	*/
 
-	return samples;
+	return sample;
 }
 
 
@@ -265,10 +267,10 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 @param vcfDir Full directory path of the VCF file.
 @param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
 @param missingTh Proportion of missing values tolerable.
-@param IDmap A vector indicating whether samples are case (true) or control (false).
+@param sample Vector with sample information.
 @return A list of SNPs that pass the filtering step.
 */
-std::vector<SNP> parseAndFilter(std::string vcfDir, int ncolID, double missingTh, std::vector<bool> &IDmap) {
+std::vector<SNP> parseAndFilter(std::string vcfDir, int ncolID, double missingTh, std::vector<Sample> &sample) {
 
 	MemoryMapped vcf(vcfDir);
 	std::vector<SNP> snps;
@@ -286,9 +288,9 @@ std::vector<SNP> parseAndFilter(std::string vcfDir, int ncolID, double missingTh
 	//counts number of cases and controls
 	int ncase = 0;
 	int ncontrol = 0;
-	for (size_t i = 0; i < IDmap.size(); i++) {
-		ncase += IDmap[i];
-		ncontrol += !IDmap[i];
+	for (size_t i = 0; i < sample.size(); i++) {
+		ncase += sample[i].y;
+		ncontrol += !sample[i].y;
 	}
 
 	int allowedMissCase = (int)floor(ncase * missingTh);
@@ -356,7 +358,7 @@ std::vector<SNP> parseAndFilter(std::string vcfDir, int ncolID, double missingTh
 					ind.push_back(start + 1);
 					if (vcf[start + 1] == '.') {
 
-						if (IDmap[currInd - ncolID]) {
+						if (sample[currInd - ncolID].y) {
 							missCase++;
 							if (missCase > allowedMissCase) {
 								filtered = true;

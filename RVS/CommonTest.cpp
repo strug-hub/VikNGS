@@ -9,20 +9,20 @@ Calculates score test statistic.
 score = sum((Y - Yhat) * X)
 testStastic = score^2 / [sum((Y - Yhat)^2 * var(X))]
 
-@param y Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param x Vector with E(G | D).
 @return Test statistic following a chi-squared distribution with 1 degree of freedom.
 */
-double scoreTest(std::vector<bool> &y, std::vector<double> &x) {
+double scoreTest(std::vector<Sample> &sample, std::vector<double> &x) {
 
 	double ybar = 0;
 	double xbar = 0;
 
 	double n = 0;
 
-	for (size_t i = 0; i < y.size(); i++)
+	for (size_t i = 0; i < sample.size(); i++)
 		if (x[i] != NULL) {
-			ybar += y[i];
+			ybar += sample[i].y;
 			xbar += x[i];
 			n++;
 		}
@@ -40,10 +40,10 @@ double scoreTest(std::vector<bool> &y, std::vector<double> &x) {
 	double dnom = 0;
 	double temp;
 
-	for (size_t i = 0; i < y.size(); i++)
+	for (size_t i = 0; i < sample.size(); i++)
 		if (x[i] != NULL) {
 
-			temp = y[i] - ybar;
+			temp = sample[i].y - ybar;
 
 			score += temp * x[i];
 			dnom += pow(temp, 2) * xvar;
@@ -97,11 +97,11 @@ var_case(E(G | D)) when rvs = false and var_case(G) when rvs = true.
 Reference: http://www.ncbi.nlm.nih.gov/pubmed/22570057
 Reference: http://www.ncbi.nlm.nih.gov/pubmed/24733292
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param rvs Indicates how to calculate variance
 @return p-values for the SNPs
 */
-std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<bool> &IDmap, bool rvs) {
+std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, bool rvs) {
 
 	std::vector<double> pvals;
 	SNP snp;
@@ -119,7 +119,7 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<bool> &IDmap, boo
 		else
 			v = 1;
 
-		pvals.push_back(chiSquareOneDOF(scoreTest(IDmap, snp.EG) * v));
+		pvals.push_back(chiSquareOneDOF(scoreTest(sample, snp.EG) * v));
 	}
 
 	return pvals;
@@ -132,13 +132,13 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<bool> &IDmap, boo
 Bootstrap test called from RVSbtrap when rvs = true
 
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param nboot Number of bootstrap iterations.
 @param tobs Observed test statistic.
 @param earlyStop Stop bootstrapping with p-value is large.
 @return p-value from the bootstrap test.
 */
-double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, bool earlyStop) {
+double bstrapHelp1(SNP &snp, std::vector<Sample> &sample, int nboot, double tobs, bool earlyStop) {
 
 	int bootcount = 0;
 	double a = 100000;
@@ -154,7 +154,7 @@ double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, b
 
 	for (size_t i = 0; i < snp.EG.size(); i++) {
 		if (snp.EG[i] != NULL) {
-			if (IDmap[i]) {
+			if (sample[i].y) {
 				x1.push_back(snp.EG[i] - snp.casemean);
 				counter1.push_back(0);
 			}
@@ -248,13 +248,13 @@ double bstrapHelp1(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, b
 Bootstrap test called from RVSbtrap when rvs = false
 
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param nboot Number of bootstrap iterations.
 @param tobs Observed test statistic.
 @param earlyStop Stop bootstrapping with p-value is large.
 @return p-value from the bootstrap test.
 */
-double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, bool earlyStop) {
+double bstrapHelp2(SNP &snp, std::vector<Sample> &sample, int nboot, double tobs, bool earlyStop) {
 	srand((int)time(NULL));
 
 	std::vector<size_t> x;
@@ -280,7 +280,7 @@ double bstrapHelp2(SNP &snp, std::vector<bool> &IDmap, int nboot, double tobs, b
 
 		for (size_t i = 0; i < snp.EG.size(); i++) {
 			if (snp.EG[i] != NULL) {
-				if (IDmap[i])
+				if (sample[i].y)
 					casesum += snp.EG[x[xindex]];
 				else
 					controlsum += snp.EG[x[xindex]];
@@ -302,13 +302,13 @@ Uses RVS to test associaton by bootstrap, given phenotype, expected values of ge
 estimated genotype frequency and number of bootstrap iterations.
 
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @param nboot Number of bootstrap iterations.
 @param earlyStop Stop bootstrapping with p-value is large.
 @param rvs Indicates how to calculate variance of score statistic.
 @return Vector of p-values for the SNPs.
 */
-std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, int nboot, bool earlyStop, bool rvs) {
+std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<Sample> &sample, int nboot, bool earlyStop, bool rvs) {
 	std::vector<double> pvals;
 	SNP snp;
 
@@ -333,9 +333,9 @@ std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<bool> &IDmap, i
 
 		//bootstrap test
 		if (rvs)
-			pvals.push_back(bstrapHelp1(snp, IDmap, nboot, tobs, earlyStop));
+			pvals.push_back(bstrapHelp1(snp, sample, nboot, tobs, earlyStop));
 		else
-			pvals.push_back(bstrapHelp2(snp, IDmap, nboot, tobs, earlyStop));
+			pvals.push_back(bstrapHelp2(snp, sample, nboot, tobs, earlyStop));
 	}
 
 	return pvals;

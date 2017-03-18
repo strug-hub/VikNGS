@@ -120,13 +120,13 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
 Parses a VCF file to get the expected probabilities of the genotypes E(G_ij | D_ij) 
 and expected minor allele frequency.
 @param vcfDir Path of VCF file.
-@param sampleInfoDir Path of file that specifies cases.
+@param mafCut Cut-off value for minor allele frequency
+@param sample Vector with sample information.
 @return Vector of SNPs parsed from VCF file.
 */
-std::vector<SNP> vcf_process(std::string vcfDir, std::string sampleInfoDir,
-	double mafCut, bool common, std::vector<bool> IDmap) {
+std::vector<SNP> vcf_process(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample) {
 	
-	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, IDmap);
+	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, sample);
 
 	if (snps.size() == 0)
 		std::cout << "No SNPs left after filtering .vcf file\n";
@@ -151,12 +151,12 @@ Calculates the mean and variance of expected genotypes
 and saves them to reduce computation.
 
 @param snps Vector of SNPs.
-@param IDmap Vector with phenotypes (case/control).
+@param sample Vector with sample information.
 @return None.
 @effect Stores mean and variance values inside SNP structs.
 
 */
-void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
+void calcMeanVar(std::vector<Sample> &sample, std::vector<SNP> &snps) {
 	double var;
 	double mean;
 	double n;
@@ -183,7 +183,7 @@ void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
 		for (size_t i = 0; i < snps[j].EG.size(); i++) {
 			eg = snps[j].EG[i];
 			if (eg != NULL) {
-				if (!IDmap[i]) {
+				if (!sample[i].y) {
 					ncontrol++;
 					controlmean += eg;
 				}
@@ -207,7 +207,7 @@ void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
 			if (eg != NULL) {
 				var += pow((eg - mean), 2);
 
-				if (!IDmap[i])
+				if (!sample[i].y)
 					controlvar += pow((eg - controlmean), 2);
 				else {
 					casevar += pow((eg - casemean), 2);
@@ -236,7 +236,6 @@ void calcMeanVar(std::vector<bool> &IDmap, std::vector<SNP> &snps) {
 int main() {
 	//TODO: take as input from command line
 	//---------------------------------------
-	bool common = true;
 	double mafCut = 0.05;
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
 	std::string sampleInfoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
@@ -246,17 +245,18 @@ int main() {
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
-	std::vector<Sample> IDmap = getSampleInfo(vcfDir, sampleInfoDir, 9);
-	std::vector<SNP> snps = vcf_process(vcfDir, sampleInfoDir, mafCut, common, IDmap);
+	std::vector<Sample> sample = getSampleInfo(vcfDir, sampleInfoDir, 9);
+	std::vector<SNP> snps = vcf_process(vcfDir, sampleInfoDir, mafCut, sample);
 
-	calcMeanVar(IDmap, snps);
-	std::vector<double> pvals = RVSasy(snps, IDmap, true);
+
+	calcMeanVar(sample, snps);
+	std::vector<double> pvals = RVSasy(snps, sample, true);
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
 	int nboot = pow(10, i);
 	auto t = startTime();
-	RVSbtrap(snps, IDmap, nboot, true);
+	RVSbtrap(snps, sample, nboot, true);
 	endTime(t, std::to_string(nboot));
 	}
 	*/
@@ -277,7 +277,7 @@ int main() {
 
 	auto t = startTime();
 
-	pvals = RVSbtrap(snps, IDmap, 1000000, true, true);
+	pvals = RVSbtrap(snps, sample, 1000000, true, true);
 	endTime(t, "btrp=1000000");
 
 

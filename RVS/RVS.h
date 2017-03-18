@@ -69,16 +69,16 @@ inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 std::vector<Sample> getSampleInfo(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
-std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<bool> &);
+std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<Sample> &);
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
 
 //CommonTest.cpp
-std::vector<double> RVSasy(std::vector<SNP> &, std::vector<bool> &, bool = true);
-std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<bool> &, int, bool, bool = true);
+std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, bool = true);
+std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, int, bool, bool = true);
 
 //RareTest.cpp
-std::vector<double> RVSrare(std::vector<SNP> &, std::vector<bool> &, int, bool = true, int = 5, int = 1, int = 1);
+std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, int, bool = true, int = 5, int = 1, int = 1);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
@@ -141,8 +141,10 @@ Finds a string in a vector of strings.
 @return Index of query in v or -1 if query is not found in v.
 */
 inline int findIndex(std::string query, std::vector<std::string> v) {
-	auto index = std::find(v.begin(), v.end(), query);
-	return index != v.end() ? -1 : index - v.begin();
+	for (size_t i = 0; i <= v.size(); i++)
+		if (query.compare(v[i]) == 0)
+			return i;
+	return -1;
 }
 
 /*
