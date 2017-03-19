@@ -98,34 +98,51 @@ Reference: http://www.ncbi.nlm.nih.gov/pubmed/22570057
 Reference: http://www.ncbi.nlm.nih.gov/pubmed/24733292
 @param snps Vector of SNPs.
 @param sample Vector with sample information.
+@param group Vector with group information.
 @param rvs Indicates how to calculate variance
 @return p-values for the SNPs
 */
-std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, bool rvs) {
+std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, bool rvs) {
 
 	std::vector<double> pvals;
 	SNP snp;
 	double v;
-	double p;
+	double score;
+	double ybar;
+	double temp;
 
-	for (size_t j = 0; j < snps.size(); j++) {
+	size_t i, j, k;
+
+	for (j = 0; j < snps.size(); j++) {
 		snp = snps[j];
 
-		if (rvs) {
-			p = snp.ncase / snp.n;
-			v = (1 - p) * calcRobustVar(snp.p) + p * snp.controlvar;
-			v = snp.var / v;
-		}
-		else
-			v = 1;
+		score = 0;
+		v = 0;
+		ybar = meanY(sample, snp);
 
-		pvals.push_back(chiSquareOneDOF(scoreTest(sample, snp.EG) * v));
+		for (i = 0; i < sample.size(); i++) {
+			if (snp.EG[i] != NULL)
+				score += (sample[i].y - ybar) * snp.EG[i];
+		}
+
+		for (i = 0; i < group.size(); i++) {
+			for (k = 0; k < group[i].index.size(); k++) {
+				temp = pow(sample[group[i].index[k]].y - ybar, 2);
+				if (rvs && group[i].hrg)
+					v += temp * calcRobustVar(snp.p);
+				else
+					v += temp * varX(snp, group[i]);
+			}
+		}
+
+		pvals.push_back(chiSquareOneDOF(pow(score, 2)/v));
 	}
 
 	return pvals;
 }
 
-//  v = sum((Y.lrd - mean(Y)) ^ 2)* var(X.lrd) + sum((Y.hrd1 - mean(Y)) ^ 2 * as.numeric(calc_robust_Var(P))) + sum((Y.hrd2 - mean(Y)) ^ 2 * as.numeric(calc_robust_Var(P)))
+//v = sum( (Y.lrd-mean(Y))^2)* var(X.lrd)  + sum( (Y.hrd1-mean(Y))^2* as.numeric(calc_robust_Var(P))) + sum( (Y.hrd2-mean(Y))^2* as.numeric(calc_robust_Var(P))  )
+//v = sum( (Y.lrd-mean(Y))^2)* var(X.lrd)  + sum( (Y.hrd1-mean(Y))^2* var(X.hrd1)  )  +sum( (Y.hrd2-mean(Y))^2* var(X.hrd2)  ) 
 
 
 /*

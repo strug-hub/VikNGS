@@ -124,7 +124,7 @@ and expected minor allele frequency.
 @param sample Vector with sample information.
 @return Vector of SNPs parsed from VCF file.
 */
-std::vector<SNP> vcf_process(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample) {
+std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample) {
 	
 	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, sample);
 
@@ -145,6 +145,40 @@ std::vector<SNP> vcf_process(std::string vcfDir, std::string sampleInfoDir, doub
 
 	return snps;
 }
+
+/*
+Creates a vector of Groups based on the sample information
+
+@param snps Vector of SNPs. TODO: is this actually needed?
+@param sample Vector with sample information.
+@return Vector of Groups.
+*/
+std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snps) {
+	std::vector<Group> group;
+	std::vector<bool> done;
+	for (size_t i = 0; i < sample.size(); i++)
+		done.push_back(false);
+
+	for (size_t i = 0; i < sample.size(); i++){
+		if (!done[i]) {
+			Group g;
+			g.ID = sample[i].groupID;
+			g.hrg = sample[i].hrg;
+			
+			for (size_t j = i; j <= sample.size(); j++) 
+				if (sample[j].groupID == g.ID && sample[j].hrg == g.hrg) {
+					g.index.push_back(j);
+					done[j] = true;
+				}
+		
+			group.push_back(g);
+		}
+	}
+
+	return group;
+}
+
+
 
 /**
 Calculates the mean and variance of expected genotypes
@@ -246,11 +280,12 @@ int main() {
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
 	std::vector<Sample> sample = getSampleInfo(vcfDir, sampleInfoDir, 9);
-	std::vector<SNP> snps = vcf_process(vcfDir, sampleInfoDir, mafCut, sample);
+	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
+	std::vector<Group> group = calcGroups(sample, snps);
 
 
 	calcMeanVar(sample, snps);
-	std::vector<double> pvals = RVSasy(snps, sample, true);
+	std::vector<double> pvals = RVSasy(snps, sample, group, true);
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
@@ -275,10 +310,10 @@ int main() {
 		}
 	}
 
-	auto t = startTime();
+//	auto t = startTime();
 
-	pvals = RVSbtrap(snps, sample, 1000000, true, true);
-	endTime(t, "btrp=1000000");
+	//pvals = RVSbtrap(snps, sample, 1000000, true, true);
+//	endTime(t, "btrp=1000000");
 
 
 	/*

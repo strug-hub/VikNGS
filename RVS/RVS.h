@@ -8,6 +8,20 @@
 #include <iostream>  
 
 //========================================================
+// Group struct
+//========================================================
+
+struct Group {
+	std::string ID = "";
+	std::vector<size_t> index;
+	//double n = 0;
+	//double meanY = 0;
+	//double meanX = 0;
+	//double varX = 0;
+	bool hrg = false;
+};
+
+//========================================================
 // Sample struct
 //========================================================
 
@@ -73,8 +87,12 @@ std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<Sample> &)
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
 
+//Statistics.cpp
+double meanY(std::vector<Sample> &, SNP &);
+double varX(SNP &, Group &);
+
 //CommonTest.cpp
-std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, bool = true);
+std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
 std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, int, bool, bool = true);
 
 //RareTest.cpp
