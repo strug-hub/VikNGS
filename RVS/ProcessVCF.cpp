@@ -149,8 +149,8 @@ std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, doubl
 /*
 Creates a vector of Groups based on the sample information
 
-@param snps Vector of SNPs. TODO: is this actually needed?
 @param sample Vector with sample information.
+@param snps Vector of SNPs. TODO: is this actually needed?
 @return Vector of Groups.
 */
 std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snps) {
@@ -267,6 +267,74 @@ void calcMeanVar(std::vector<Sample> &sample, std::vector<SNP> &snps) {
 	return;
 }
 
+#include <iostream>
+#include <fstream>
+
+void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
+	std::ofstream X("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
+	std::ofstream Y("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
+	std::ofstream P("C:/Users/Scott/Desktop/RVS-master/example/P.txt");
+	std::ofstream M("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
+
+	if (M.is_open())
+	{
+		M << "ID\thrg\n";
+
+		for (size_t i = 0; i < sample.size(); i++) {
+
+			M << sample[i].groupID;
+			M << '\t';
+			M << sample[i].hrg;
+			M << '\n';
+		}
+		M.close();
+	}
+
+
+	if (Y.is_open())
+	{
+		for (size_t i = 0; i < sample.size(); i++) {
+			Y << sample[i].y;
+			Y << '\n';
+		}
+		Y.close();
+	}
+
+	if (X.is_open())
+	{
+		for (size_t i = 0; i < snps.size(); i++) {
+			for (size_t j = 0; j < snps[i].EG.size(); j++) {
+
+				if (snps[i].EG[j] == NULL)
+					X << "NA";
+				else
+					X << snps[i].EG[j];
+
+				if(j <snps[i].EG.size()-1)
+					X << '\t';
+			}
+			X << '\n';
+		}
+
+		X.close();
+	}
+	if (P.is_open())
+	{
+		for (size_t i = 0; i < snps.size(); i++) {
+			P << snps[i].p[0];
+			P << '\t';
+			P << snps[i].p[1];
+			P << '\t';
+			P << snps[i].p[2];
+			P << '\n';
+		}
+		
+		P.close();
+	}
+
+}
+
+
 int main() {
 	//TODO: take as input from command line
 	//---------------------------------------
@@ -284,8 +352,16 @@ int main() {
 	std::vector<Group> group = calcGroups(sample, snps);
 
 
+	generateForR( sample, snps);
+
+	std::vector<bool> IDmap;
+	for (size_t i = 0; i < snps.size(); i++) {
+		IDmap.push_back(sample[i].y);
+	}
+
+
 	calcMeanVar(sample, snps);
-	std::vector<double> pvals = RVSasy(snps, sample, group, true);
+	std::vector<double> pvals = RVSasy(snps, sample, group);
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
@@ -296,9 +372,11 @@ int main() {
 	}
 	*/
 
-	std::cout << "Chr\tLoc\tMAF\tp-value\n";
+	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";
 	for (size_t i = 0; i < snps.size(); i++) {
 		if (snps[i].maf != NULL) {
+			std::cout << sample[i].y;
+			std::cout << '\t';
 			std::cout << snps[i].chr;
 			std::cout << '\t';
 			std::cout << snps[i].loc;

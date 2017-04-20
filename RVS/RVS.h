@@ -90,9 +90,11 @@ std::vector<double> calcEG(SNP &);
 //Statistics.cpp
 double meanY(std::vector<Sample> &, SNP &);
 double varX(SNP &, Group &);
+double chiSquareOneDOF(double);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
+
 std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, int, bool, bool = true);
 
 //RareTest.cpp

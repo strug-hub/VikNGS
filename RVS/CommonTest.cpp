@@ -5,91 +5,6 @@
 #include <math.h> 
 
 /*
-Calculates score test statistic.
-score = sum((Y - Yhat) * X)
-testStastic = score^2 / [sum((Y - Yhat)^2 * var(X))]
-
-@param sample Vector with sample information.
-@param x Vector with E(G | D).
-@return Test statistic following a chi-squared distribution with 1 degree of freedom.
-*/
-double scoreTest(std::vector<Sample> &sample, std::vector<double> &x) {
-
-	double ybar = 0;
-	double xbar = 0;
-
-	double n = 0;
-
-	for (size_t i = 0; i < sample.size(); i++)
-		if (x[i] != NULL) {
-			ybar += sample[i].y;
-			xbar += x[i];
-			n++;
-		}
-
-	ybar /= n;
-	xbar /= n;
-	double xvar = 0;
-
-	for (size_t i = 0; i < x.size(); i++)
-		if (x[i] != NULL)
-			xvar += pow(x[i] - xbar, 2);
-
-	xvar /= (n);
-	double score = 0;
-	double dnom = 0;
-	double temp;
-
-	for (size_t i = 0; i < sample.size(); i++)
-		if (x[i] != NULL) {
-
-			temp = sample[i].y - ybar;
-
-			score += temp * x[i];
-			dnom += pow(temp, 2) * xvar;
-		}
-
-
-	return pow(score, 2) / dnom;
-}
-
-/*
-Finds p-value for test statistic using a chi-squared distribution with one degree of freedom
-using chi-squared probability density function.
-
-@param statistic Test statistic.
-@return p-value.
-*/
-double chiSquareOneDOF(double statistic) {
-	double z = statistic * 0.5;
-	double sc = 2 * sqrt(z) * exp(-z);
-
-	double sum = 1;
-	double prevSum = sum;
-	double nom = 1;
-	double dnom = 1;
-	double s = 0.5;
-
-	for (int i = 0; i < 200; i++)
-	{
-		nom *= z;
-		s++;
-		dnom *= s;
-		sum += nom / dnom;
-		if (prevSum == sum) break;
-		prevSum = sum;
-	}
-
-	double p = sum * sc;
-	if (isnan(p) || isinf(p) || p <= 1e-8)
-		return 1e-14;
-
-	p /= tgamma(0.5);
-
-	return 1 - p;
-}
-
-/*
 RVS using asymptotic distribution for score test statistic. This functions includes
 two association tests which differ in the estimation of the variance of score. It uses
 var_case(E(G | D)) when rvs = false and var_case(G) when rvs = true.
@@ -111,7 +26,7 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, 
 	double ybar;
 	double temp;
 
-	size_t i, j, k;
+	size_t i, j, k, l;
 
 	for (j = 0; j < snps.size(); j++) {
 		snp = snps[j];
@@ -120,30 +35,34 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, 
 		v = 0;
 		ybar = meanY(sample, snp);
 
+
 		for (i = 0; i < sample.size(); i++) {
 			if (snp.EG[i] != NULL)
 				score += (sample[i].y - ybar) * snp.EG[i];
 		}
 
 		for (i = 0; i < group.size(); i++) {
+			temp = 0;
+
 			for (k = 0; k < group[i].index.size(); k++) {
-				temp = pow(sample[group[i].index[k]].y - ybar, 2);
-				if (rvs && group[i].hrg)
-					v += temp * calcRobustVar(snp.p);
-				else
-					v += temp * varX(snp, group[i]);
+				l = group[i].index[k];
+				if (snp.EG[l] != NULL) {
+					temp += pow(sample[l].y - ybar, 2);
+				}
 			}
+
+			if (rvs && group[i].hrg)
+				v += temp * calcRobustVar(snp.p);
+			else
+				v += temp * varX(snp, group[i]);
 		}
+
 
 		pvals.push_back(chiSquareOneDOF(pow(score, 2)/v));
 	}
 
 	return pvals;
 }
-
-//v = sum( (Y.lrd-mean(Y))^2)* var(X.lrd)  + sum( (Y.hrd1-mean(Y))^2* as.numeric(calc_robust_Var(P))) + sum( (Y.hrd2-mean(Y))^2* as.numeric(calc_robust_Var(P))  )
-//v = sum( (Y.lrd-mean(Y))^2)* var(X.lrd)  + sum( (Y.hrd1-mean(Y))^2* var(X.hrd1)  )  +sum( (Y.hrd2-mean(Y))^2* var(X.hrd2)  ) 
-
 
 /*
 Bootstrap test called from RVSbtrap when rvs = true

@@ -82,8 +82,10 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 			s.y = std::stod(y[index]);
 			s.groupID = groupID[index];
 
-			if (depth[index] == "H" || depth[index] == "h")
+			if (depth[index].find("H") != std::string::npos ||
+				depth[index].find("h") != std::string::npos) 
 				s.hrg = true;
+			
 
 			sample.push_back(s);
 
