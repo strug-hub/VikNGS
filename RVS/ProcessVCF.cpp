@@ -165,7 +165,7 @@ std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snp
 			g.ID = sample[i].groupID;
 			g.hrg = sample[i].hrg;
 			
-			for (size_t j = i; j <= sample.size(); j++) 
+			for (size_t j = i; j < sample.size(); j++) 
 				if (sample[j].groupID == g.ID && sample[j].hrg == g.hrg) {
 					g.index.push_back(j);
 					done[j] = true;
@@ -361,7 +361,8 @@ int main() {
 
 
 	calcMeanVar(sample, snps);
-	std::vector<double> pvals = RVSasy(snps, sample, group);
+	//std::vector<double> pvals = RVSasy(snps, sample, group);
+	std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
@@ -389,8 +390,7 @@ int main() {
 	}
 
 //	auto t = startTime();
-
-	//pvals = RVSbtrap(snps, sample, 1000000, true, true);
+//	pvals = RVSbtrap(snps, sample, 1000000, true, true);
 //	endTime(t, "btrp=1000000");
 
 

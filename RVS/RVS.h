@@ -88,13 +88,17 @@ std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
 
 //Statistics.cpp
+double meanX(SNP &, Group &);
 double meanY(std::vector<Sample> &, SNP &);
 double varX(SNP &, Group &);
+double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
+std::vector<double> randomSample(std::vector<double> &, int);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
 
+std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool, bool = true);
 std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, int, bool, bool = true);
 
 //RareTest.cpp

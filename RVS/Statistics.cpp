@@ -2,6 +2,25 @@
 #include "RVS.h"
 
 #include <vector>
+#include <random>
+
+double meanX(SNP &snp, Group &group) {
+
+	double sum = 0;
+	double n = 0;
+	size_t i, j;
+
+	for (i = 0; i < group.index.size(); i++) {
+		 j = group.index[i];
+		if (snp.EG[j] != NULL) {
+			sum += snp.EG[j];
+			n++;
+		}
+	}
+
+	return sum / n;
+}
+
 
 double meanY(std::vector<Sample> &sample, SNP &snp) {
 
@@ -43,6 +62,35 @@ double varX(SNP &snp, Group &group) {
 	return var / (n - 1);
 }
 
+double variance(std::vector<double> &vec) {
+
+	double mean = 0;
+	size_t i;
+
+	for (i = 0; i < vec.size(); i++)
+		mean += vec[i];
+
+	mean = mean / vec.size();
+	double var = 0;
+
+	for (i = 0; i < vec.size(); i++)
+		var += std::pow(vec[i] - mean, 2);
+
+	return var / (vec.size() - 1);
+}
+
+std::random_device rd;
+std::mt19937 gen(rd());
+
+std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
+	std::vector<double> rvec;
+	std::uniform_int_distribution<> sample(0, vec.size()-1);
+
+	for (size_t i = 0; i < nsample; i++)
+		rvec.push_back(vec[sample(gen)]);
+	
+	return rvec;
+}
 
 /*
 Finds p-value for test statistic using a chi-squared distribution with one degree of freedom

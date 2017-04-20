@@ -5,6 +5,53 @@
 #include <math.h> 
 
 /*
+Computes test statistic for common association test.
+
+@param snp A single of SNP.
+@param sample Vector with sample information.
+@param group Vector with group information.
+@param rvs Indicates how to calculate variance
+@return test statistic for snp
+*/
+double testStatistic(SNP snp, std::vector<Sample> &sample, std::vector<Group> &group, bool rvs) {
+	
+	size_t i, j, k;
+	double v;
+	double score;
+	double ybar;
+	double temp;
+
+	score = 0;
+	v = 0;
+	ybar = meanY(sample, snp);
+
+	for (i = 0; i < sample.size(); i++) {
+		if (snp.EG[i] != NULL)
+			score += (sample[i].y - ybar) * snp.EG[i];
+	}
+
+	for (i = 0; i < group.size(); i++) {
+		temp = 0;
+
+		for (j = 0; j < group[i].index.size(); j++) {
+			k = group[i].index[j];
+			if (snp.EG[k] != NULL) {
+				temp += pow(sample[k].y - ybar, 2);
+			}
+		}
+
+		if (rvs && group[i].hrg)
+			v += temp * calcRobustVar(snp.p);
+		else
+			v += temp * varX(snp, group[i]);
+	}
+
+	return pow(score, 2) / v;
+	
+}
+
+
+/*
 RVS using asymptotic distribution for score test statistic. This functions includes
 two association tests which differ in the estimation of the variance of score. It uses
 var_case(E(G | D)) when rvs = false and var_case(G) when rvs = true.
@@ -21,136 +68,54 @@ std::vector<double> RVSasy(std::vector<SNP> &snps, std::vector<Sample> &sample, 
 
 	std::vector<double> pvals;
 	SNP snp;
-	double v;
-	double score;
-	double ybar;
-	double temp;
+	double tobs;
 
-	size_t i, j, k, l;
-
-	for (j = 0; j < snps.size(); j++) {
+	for (size_t j = 0; j < snps.size(); j++) {
 		snp = snps[j];
-
-		score = 0;
-		v = 0;
-		ybar = meanY(sample, snp);
-
-
-		for (i = 0; i < sample.size(); i++) {
-			if (snp.EG[i] != NULL)
-				score += (sample[i].y - ybar) * snp.EG[i];
-		}
-
-		for (i = 0; i < group.size(); i++) {
-			temp = 0;
-
-			for (k = 0; k < group[i].index.size(); k++) {
-				l = group[i].index[k];
-				if (snp.EG[l] != NULL) {
-					temp += pow(sample[l].y - ybar, 2);
-				}
-			}
-
-			if (rvs && group[i].hrg)
-				v += temp * calcRobustVar(snp.p);
-			else
-				v += temp * varX(snp, group[i]);
-		}
-
-
-		pvals.push_back(chiSquareOneDOF(pow(score, 2)/v));
+		tobs = testStatistic(snp, sample, group, rvs);
+		pvals.push_back(chiSquareOneDOF(tobs));
 	}
 
 	return pvals;
 }
 
-/*
-Bootstrap test called from RVSbtrap when rvs = true
 
-@param snps Vector of SNPs.
-@param sample Vector with sample information.
-@param nboot Number of bootstrap iterations.
-@param tobs Observed test statistic.
-@param earlyStop Stop bootstrapping with p-value is large.
-@return p-value from the bootstrap test.
-*/
-double bstrapHelp1(SNP &snp, std::vector<Sample> &sample, int nboot, double tobs, bool earlyStop) {
+double btrapHelper(int nboot, std::vector<std::vector<double>> &X, std::vector<std::vector<double>> &Y, 
+					std::vector<int> &n, double tobs, double ybar) {
 
-	int bootcount = 0;
-	double a = 100000;
-	double c = 0.0141;  // delta = 0.4, p_0 = 0.01
-	double pstar;
+	std::vector<double> rand;
+	double score;
+	double var;
+	double totalVar;
+	double temp;
+	double tcount;
+	double bootcount = 0;
 
-	srand((int)time(NULL));
+	size_t i, j, k;
 
-	std::vector<double> x0;
-	std::vector<double> x1;
-	std::vector<double> counter0;
-	std::vector<double> counter1;
 
-	for (size_t i = 0; i < snp.EG.size(); i++) {
-		if (snp.EG[i] != NULL) {
-			if (sample[i].y) {
-				x1.push_back(snp.EG[i] - snp.casemean);
-				counter1.push_back(0);
-			}
-			else {
-				x0.push_back(snp.EG[i] - snp.controlmean);
-				counter0.push_back(0);
+	tcount = 0;
+	for (int k = 0; k < nboot; k++) {
+		score = 0;
+		totalVar = 0;
+
+		for (i = 0; i < X.size(); i++) {
+
+			rand = randomSample(X[i], n[i]);
+			var = variance(rand);
+
+			for (j = 0; j < rand.size(); j++) {
+				temp = Y[i][j] - ybar;
+				score += temp * rand[j];
+				totalVar += std::pow(temp, 2) * var;
 			}
 		}
-	}
 
-	double bootmean0;
-	double bootvar0;
-	double bootmean1;
-	double bootvar1;
-	double statistic;
-	double bootScoreCount = 1;
-	int ncase = int(snp.ncase);
-	int ncontrol = int(snp.ncontrol);
-
-	for (int k = 0; k < nboot; k++) {
-		bootmean0 = 0;
-		bootvar0 = 0;
-		bootmean1 = 0;
-		bootvar1 = 0;
-		//reset counters
-		for (int i = 0; i < ncontrol; i++)
-			counter0[i] = 0;
-		for (int i = 0; i < ncase; i++)
-			counter1[i] = 0;
-
-		//sample from observed values
-		for (int i = 0; i < ncontrol; i++)
-			counter0[rand() % ncontrol]++;
-		for (int i = 0; i < ncase; i++)
-			counter1[rand() % ncase]++;
-
-		//calculate means
-		for (int i = 0; i < ncontrol; i++)
-			bootmean0 += counter0[i] * x0[i];
-		for (int i = 0; i < ncase; i++)
-			bootmean1 += counter1[i] * x1[i];
-
-		bootmean0 /= snp.ncontrol;
-		bootmean1 /= snp.ncase;
-
-		//calculate variances
-		for (int i = 0; i < ncontrol; i++)
-			bootvar0 += counter0[i] * pow(x0[i] - bootmean0, 2);
-		for (int i = 0; i < ncase; i++)
-			bootvar1 += counter1[i] * pow(x1[i] - bootmean1, 2);
-
-		bootvar0 /= snp.ncontrol - 1;
-		bootvar1 /= snp.ncase - 1;
-
-		statistic = (bootmean1 - bootmean0) / sqrt(bootvar1 / snp.ncase + bootvar0 / snp.ncontrol);
-		if (abs(statistic) >= tobs)
-			bootScoreCount++;
+		if (std::pow(score, 2) / totalVar >= tobs)
+			tcount++;
 
 		bootcount++;
-
+		/*
 		if (earlyStop && bootcount > 1000) {
 			pstar = a / ((bootcount + c)*(1 + c));
 
@@ -159,82 +124,14 @@ double bstrapHelp1(SNP &snp, std::vector<Sample> &sample, int nboot, double tobs
 				break;
 			}
 		}
-	}
-	
-	if (bootcount == nboot)
-	{
-		std::cout << "Ran to completion";
+		*/
 	}
 
-	std::cout << "\t";
-	std::cout << "nboot: ";
-	std::cout << bootcount;
-	std::cout << "\t";
-	std::cout << "p-val: ";
-
-	std::cout << bootScoreCount / bootcount;
-
-	std::cout << "\n";
-
-
-	return 	bootScoreCount / bootcount;
+	return (tcount + 1) / (nboot + 1);
 }
 
 /*
-Bootstrap test called from RVSbtrap when rvs = false
-
-@param snps Vector of SNPs.
-@param sample Vector with sample information.
-@param nboot Number of bootstrap iterations.
-@param tobs Observed test statistic.
-@param earlyStop Stop bootstrapping with p-value is large.
-@return p-value from the bootstrap test.
-*/
-double bstrapHelp2(SNP &snp, std::vector<Sample> &sample, int nboot, double tobs, bool earlyStop) {
-	srand((int)time(NULL));
-
-	std::vector<size_t> x;
-	double bootScoreCount = 1;
-	double p = snp.ncase / snp.n;
-	double q = 1 - p;
-	double vs = p * q * snp.n * snp.var;
-	double statistic;
-	double casesum;
-	double controlsum;
-
-	size_t xindex;
-
-	for (size_t i = 0; i < snp.EG.size(); i++)
-		if (snp.EG[i] != NULL)
-			x.push_back(i);
-
-	for (int k = 0; k < nboot; k++) {
-		casesum = 0;
-		controlsum = 0;
-		xindex = 0;
-		std::random_shuffle(x.begin(), x.end());
-
-		for (size_t i = 0; i < snp.EG.size(); i++) {
-			if (snp.EG[i] != NULL) {
-				if (sample[i].y)
-					casesum += snp.EG[x[xindex]];
-				else
-					controlsum += snp.EG[x[xindex]];
-				xindex++;
-			}
-		}
-
-		statistic = pow(q * casesum - p * controlsum, 2) / vs;
-
-		if (abs(statistic) >= tobs)
-			bootScoreCount++;
-	}
-	//TODO:early stopping here
-	return 	bootScoreCount / nboot;
-}
-
-/*
-Uses RVS to test associaton by bootstrap, given phenotype, expected values of genotypes, 
+Uses RVS to test associaton by bootstrap, given phenotype, expected values of genotypes,
 estimated genotype frequency and number of bootstrap iterations.
 
 @param snps Vector of SNPs.
@@ -244,35 +141,55 @@ estimated genotype frequency and number of bootstrap iterations.
 @param rvs Indicates how to calculate variance of score statistic.
 @return Vector of p-values for the SNPs.
 */
-std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<Sample> &sample, int nboot, bool earlyStop, bool rvs) {
+std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot, bool earlyStop, bool rvs) {
 	std::vector<double> pvals;
 	SNP snp;
 
-	double maf = 0;
-	double p;
-	double s;
 	double tobs;
+	double xbar;
+	double ybar;
+	double pval;
+	int count;
 
-	for (size_t j = 0; j < snps.size(); j++) {
-		snp = snps[j];
+	size_t i, j, k, l;
 
-		//calculate observed score statistic
-		if (rvs)
-			tobs = (snp.casemean - snp.controlmean) /
-			sqrt(calcRobustVar(snp.p) / snp.ncase + snp.controlvar / snp.ncontrol);
-		else {
-			p = snp.ncase / snp.n;
-			s = (1 - p) * snp.casemean * snp.ncase - p * snp.controlmean * snp.ncontrol;
-			tobs = pow(s, 2) / (p * (1 - p) * snp.n * snp.var);
+	for (size_t k = 0; k < snps.size(); k++) {
+		snp = snps[k];
+		tobs = testStatistic(snp, sample, group, rvs);
+		ybar = meanY(sample, snp);
+
+		std::vector<std::vector<double>> X;
+		std::vector<std::vector<double>> Y;
+		std::vector<int> n;
+
+		//create vectors to sample from (x - xbar)
+		for (i = 0; i < group.size(); i++) {
+			xbar = meanX(snp, group[i]);
+
+			std::vector<double> x;
+			std::vector<double> y;
+
+			count = 0;
+			for (l = 0; l < group[i].index.size(); l++) {
+				j = group[i].index[l];
+				if (snp.EG[j] != NULL) {
+					x.push_back(snp.EG[j] - xbar);
+					y.push_back(sample[j].y);
+					count++;
+				}
+			}
+
+			X.push_back(x);
+			Y.push_back(y);
+			n.push_back(count);
 		}
-		tobs = abs(tobs);
 
-		//bootstrap test
-		if (rvs)
-			pvals.push_back(bstrapHelp1(snp, sample, nboot, tobs, earlyStop));
-		else
-			pvals.push_back(bstrapHelp2(snp, sample, nboot, tobs, earlyStop));
+		//start bootstrapping
+		pval = btrapHelper(nboot, X, Y, n, tobs, ybar);
+		pvals.push_back(pval);
+
 	}
 
 	return pvals;
 }
+
