@@ -92,6 +92,7 @@ std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
 	return rvec;
 }
 
+
 /*
 Finds p-value for test statistic using a chi-squared distribution with one degree of freedom
 using chi-squared probability density function.

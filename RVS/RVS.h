@@ -59,19 +59,19 @@ struct SNP {
 	inline double L01(int index) { return this->gl[index].L01; }
 	inline double L11(int index) { return this->gl[index].L11; }
 
-	double var = 0;
-	double mean = 0;
-	double n = 0;
-	double controlvar = 0;
-	double controlmean = 0;
-	double ncontrol = 0;
-	double casevar = 0;
-	double casemean = 0;
-	double ncase = 0;
+	SNP clone() {
+		SNP newSNP;
+		newSNP.chr = this->chr;
+		newSNP.loc = this->loc;
+		newSNP.gl = this->gl;
+		newSNP.p = this->p;
+		newSNP.EG = this->EG;
+		newSNP.maf = this->maf;
+		return newSNP;
+	}
 
-	int group = 0;
-	bool hrg = false;
 };
+
 
 inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 
@@ -97,12 +97,10 @@ std::vector<double> randomSample(std::vector<double> &, int);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
-
 std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool, bool = true);
-std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, int, bool, bool = true);
 
 //RareTest.cpp
-std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, int, bool = true, int = 5, int = 1, int = 1);
+std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool = true, int = 5, int = 1, int = 1);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
@@ -179,6 +177,22 @@ Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
 */
 inline double calcRobustVar(std::vector<double> p) {
 	return (4 * p[2] + p[1]) - pow(2 * p[2] + p[1], 2);
+}
+
+
+/*
+Makes a copy of all SNPs
+
+@param snps	SNPs to copy
+@return vector of copied SNPs
+*/
+inline std::vector<SNP> cloneAll(std::vector<SNP> snps) {
+	std::vector<SNP> clones;
+
+	for (size_t i = 0; i < snps.size(); i++)
+		clones.push_back(snps[i].clone());
+
+	return clones;
 }
 
 //========================================================

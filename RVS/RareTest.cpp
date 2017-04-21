@@ -53,174 +53,213 @@ double pnorm(double x)
 	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }
 
-void CorrelationMatrix(std::vector<SNP> &snps, std::vector<Sample> &sample, int njoint, MatrixXd &sigma, double totalncase, double vary, double p, double q) {
-	size_t i; size_t j; size_t k;
-	double n;
+std::vector<double> calcScoreVector(std::vector<SNP> &snps, std::vector<Sample> &sample) {
+	SNP snp;
+	std::vector<double> score;
+	double s;
+	double ybar;
+	size_t i, j;
+
+	//calculate score vector
+	for (i = 0; i < snps.size(); i++) {
+		snp = snps[i];
+		ybar = meanY(sample, snp);
+		s = 0;
+
+		for (j = 0; j < sample.size(); j++)
+			s += (sample[j].y - ybar) * snp.EG[j];
+
+		score.push_back(s);
+	}
+
+	return score;
+}
+
+MatrixXd correlation(std::vector<SNP> &snps, Group group) {
+	int n = snps.size();
+	MatrixXd cor(n, n);
+	size_t i, j, k, l;
+	
+	double count;
 	double vari;
 	double varj;
 	double meani;
 	double meanj;
 	double sum;
-	std::vector<double> v;
 
-	//calculate correlation matrix
-	for (i = 0; i < njoint; i++) {
-		for (j = 0; j < njoint; j++) {
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
 			if (i == j) {
-				sigma(i, j) = 1;
-				sigma(j, i) = 1;
-				v.push_back(sqrt(calcRobustVar(snps[i].p)));
+				cor(i, j) = 1;
+				cor(j, i) = 1;
 			}
-			else if (i < j) {
+			else {
 				sum = 0;
-				n = 0;
+				count = 0;
 				vari = 0;
 				varj = 0;
 				meani = 0;
 				meanj = 0;
 
-				for (k = 0; k < sample.size(); k++) {
-					if (sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
-						n++;
+				for (l = 0; l < group.index.size(); l++) {
+					k = group.index[l];
+					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+						count++;
 						meani += snps[i].EG[k];
 						meanj += snps[j].EG[k];
 					}
 				}
 
-				meani /= n;
-				meanj /= n;
+				meani /= count;
+				meanj /= count;
 
-				for (k = 0; k < sample.size(); k++) {
-					if (sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+				for (l = 0; l < group.index.size(); l++) {
+					k = group.index[l];
+					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
 						vari += pow((snps[i].EG[k] - meani), 2);
 						varj += pow((snps[j].EG[k] - meanj), 2);
 						sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
 					}
 				}
 
-				vari /= n - 1;
-				varj /= n - 1;
-				sum /= (n - 1) * sqrt(vari * varj);
-				sigma(i, j) = sum;
-				sigma(j, i) = sum;
+				sum /= sqrt(vari * varj);
+				cor(i, j) = sum;
+				cor(j, i) = sum;
 			}
 		}
 	}
-
-	//TODO: check for NULLs in sigma?
-	//TODO: check_hom_matrix
-
-	for (i = 0; i < njoint; i++) {
-		for (j = 0; j < njoint; j++) {
-			if (i <= j) {
-				sigma(i, j) *= v[i] * v[j] * totalncase * p;
-				sigma(j, i) = sigma(i, j);
-			}
-		}
-	}
-
-	for (i = 0; i < njoint; i++) {
-		for (j = 0; j < njoint; j++) {
-			if (i == j) {
-				sum = 0;
-				for (k = 0; k < sample.size(); k++)
-					if (!sample[k].y && snps[i].EG[k] != NULL)
-						sum += pow(snps[i].EG[k] - snps[i].controlmean, 2);
-
-				sigma(i, i) += q * sum;
-				sigma(i, i) *= vary;
-			}
-			else if (i < j) {
-				sum = 0;
-				for (k = 0; k < sample.size(); k++)
-					if (!sample[k].y && snps[i].EG[k] != NULL && snps[j].EG[k] != NULL)
-						sum += (snps[i].EG[k] - snps[i].controlmean) * (snps[j].EG[k] - snps[j].controlmean);
-
-				sigma(i, j) += q * sum;
-				sigma(i, j) *= vary;
-				sigma(j, i) = sigma(i, j);
-			}
-		}
-	}
+	
+	return cor;
 }
 
-void CovariateMatrix(std::vector<SNP> &snps, std::vector<Sample> &sample, int njoint, MatrixXd &sigma, double totalncontrol, double totalncase) {
-	size_t i; size_t j; size_t k;
+MatrixXd covariance(std::vector<SNP> &snps, Group group) {
+	int n = snps.size();
+	MatrixXd cov(n, n);
+	size_t i, j, k, l;
 
-	double sumcase;
-	double sumcontrol;
-	double ncase;
-	double ncontrol;
-	double meancontroli;
-	double meancontrolj;
-	double meancasei;
-	double meancasej;
+	double count;
+	double meani;
+	double meanj;
+	double sum;
 
-	std::vector<double> vs;
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
 
-	//TODO: check_hom_matrix?
+			sum = 0;
+			count = 0;
+			meani = 0;
+			meanj = 0;
 
-
-	//calculate covariance matrix		
-	for (i = 0; i < njoint; i++) {
-		for (j = 0; j < njoint; j++) {
-			if (i <= j) {
-				ncase = 0;
-				ncontrol = 0;
-				sumcase = 0;
-				sumcontrol = 0;
-				meancasei = 0;
-				meancasej = 0;
-				meancontroli = 0;
-				meancontrolj = 0;
-
-				for (k = 0; k < sample.size(); k++) {
-					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
-						if (sample[k].y) {
-							ncase++;
-							meancasei += snps[i].EG[k];
-							meancasej += snps[j].EG[k];
-						}
-						else {
-							ncontrol++;
-							meancontroli += snps[i].EG[k];
-							meancontrolj += snps[j].EG[k];
-						}
-					}
+			for (l = 0; l < group.index.size(); l++) {
+				k = group.index[l];
+				if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+					count++;
+					meani += snps[i].EG[k];
+					meanj += snps[j].EG[k];
 				}
+			}
 
-				meancasei /= ncase;
-				meancasej /= ncase;
-				meancontroli /= ncontrol;
-				meancontrolj /= ncontrol;
+			meani /= count;
+			meanj /= count;
 
-				for (k = 0; k < sample.size(); k++) {
-					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
-						if (sample[k].y)
-							sumcase += (snps[i].EG[k] - meancasei) * (snps[j].EG[k] - meancasej);
-						else
-							sumcontrol += (snps[i].EG[k] - meancontroli) * (snps[j].EG[k] - meancontrolj);
-					}
+			for (l = 0; l < group.index.size(); l++) {
+				k = group.index[l];
+				if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) 
+					sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
+			}
+			sum /= count-1;
+			cov(i, j) = sum;
+			cov(j, i) = sum;
+			
+		}
+	}
+
+	return cov;
+}
+
+std::vector<double> testStatistic(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, bool rvs) {
+	size_t i, j, k, l, m;
+	int n = snps.size();
+
+	MatrixXd sigma;
+	MatrixXd diagS(n, n);
+
+	for (i = 0; i < n; i++)
+		for (j = 0; j < n; j++)
+			diagS(i, j) = 0;
+
+	double ybar;
+	double sum;
+	double count;
+	std::vector<double> var;
+
+	//TODO: check_hom_matrix
+
+	for (i = 0; i < n; i++)
+		var.push_back(sqrt(calcRobustVar(snps[i].p)));
+
+	for (m = 0; m < group.size(); m++) {
+
+		std::vector<double> Ym;
+
+		for (j = 0; j < snps.size(); j++) {
+			ybar = meanY(sample, snps[j]);
+			sum = 0;
+			count = 0;
+
+			for (l = 0; l < group[m].index.size(); l++) {
+				k = group[m].index[l];
+				if (snps[j].EG[k] != NULL) {
+					sum += std::pow(sample[k].y - ybar, 2);
+					count++;
 				}
+			}
+			Ym.push_back(std::sqrt(sum / count * group[m].index.size()));
+		}
 
-				sumcase /= ncase - 1;
-				sumcontrol /= ncontrol - 1;
-				sumcase = totalncontrol / totalncase * sumcase * (totalncase - 1) +
-					totalncase / totalncontrol * sumcontrol * (totalncontrol - 1);
-
-				sigma(i, j) = sumcase;
-				sigma(j, i) = sumcase;
-
-				if (i == j)
-					vs.push_back(sqrt(ncase*ncontrol) / (ncase + ncontrol));
+		if (group[m].hrg && rvs) {
+			sigma = correlation(snps, group[m]);
+			for (i = 0; i < n; i++) {
+				for (j = i; j < n; j++) {
+					diagS(i, j) = diagS(i, j) + sigma(i, j) * var[i] * var[j] * Ym[i] * Ym[j];
+					diagS(j, i) = diagS(i, j);
+				}
+			}
+		}
+		else {
+			sigma = covariance(snps, group[m]);
+			for (i = 0; i < n; i++) {
+				for (j = i; j < n; j++) {
+					diagS(i, j) = diagS(i, j) + sigma(i, j) * Ym[i] * Ym[j];
+					diagS(j, i) = diagS(i, j);
+				}
 			}
 		}
 	}
 
-	for (i = 0; i < njoint; i++)
-		for (j = 0; j < njoint; j++)
-			sigma(i, j) *= vs[i] * vs[j];
+	VectorXd e = diagS.eigenvalues().real();
+	std::vector<double> eigenvals(e.data(), e.data() + e.size());
+	
+	sum = 0;
+	for (i = 0; i < n; i++) 
+		for (j = 0; j < n; j++) 
+			sum += diagS(i, j);
 
+	double s = 0;
+	double s2 = 0;
+	std::vector<double> score = calcScoreVector(snps, sample);
+
+	for (i = 0; i < n; i++) {
+		s += score[i];
+		s2 += score[i] * score[i];
+	}
+	
+	//CAST -> linear test
+	double cast = pnorm(s / sqrt(sum));
+	//C-alpha -> quadratic test
+	double calpha = qfc(eigenvals, s2, snps.size());
+
+	return {cast, calpha};
 }
 
 /*
@@ -229,6 +268,7 @@ with CAST and C-alpha (resampling: bootstrap; variance estimate : robust)
 
 @param snps Vector of SNPs.
 @param sample Vector with sample information.
+@param group Vector with group information.
 @param nboot Number of bootstrap iterations.
 @param rvs Indicates how to calculate variance of score statistic.
 @param njoint Number of SNPs grouping together for one test, default is 5.
@@ -237,288 +277,72 @@ checkHomMatrix parameters:
 @param hom 1 or 2; 1 means making changes with the 1st non-NULL element, 2 means making changes with a random non-NULL element
 @param multiplier Value 1 or 2; 1 is dividing by 2 and 2 is multiplying by 2.
 
-@return Vector with two p-values. First element is CAST p-value, second is C-alpha.
+@return Vector with two p-values. First element is linear p-value (CAST), second is quadratic p-value (C-alpha).
 */
-std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample, int nboot, bool rvs, int njoint, int hom, int multiplier) {
-	size_t i, j, k;
-	srand((unsigned int)time(NULL));
-	SNP snp = snps[0];
-	double temp;
-	size_t tempint;
-	double s = 0;
-	double s2 = 0;
-	MatrixXd sigma(njoint, njoint);
+std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot, bool rvs, int njoint, int hom, int multiplier) {
+	
+	SNP snp;
+	std::vector<double> tobs = testStatistic(snps, sample, group, rvs);
+	std::vector<double> tsamp;
+	std::vector<SNP> samples = cloneAll(snps);
 
-	double sum;
-	double SLobs;
-	double SQobs;
+	//SNPs > groups > EG values
+	std::vector<std::vector<std::vector<double>>> X;
+	std::vector<double> temp;
 
-	//calculate once
-	double totalncase = 0;
-	double totalncontrol = 0;
-	double meany = 0;
-	double vary = 0;
+	double tcountLinear = 0;
+	double tcountQuadratic = 0;
+	double bootcount = 0;
 
-	for (k = 0; k < sample.size(); k++)
-		if (sample[k].y)
-			totalncase++;
-	totalncontrol = sample.size() - totalncase;
-	meany = totalncase / sample.size();
+	size_t i, j, k, l, h;
 
-	vary += totalncase * pow(1 - meany, 2);
-	vary += totalncontrol * pow(meany, 2);
-	vary /= (totalncase + totalncontrol - 1);
+	//create vectors to sample from (x - xbar)
+	for (i = 0; i < snps.size(); i++) {
+		snp = snps[i];
+		std::vector<std::vector<double>> xsnp;
 
-	double p = totalncontrol / totalncase;
-	double q = 1 / p;
+		for (j = 0; j < group.size(); j++) {
 
-	//========== for loop here
+			std::vector<double> xeg;
+			double xbar = meanX(snp, group[j]);
 
-	//calculate score vector
-	for (int h = 0; h < njoint; h++) {
-		snp = snps[h];
-		temp = snp.ncase / snp.n;
-		temp = snp.casemean * snp.ncase * (1 - temp) - temp * snp.controlmean * snp.ncontrol;
-		s += temp;
-		s2 += temp*temp;
-	}
-
-	//TODO: check_hom_matrix
-
-	if (rvs)
-		CorrelationMatrix(snps, sample, njoint, sigma, totalncase, vary, p, q);
-	else
-		CovariateMatrix(snps, sample, njoint, sigma, totalncontrol, totalncase);
-
-	sum = 0;
-	for (i = 0; i < njoint; i++)
-		for (j = 0; j < njoint; j++)
-			sum += sigma(i, j);
-
-	VectorXd e = sigma.eigenvalues().real();
-	std::vector<double> eigenvals(e.data(), e.data() + e.size());
-
-	SQobs = qfc(eigenvals, s2, njoint);
-	SLobs = pnorm(s / sqrt(sum));
-
-	//================
-	// Bootstrap setup
-	//================
-
-	std::vector<std::vector<double>> centralizedControl;
-	std::vector<std::vector<double>> centralizedCase;
-	int ncase = 0;
-	int ncontrol = 0;
-	int n = 0;
-
-	for (i = 0; i < njoint; i++) {
-		std::vector<double> cse;
-		std::vector<double> ctrl;
-		ncase = 0;
-		ncontrol = 0;
-		n = 0;
-
-		for (j = 0; j < sample.size(); j++) {
-			n++;
-			if (sample[j].y) {
-				ncase++;
-				if (snps[i].EG[j] == NULL)
-					cse.push_back(NULL);
+			for (l = 0; l < group[j].index.size(); l++) {
+				k = group[j].index[l];
+				if (snp.EG[k] != NULL) 
+					xeg.push_back(snp.EG[k] - xbar);
+				//TODO: ask if NAs should be sampled?? (they aren't in common test)
 				else
-					cse.push_back(snps[i].EG[j] - snps[i].casemean);
+					xeg.push_back(snp.EG[k]);
 			}
-			else {
-				ncontrol++;
-				if (snps[i].EG[j] == NULL)
-					ctrl.push_back(NULL);
-				else
-					ctrl.push_back(snps[i].EG[j] - snps[i].controlmean);
-			}
+			xsnp.push_back(xeg);
 		}
-		centralizedCase.push_back(cse);
-		centralizedControl.push_back(ctrl);
+		X.push_back(xsnp);
 	}
-
-	double bootCountSQ = 0;
-	double bootCountSL = 0;
-
-	double casemean;
-	double controlmean;
-
-	double sumcase;
-	double sumcontrol;
-	double ncaseij;
-	double ncontrolij;
-	double meancontroli;
-	double meancontrolj;
-	double meancasei;
-	double meancasej;
-
-	std::vector<double> vs;
-
-	std::vector<std::vector<double>> randomControl;
-	std::vector<std::vector<double>> randomCase;
-
-	//set up vectors and matricies
-	for (i = 0; i < njoint; i++) {
-		std::vector<double> cse;
-		std::vector<double> ctrl;
-
-		vs.push_back(0);
-		for (j = 0; j < ncase; j++)
-			cse.push_back(0);
-		for (j = 0; j < ncontrol; j++)
-			ctrl.push_back(0);
-
-		randomCase.push_back(cse);
-		randomControl.push_back(ctrl);
-	}
-
-	//================
-	// Bootstrap 
-	//================
-
-	int bootcount = 0;
-	double a = 5;
-	double c = 0.0141;  // delta = 0.4, p_0 = 0.01
-	double pstar;
-
-	for (int h = 0; h < nboot; h++) {
-
-		/*
-		if (h % 1000 == 0) {
-			std::cout << h;
-			std::cout << '\n';
-		}
-		*/
-
-		//randomize
-		for (j = 0; j < ncase; j++) {
-			tempint = rand() % ncase;
-			for (i = 0; i < njoint; i++)
-				randomCase[i][j] = centralizedCase[i][tempint];
-		}
-		for (j = 0; j < ncontrol; j++) {
-			tempint = rand() % ncontrol;
-			for (i = 0; i < njoint; i++)
-				randomControl[i][j] = centralizedControl[i][tempint];
-		}
-
-		s = 0;
-		s2 = 0;
-
-		for (i = 0; i < njoint; i++) {
-			casemean = 0;
-			controlmean = 0;
-			ncaseij = 0;
-			ncontrolij = 0;
-
-			for (j = 0; j < ncase; j++) {
-				if (randomCase[i][j] != NULL) {
-					ncaseij++;
-					casemean += randomCase[i][j];
-				}
-			}
-			for (j = 0; j < ncontrol; j++) {
-				if (randomControl[i][j] != NULL) {
-					ncontrolij++;
-					controlmean += randomControl[i][j];
-				}
-			}
-			temp = ncaseij / (ncaseij + ncontrolij);
-			temp = casemean * (1 - temp) - controlmean * temp;
-
-			s += temp;
-			s2 += temp*temp;
-		}
-
-		//calculate covariance matrix		
-		for (i = 0; i < njoint; i++) {
-			for (j = 0; j < njoint; j++) {
-				if (i <= j) {
-					ncaseij = 0;
-					ncontrolij = 0;
-					sumcase = 0;
-					sumcontrol = 0;
-					meancasei = 0;
-					meancasej = 0;
-					meancontroli = 0;
-					meancontrolj = 0;
-
-					for (k = 0; k < ncase; k++)
-						if (randomCase[i][k] != NULL && randomCase[j][k] != NULL) {
-							ncaseij++;
-							meancasei += randomCase[i][k];
-							meancasej += randomCase[j][k];
-						}
-					for (k = 0; k < ncontrol; k++)
-						if (randomControl[i][k] != NULL && randomControl[j][k] != NULL) {
-							ncontrolij++;
-							meancontroli += randomControl[i][k];
-							meancontrolj += randomControl[j][k];
-						}
-
-					meancasei /= ncaseij;
-					meancasej /= ncaseij;
-					meancontroli /= ncontrolij;
-					meancontrolj /= ncontrolij;
-
-					for (k = 0; k < ncase; k++)
-						if (randomCase[i][k] != NULL && randomCase[j][k] != NULL)
-							sumcase += (randomCase[i][k] - meancasei) * (randomCase[j][k] - meancasej);
-					for (k = 0; k < ncontrol; k++)
-						if (randomControl[i][k] != NULL && randomControl[j][k] != NULL)
-							sumcontrol += (randomControl[i][k] - meancontroli) * (randomControl[j][k] - meancontrolj);
-
-					sumcase /= ncaseij - 1;
-					sumcontrol /= ncontrolij - 1;
-
-
-					sumcase = totalncontrol / totalncase * sumcase * (totalncase - 1) +
-						totalncase / totalncontrol * sumcontrol * (totalncontrol - 1);
-
-					sigma(i, j) = sumcase;
-					sigma(j, i) = sumcase;
-
-					if (i == j)
-						vs[i] = (sqrt(ncaseij*ncontrolij) / (ncaseij + ncontrolij));
+	
+	//start bootstrapping
+	for (h = 0; h < nboot; h++) {
+		
+		for (i = 0; i < snps.size(); i++) {
+			for (j = 0; j < group.size(); j++) {
+				temp = randomSample(X[i][j], X[i][j].size());
+				
+				for (l = 0; l < group[j].index.size(); l++) {
+					k = group[j].index[l];
+					samples[i].EG[k] = temp[l];
 				}
 			}
 		}
+		
+		tsamp = testStatistic(samples, sample, group, false);
 
-		for (i = 0; i < njoint; i++)
-			for (j = 0; j < njoint; j++)
-				sigma(i, j) *= vs[i] * vs[j];
-
-		sum = 0;
-		for (i = 0; i < njoint; i++)
-			for (j = 0; j < njoint; j++)
-				sum += sigma(i, j);
-
-		VectorXd e = sigma.eigenvalues().real();
-		std::vector<double> eigenvals(e.data(), e.data() + e.size());
-
-		if (qfc(eigenvals, s2, njoint) <= SQobs)
-			bootCountSQ++;
-		if (pnorm(s / sqrt(sum)) <= SLobs) {
-			bootCountSL++;
-		}
+		if (tsamp[0] <= tobs[0])
+			tcountLinear++;
+		if (tsamp[1] <= tobs[1])
+			tcountQuadratic++;
 
 		bootcount++;
 
-		pstar = a / ((bootcount + c)*(1 + c));
-
-		if (bootCountSQ / bootcount > pstar && bootCountSL / bootcount > pstar) {
-			std::cout << "early stop";
-			std::cout << "\n";
-
-			break;
-		}
 	}
 
-	std::vector<double> out;
-	out.push_back(bootCountSL / bootcount);
-	out.push_back(bootCountSQ / bootcount);
-	
-	return out;
+	return{ (tcountLinear+1)/(bootcount+1), (tcountQuadratic+1)/(bootcount+1) };
 }

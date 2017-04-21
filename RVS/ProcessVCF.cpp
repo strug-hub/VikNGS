@@ -179,94 +179,6 @@ std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snp
 }
 
 
-
-/**
-Calculates the mean and variance of expected genotypes
-and saves them to reduce computation.
-
-@param snps Vector of SNPs.
-@param sample Vector with sample information.
-@return None.
-@effect Stores mean and variance values inside SNP structs.
-
-*/
-void calcMeanVar(std::vector<Sample> &sample, std::vector<SNP> &snps) {
-	double var;
-	double mean;
-	double n;
-	double controlvar;
-	double controlmean;
-	double ncontrol;
-	double casevar;
-	double casemean;
-	double ncase;
-	double eg;
-
-	for (size_t j = 0; j < snps.size(); j++) {
-
-		var = 0;
-		mean = 0;
-		n = 0;
-		controlvar = 0;
-		controlmean = 0;
-		ncontrol = 0;
-		casevar = 0;
-		casemean = 0;
-		ncase = 0;
-
-		for (size_t i = 0; i < snps[j].EG.size(); i++) {
-			eg = snps[j].EG[i];
-			if (eg != NULL) {
-				if (!sample[i].y) {
-					ncontrol++;
-					controlmean += eg;
-				}
-				else {
-					ncase++;
-					casemean += eg;
-				}
-			}
-		}
-
-		mean = casemean + controlmean;
-		n = ncase + ncontrol;
-
-		mean /= n;
-		controlmean /= ncontrol;
-		casemean /= ncase;
-
-		for (size_t i = 0; i < snps[j].EG.size(); i++) {
-			eg = snps[j].EG[i];
-
-			if (eg != NULL) {
-				var += pow((eg - mean), 2);
-
-				if (!sample[i].y)
-					controlvar += pow((eg - controlmean), 2);
-				else {
-					casevar += pow((eg - casemean), 2);
-				}
-			}
-		}
-
-		var /= n - 1;
-		controlvar /= ncontrol - 1;
-		casevar /= ncase - 1;
-
-		snps[j].var = var;
-		snps[j].mean = mean;
-		snps[j].n = n;
-		snps[j].controlvar = controlvar;
-		snps[j].controlmean = controlmean;
-		snps[j].ncontrol = ncontrol;
-		snps[j].casevar = casevar;
-		snps[j].casemean = casemean;
-		snps[j].ncase = ncase;
-	}
-
-	return;
-}
-
 #include <iostream>
 #include <fstream>
 
@@ -360,9 +272,8 @@ int main() {
 	}
 
 
-	calcMeanVar(sample, snps);
-	//std::vector<double> pvals = RVSasy(snps, sample, group);
-	std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
+	std::vector<double> pvals = RVSasy(snps, sample, group);
+	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
@@ -394,24 +305,26 @@ int main() {
 //	endTime(t, "btrp=1000000");
 
 
-	/*
+	
 	for (size_t i = 0; i < snps.size(); i += 5) {
-		std::vector<SNP> newVec;
-		std::vector<bool> newMap;
+		std::vector<SNP> snps2eval;
 
 		for (size_t j = 0; j <= 4; j++) {
-			newVec.push_back(snps[i+j]);
-			newMap.push_back(IDmap[i + j]);
+			snps2eval.push_back(snps[i+j]);
 
 		}
+		
+		std::vector<double> p = RVSrare(snps2eval, sample, group, 100000);
 
-		std::cout << newVec[0].loc;
+		std::cout << p[0];
+		std::cout << "\t";
+		std::cout << p[1];
 		std::cout << "\n";
 
-		RVSrare(newVec, newMap, 100000);
+
 	}
 
-	*/
+	
 
 	std::cout << "done...>";
 
