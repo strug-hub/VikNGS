@@ -8,6 +8,7 @@
 #include <set>
 #include <algorithm>
 
+
 /*
 Seperates the case and control IDs
 
@@ -34,6 +35,7 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 	std::vector<std::string> groupID;
 	std::vector<std::string> y;
 	std::vector<std::string> depth;
+	std::vector<std::vector<std::string>> cov;
 
 	//extract every sample from sampleInfo file, assumes one sample per line
 	std::string ID;
@@ -49,6 +51,11 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 			y.push_back(lineSplit[1]);
 			groupID.push_back(lineSplit[2]);
 			depth.push_back(lineSplit[3]);
+			
+			std::vector<std::string> c;
+			for (size_t i = 4; i < lineSplit.size(); i++)
+				c.push_back(lineSplit[i]);
+			cov.push_back(c);
 
 			startPos = pos + 1;
 		}
@@ -65,6 +72,11 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 		y.push_back(lineSplit[1]);
 		groupID.push_back(lineSplit[2]);
 		depth.push_back(lineSplit[3]);
+
+		std::vector<std::string> c;
+		for (size_t i = 4; i < lineSplit.size(); i++)
+			c.push_back(lineSplit[i]);
+		cov.push_back(c);
 	}
 
 	//map each ID to true or false:
@@ -72,6 +84,26 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 	//case -> true
 	std::vector<Sample> sample;
 	int countControl = 0;
+
+	std::vector<bool> isCovNumeric;
+
+	if (cov.size() > 0) {
+		for (size_t j = 0; j < cov[0].size(); j++) {
+			bool numeric = true;
+
+			for (size_t k = 0; k < cov.size(); k++) {
+
+				if (!isNumeric(cov[k][j])) {
+					numeric = false;
+					break;
+				}
+			}
+
+
+			isCovNumeric.push_back(numeric);
+		}
+	}
+
 
 	for (size_t i = ncolID; i < IDs.size(); i++) {
 
@@ -81,6 +113,15 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 			s.ID = sampleID[index];
 			s.y = std::stod(y[index]);
 			s.groupID = groupID[index];
+
+			if (cov.size() > 0) {
+				for (size_t k = 0; k < cov[index].size(); k++) {
+					if (isCovNumeric[k])
+						s.numeric_cov.push_back(std::stod(cov[index][k]));
+					else
+						s.factor_cov.push_back(cov[index][k]);
+				}
+			}
 
 			if (depth[index].find("H") != std::string::npos ||
 				depth[index].find("h") != std::string::npos) 

@@ -187,6 +187,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	std::ofstream Y("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
 	std::ofstream P("C:/Users/Scott/Desktop/RVS-master/example/P.txt");
 	std::ofstream M("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
+	std::ofstream Z("C:/Users/Scott/Desktop/RVS-master/example/Z.txt");
 
 	if (M.is_open())
 	{
@@ -244,6 +245,31 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 		P.close();
 	}
 
+	if (Z.is_open())
+	{
+		for (size_t i = 0; i < sample.size(); i++) {
+
+			for (size_t j = 0; j < sample[i].numeric_cov.size(); j++) {
+
+				Z << sample[i].numeric_cov[j];
+				if (sample[i].factor_cov.size() == 0 &&
+					sample[i].numeric_cov.size() - 1 != j)
+					Z << '\t';
+			}
+
+			for (size_t j = 0; j < sample[i].factor_cov.size(); j++) {
+
+				Z << sample[i].factor_cov[j];
+
+				if (sample[i].factor_cov.size() - 1 != j)
+					Z << '\t';
+			}
+
+			Z << '\n';
+		}
+
+		Z.close();
+	}
 }
 
 
@@ -263,6 +289,7 @@ int main() {
 	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
 	std::vector<Group> group = calcGroups(sample, snps);
 
+	CovariateRegression(sample);
 
 	generateForR( sample, snps);
 

@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>  
+#include <regex>
 
 //========================================================
 // Group struct
@@ -30,6 +31,8 @@ struct Sample {
 	std::string groupID = "";
 	double y = 0;
 	bool hrg = false;
+	std::vector<double> numeric_cov;
+	std::vector<std::string> factor_cov;
 };
 
 
@@ -94,6 +97,7 @@ double varX(SNP &, Group &);
 double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
+std::vector<double> CovariateRegression(std::vector<Sample> &);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
@@ -120,6 +124,17 @@ inline std::string trim(std::string str)
 	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 	return str;
 }
+
+/**
+Checks if a string is a number
+
+@param str string to check
+@return true if str is numeric
+*/
+inline bool isNumeric(const std::string& str) {
+	return (std::regex_match(str, std::regex("-?[1234567890]+(\.[1234567890]+)?")));
+}
+//-?\d+(\.\d+)?
 
 /**
 Extracts string from a MemoryMapped class
