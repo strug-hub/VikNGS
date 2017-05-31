@@ -248,9 +248,9 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 
 		if (vcf[pos] == '.') {
 			genotypeLikelihood gl;
-			gl.L00 = NULL;
-			gl.L01 = NULL;
-			gl.L11 = NULL;
+			gl.L00 = NAN;
+			gl.L01 = NAN;
+			gl.L11 = NAN;
 			likelihoods.push_back(gl);
 
 			continue;
@@ -512,7 +512,7 @@ std::vector<double> calcEM(SNP &snp) {
 		Eq = 0;
 
 		for (int i = 0; i < snp.gl.size(); i++) {
-			if (snp.L00(i) == NULL)
+			if (isnan(snp.L00(i)))
 				continue;
 
 			glCounter++;
@@ -563,7 +563,7 @@ std::vector<double> calcEG(SNP &snp) {
 
 	for (int i = 0; i < snp.gl.size(); i++) {
 
-		if (snp.L00(i) != NULL) {
+		if (!isnan(snp.L00(i))) {
 			m0 = snp.L00(i) * snp.p[0];
 			m1 = snp.L01(i) * snp.p[1];
 			m2 = snp.L11(i) * snp.p[2];
@@ -572,7 +572,7 @@ std::vector<double> calcEG(SNP &snp) {
 			EG.push_back(m1*m + 2 * m2*m);
 		}
 		else
-			EG.push_back(NULL);
+			EG.push_back(NAN);
 
 	}
 

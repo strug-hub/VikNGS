@@ -11,8 +11,8 @@ using Eigen::VectorXd;
 
 //TODO!!
 //takes matrix
-//finds columns which are all identical (except NULLs)
-//picks first row without *any* NULL or random row  without *any* NULL (depends on hom)
+//finds columns which are all identical (except NAN)
+//picks first row without *any* NAN or random row  without *any* NAN (depends on hom)
 //in columns with identical rows, takes above^^ row and if it is 0, sets to 10e-15
 //if not zero, either divides cell by 2 or multiplies by 2 and takes min of 2 and itself
 //eg.
@@ -103,7 +103,7 @@ MatrixXd correlation(std::vector<SNP> &snps, Group group) {
 
 				for (l = 0; l < group.index.size(); l++) {
 					k = group.index[l];
-					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+					if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
 						count++;
 						meani += snps[i].EG[k];
 						meanj += snps[j].EG[k];
@@ -115,7 +115,7 @@ MatrixXd correlation(std::vector<SNP> &snps, Group group) {
 
 				for (l = 0; l < group.index.size(); l++) {
 					k = group.index[l];
-					if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+					if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
 						vari += pow((snps[i].EG[k] - meani), 2);
 						varj += pow((snps[j].EG[k] - meanj), 2);
 						sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
@@ -152,7 +152,7 @@ MatrixXd covariance(std::vector<SNP> &snps, Group group) {
 
 			for (l = 0; l < group.index.size(); l++) {
 				k = group.index[l];
-				if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) {
+				if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
 					count++;
 					meani += snps[i].EG[k];
 					meanj += snps[j].EG[k];
@@ -164,7 +164,7 @@ MatrixXd covariance(std::vector<SNP> &snps, Group group) {
 
 			for (l = 0; l < group.index.size(); l++) {
 				k = group.index[l];
-				if (snps[i].EG[k] != NULL && snps[j].EG[k] != NULL) 
+				if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k]))
 					sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
 			}
 			sum /= count-1;
@@ -209,7 +209,7 @@ std::vector<double> testStatistic(std::vector<SNP> &snps, std::vector<Sample> &s
 
 			for (l = 0; l < group[m].index.size(); l++) {
 				k = group[m].index[l];
-				if (snps[j].EG[k] != NULL) {
+				if (!isnan(snps[j].EG[k])) {
 					sum += std::pow(sample[k].y - ybar, 2);
 					count++;
 				}
@@ -274,7 +274,7 @@ with CAST and C-alpha (resampling: bootstrap; variance estimate : robust)
 @param njoint Number of SNPs grouping together for one test, default is 5.
 
 checkHomMatrix parameters:
-@param hom 1 or 2; 1 means making changes with the 1st non-NULL element, 2 means making changes with a random non-NULL element
+@param hom 1 or 2; 1 means making changes with the 1st non-NAN element, 2 means making changes with a random non-NAN element
 @param multiplier Value 1 or 2; 1 is dividing by 2 and 2 is multiplying by 2.
 
 @return Vector with two p-values. First element is linear p-value (CAST), second is quadratic p-value (C-alpha).
@@ -308,7 +308,7 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample,
 
 			for (l = 0; l < group[j].index.size(); l++) {
 				k = group[j].index[l];
-				if (snp.EG[k] != NULL) 
+				if (!isnan(snp.EG[k]))
 					xeg.push_back(snp.EG[k] - xbar);
 				//TODO: ask if NAs should be sampled?? (they aren't in common test)
 				else

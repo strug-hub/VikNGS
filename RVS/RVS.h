@@ -55,7 +55,7 @@ struct SNP {
 	std::vector<double> p;
 	std::vector<double> EG;
 
-	double maf = NULL;
+	double maf = NAN;
 
 	inline bool operator<(SNP& snp2) { return this->loc < snp2.loc; }
 	inline double L00(int index) { return this->gl[index].L00; }
@@ -97,7 +97,7 @@ double varX(SNP &, Group &);
 double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
-std::vector<double> CovariateRegression(std::vector<Sample> &);
+std::vector<double> CovariateRegression(SNP &, std::vector<Sample> &);
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);

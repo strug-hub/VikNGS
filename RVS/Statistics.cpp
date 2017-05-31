@@ -12,7 +12,7 @@ double meanX(SNP &snp, Group &group) {
 
 	for (i = 0; i < group.index.size(); i++) {
 		 j = group.index[i];
-		if (snp.EG[j] != NULL) {
+		if (!isnan(snp.EG[j])) {
 			sum += snp.EG[j];
 			n++;
 		}
@@ -28,7 +28,7 @@ double meanY(std::vector<Sample> &sample, SNP &snp) {
 	double n = 0;
 
 	for (size_t i = 0; i < sample.size(); i++) {
-		if (snp.EG[i] != NULL) {
+		if (!isnan(snp.EG[i])) {
 			sum += sample[i].y;
 			n++;
 		}
@@ -44,7 +44,7 @@ double varX(SNP &snp, Group &group) {
 	size_t i;
 
 	for (i = 0; i < group.index.size(); i++) {
-		if (snp.EG[group.index[i]] != NULL) {
+		if (!isnan(snp.EG[group.index[i]])) {
 			mean += snp.EG[group.index[i]];
 			n++;
 		}
@@ -54,7 +54,7 @@ double varX(SNP &snp, Group &group) {
 	double var = 0;
 
 	for (i = 0; i < group.index.size(); i++) {
-		if (snp.EG[group.index[i]] != NULL) {
+		if (!isnan(snp.EG[group.index[i]])) {
 			var += pow(snp.EG[group.index[i]] - mean, 2);
 		}
 	}
@@ -135,33 +135,62 @@ double chiSquareOneDOF(double statistic) {
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-std::vector<double> CovariateRegression(std::vector<Sample> &sample) {
+std::vector<double> CovariateRegression(SNP &snp, std::vector<Sample> &sample) {
 
 	//todo: filter out NAs
 	/*
-	
+
 	Coefficients:
 	Estimate Std. Error t value Pr(>|t|)
 	(Intercept)  4.043e-01  9.930e-02   4.071 7.46e-05 ***
 	Z1          -2.265e-05  1.163e-02  -0.002    0.998
 	Z2          -1.767e-01  1.257e-01  -1.406    0.162
 	Z3          -6.635e-02  7.245e-02  -0.916    0.361
-	
+
 	*/
 	size_t i, j;
 
 	VectorXd y(sample.size());
 	MatrixXd z(sample.size(), sample[0].numeric_cov.size() + 1);
+	int c = 0;
+	bool flag;
 
+	//construct matrix and filter out NAs
 	for (i = 0; i < sample.size(); i++) {
-		y(i) = sample[i].y;
-		
-		z(i, 0) = 1;
 
-		for (j = 0; j < sample[i].numeric_cov.size(); j++) 
-			z(i, j+1) = sample[i].numeric_cov[j];
+		if (!isnan(snp.EG[i]) && !isnan(sample[i].y)) {
+
+			y(c) = sample[i].y;
+
+			flag = true;
+
+			for (j = 0; j < sample[i].numeric_cov.size(); j++) {
+				if (sample[i].numeric_cov[j] == -899) {
+					flag = false;
+					break;
+				}
+			}
+
+			if (flag) {
+
+				for (j = 0; j < sample[i].numeric_cov.size(); j++)
+					z(c, j + 1) = sample[i].numeric_cov[j];
+
+				z(c, 0) = 1;
+				c++;
+			}
+		}
 	}
 
+	std::cout << z.block(0, 0, c, sample[0].numeric_cov.size() + 1);
+
+	std::cout << "\n";
+	std::cout << z.block(0, 0, c, sample[0].numeric_cov.size() + 1)
+		.fullPivHouseholderQr()
+		.solve(y.block(0, 0, c, 1));
+
+
+	/*
 	VectorXd yy(5);
 	MatrixXd zz(5, 3);
 	yy(0) = 0;
@@ -191,10 +220,11 @@ std::vector<double> CovariateRegression(std::vector<Sample> &sample) {
 	std::cout << zz;
 
 	std::cout << zz.fullPivHouseholderQr().solve(yy);
-	
+
+	*/
 	std::vector<double> betas;
 	return betas;
-	
+
 }
 
 
@@ -229,7 +259,7 @@ std::vector<double> LogisticRegression(std::vector<bool> &y, std::vector<double>
 		d = 0;
 
 		for (size_t i = 0; i < y.size(); i++) {
-			if (x[i] != NULL) {
+			if (!isnan(x[i])) {
 				sigmoid = (1.0 / (1.0 + exp(-(w * x[i] + w0))));
 
 				//calculate 1st derivative of likelihood function
@@ -296,7 +326,7 @@ double LogisticRegressionInterceptOnly(std::vector<bool> &y, std::vector<double>
 		hessw0 = 0;
 
 		for (size_t i = 0; i < y.size(); i++) {
-			if (x[i] != NULL) {
+			if (!isnan(x[i])) {
 
 				sigmoid = (1.0 / (1.0 + exp(-w0)));
 

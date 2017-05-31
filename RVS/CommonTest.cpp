@@ -26,7 +26,7 @@ double testStatistic(SNP snp, std::vector<Sample> &sample, std::vector<Group> &g
 	ybar = meanY(sample, snp);
 
 	for (i = 0; i < sample.size(); i++) {
-		if (snp.EG[i] != NULL)
+		if (!isnan(snp.EG[i]))
 			score += (sample[i].y - ybar) * snp.EG[i];
 	}
 
@@ -35,7 +35,7 @@ double testStatistic(SNP snp, std::vector<Sample> &sample, std::vector<Group> &g
 
 		for (j = 0; j < group[i].index.size(); j++) {
 			k = group[i].index[j];
-			if (snp.EG[k] != NULL) {
+			if (!isnan(snp.EG[k])) {
 				temp += pow(sample[k].y - ybar, 2);
 			}
 		}
@@ -172,7 +172,7 @@ std::vector<double> RVSbtrap(std::vector<SNP> &snps, std::vector<Sample> &sample
 			count = 0;
 			for (l = 0; l < group[i].index.size(); l++) {
 				j = group[i].index[l];
-				if (snp.EG[j] != NULL) {
+				if (!isnan(snp.EG[j])) {
 					x.push_back(snp.EG[j] - xbar);
 					y.push_back(sample[j].y);
 					count++;

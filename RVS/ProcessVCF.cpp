@@ -40,7 +40,7 @@ void getExpGeno(std::vector<SNP> &snps) {
 		mean = 0;
 		n = 0;
 		for (size_t j = 0; j < EG.size(); j++) {
-			if (EG[j] != NULL) {
+			if (!isnan(EG[j])) {
 				mean += EG[j];
 				n++;
 			}
@@ -109,7 +109,7 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
 	//remove SNPs that failed MAF condition
 	int i = 0;
 	while (i < snps.size()) {
-		if (snps[i].maf == NULL) 
+		if (isnan(snps[i].maf))
 			snps.erase(snps.begin() + i);
 		else 
 			i++;
@@ -218,7 +218,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 		for (size_t i = 0; i < snps.size(); i++) {
 			for (size_t j = 0; j < snps[i].EG.size(); j++) {
 
-				if (snps[i].EG[j] == NULL)
+				if (isnan(snps[i].EG[j]))
 					X << "NA";
 				else
 					X << snps[i].EG[j];
@@ -289,7 +289,7 @@ int main() {
 	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
 	std::vector<Group> group = calcGroups(sample, snps);
 
-	CovariateRegression(sample);
+	CovariateRegression(snps[0], sample);
 
 	generateForR( sample, snps);
 
@@ -313,7 +313,7 @@ int main() {
 
 	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";
 	for (size_t i = 0; i < snps.size(); i++) {
-		if (snps[i].maf != NULL) {
+		if (!isnan(snps[i].maf)) {
 			std::cout << sample[i].y;
 			std::cout << '\t';
 			std::cout << snps[i].chr;
