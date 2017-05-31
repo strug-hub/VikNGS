@@ -97,7 +97,7 @@ double varX(SNP &, Group &);
 double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
-std::vector<double> CovariateRegression(SNP &, std::vector<Sample> &);
+std::vector<double> CovariateRegression(SNP &, std::vector<Sample> &, std::string = "norm");
 
 //CommonTest.cpp
 std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);

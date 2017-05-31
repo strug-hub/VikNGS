@@ -135,19 +135,8 @@ double chiSquareOneDOF(double statistic) {
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-std::vector<double> CovariateRegression(SNP &snp, std::vector<Sample> &sample) {
+std::vector<double> CovariateRegression(SNP &snp, std::vector<Sample> &sample, std::string distribution) {
 
-	//todo: filter out NAs
-	/*
-
-	Coefficients:
-	Estimate Std. Error t value Pr(>|t|)
-	(Intercept)  4.043e-01  9.930e-02   4.071 7.46e-05 ***
-	Z1          -2.265e-05  1.163e-02  -0.002    0.998
-	Z2          -1.767e-01  1.257e-01  -1.406    0.162
-	Z3          -6.635e-02  7.245e-02  -0.916    0.361
-
-	*/
 	size_t i, j;
 
 	VectorXd y(sample.size());
@@ -182,48 +171,31 @@ std::vector<double> CovariateRegression(SNP &snp, std::vector<Sample> &sample) {
 		}
 	}
 
-	std::cout << z.block(0, 0, c, sample[0].numeric_cov.size() + 1);
 
-	std::cout << "\n";
-	std::cout << z.block(0, 0, c, sample[0].numeric_cov.size() + 1)
-		.fullPivHouseholderQr()
+	VectorXd beta = z.block(0, 0, c, sample[0].numeric_cov.size() + 1)
+		.householderQr()
 		.solve(y.block(0, 0, c, 1));
 
+	double meanValue = 0;
+	double fitted = 0;
 
-	/*
-	VectorXd yy(5);
-	MatrixXd zz(5, 3);
-	yy(0) = 0;
-	yy(1) = 1;
-	yy(2) = 0;
-	yy(3) = 1;
-	yy(4) = 0;
+	for (i = 0; i < c; i++) {
+		fitted = 0;
 
-	zz(0, 0) = 1;
-	zz(1, 0) = 1;
-	zz(2, 0) = 1;
-	zz(3, 0) = 1;
-	zz(4, 0) = 1;
+		for (j = 0; j < beta.rows(); j++)
+			fitted += beta(j) * z(i, j);
 
-	zz(0, 1) = 1;
-	zz(1, 1) = 2;
-	zz(2, 1) = 3;
-	zz(3, 1) = 4;
-	zz(4, 1) = 5;
+		if (distribution == "binom")
+			fitted = 1 / (1 + exp(-fitted));
+		
+		meanValue += fitted;
+	}
 
-	zz(0, 2) = 1;
-	zz(1, 2) = 0;
-	zz(2, 2) = 1;
-	zz(3, 2) = 0;
-	zz(4, 2) = 3;
 
-	std::cout << zz;
+	std::cout << meanValue;
 
-	std::cout << zz.fullPivHouseholderQr().solve(yy);
-
-	*/
-	std::vector<double> betas;
-	return betas;
+	std::vector<double> b;
+	return b;
 
 }
 
