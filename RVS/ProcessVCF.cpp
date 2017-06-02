@@ -279,15 +279,19 @@ int main() {
 	double mafCut = 0.05;
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
 	std::string sampleInfoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 	//---------------------------------------
 
 
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
+	std::vector<Interval> collapse = getIntervals(bedDir);
 	std::vector<Sample> sample = getSampleInfo(vcfDir, sampleInfoDir, 9);
 	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
 	std::vector<Group> group = calcGroups(sample, snps);
+
+	collapseVariants(snps, collapse);
 
 	CovariateRegression(snps[0], sample);
 

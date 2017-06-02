@@ -9,6 +9,117 @@
 #include <algorithm>
 
 
+std::vector<Interval> getIntervals(std::string bedDir) {
+
+	MemoryMapped bed(bedDir);
+	int pos = 0;
+	std::vector<Interval> collapse;
+
+	//loops once per line
+	while (true) {
+		std::string chr = "";
+		int start = 0;
+		int end = 0;
+
+		int startPos = pos;
+		bool breakFlag = false;
+
+		//chr column
+		while (true) {
+			pos++;
+			if (pos >= bed.mappedSize()) {
+				breakFlag = true;
+				break;
+			}
+			if (bed[pos] == '\t') {
+				chr = getString(bed, startPos, pos);
+				pos++;
+				break;
+			}
+		}
+
+		startPos = pos;
+		if (breakFlag)
+			break;
+
+		//start column
+		while (true) {
+			pos++;
+			if (pos >= bed.mappedSize()) {
+				breakFlag = true;
+				break;
+			}
+			if (bed[pos] == '\t') {
+				start = stoi(getString(bed, startPos, pos));
+				pos++;
+				break;
+			}
+		}
+
+		startPos = pos;
+		if (breakFlag)
+			break;
+
+		//end column
+		while (true) {
+			pos++;
+			if (pos >= bed.mappedSize()) {
+				breakFlag = true;
+				break;
+			}
+			if (bed[pos] == '\t') {
+				end = stoi(getString(bed, startPos, pos));
+				pos++;
+				break;
+			}
+		}
+
+		startPos = pos;
+		if (breakFlag)
+			break;
+
+		//loop till next line column
+		while (true) {
+			pos++;
+			if (pos >= bed.mappedSize()) {
+				breakFlag = true;
+				break;
+			}
+			if (bed[pos] == '\n') {
+				pos++;
+				if (pos >= bed.mappedSize())
+					breakFlag = true;
+				break;
+			}
+		}
+	
+		std::cout << "\n";
+
+		Interval inv;
+		inv.chr = chr;
+		inv.start = start;
+		inv.end = end;
+
+		collapse.push_back(inv);
+
+		if (breakFlag)
+			break;
+	}
+	return collapse;
+}
+
+void collapseVariants(std::vector<SNP> &snps, std::vector<Interval> &collapse) {
+
+	for (size_t i = 0; i < snps.size(); i++) 
+		for (size_t j = 0; j < collapse.size(); j++)
+			if (!isnan(snps[i].maf)) 
+				collapse[j].addIfIn(snps[i], i);
+
+	return;
+}
+
+
+
 /*
 Seperates the case and control IDs
 
@@ -201,6 +312,48 @@ std::vector<std::string> parseHeader(MemoryMapped &vcf, int &pos) {
 	return colNames;
 }
 
+
+genotypeLikelihood parsePL(int pos, MemoryMapped &vcf) {
+	int startPos = pos;
+	double l00;
+	double l01;
+	double l11;
+
+	while (vcf[pos] != ',')
+		pos++;
+	pos++;
+	l00 = stod(getString(vcf, startPos, pos));
+	startPos = pos;
+
+	while (vcf[pos] != ',')
+		pos++;
+	pos++;
+	l01 = stod(getString(vcf, startPos, pos));
+	startPos = pos;
+
+	while (vcf[pos+1] != '\t' && vcf[pos+1] != ':' && vcf[pos+1] != '\n')
+		pos++;
+
+	l11 = stod(getString(vcf, startPos, pos+1));
+
+	//convert from Phred-scaled likelihoods
+	genotypeLikelihood gl;
+	gl.L00 = pow(10, -l00*0.1);
+	gl.L01 = pow(10, -l01*0.1);
+	gl.L11 = pow(10, -l11*0.1);
+	return gl;
+
+}
+
+int parseDP(int pos, MemoryMapped &vcf) {
+	int startPos = pos;
+
+	while (vcf[pos+1] != '\t' && vcf[pos+1] != ':' && vcf[pos+1] != '\n')
+		pos++;
+
+	return stoi(getString(vcf, startPos, pos+1));
+}
+
 /*
 Creates a new SNP object from one row in a VCF file
 
@@ -220,26 +373,38 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 
 	//finds the index of "PL" from the FORMAT column
 	//assumes FORMAT column is the 9th column
-	int indexPL = 0;
+
+	int index = 0;
+	int indexPL = -1;
+	int indexDP = -1;
+
 	int pos = ind[8];
 	while (true) {
 		if (vcf[pos] == ':')
-			indexPL++;
+			index++;
 		else if (vcf[pos] == 'P' && vcf[pos + 1] == 'L')
-			break;
+			indexPL = index;
+		else if (vcf[pos] == 'D' && vcf[pos + 1] == 'P')
+			indexDP = index;
 		else if (vcf[pos] == '\t') {
-			std::cout << "ERROR: Phred-scaled likelihoods (PL) not found in FORMAT column ";
-			std::cout << "or FORMAT is not the 9th column in the .vcf file.";
+			if (indexPL == -1) {
+				std::cout << "ERROR: Phred-scaled likelihoods (PL) not found in FORMAT column ";
+				std::cout << "or FORMAT is not the 9th column in the .vcf file.";
+			}
+			if (indexDP == -1) {
+				std::cout << "ERROR: Read depth (DP) not found in FORMAT column ";
+				std::cout << "or FORMAT is not the 9th column in the .vcf file.";
+			}
+
+			break;
 		}
 		pos++;
 	}
-
+		
 	std::vector<genotypeLikelihood> likelihoods;
-	int startPos;
+	std::vector<int> readDepths;
 	int counter;
-	double l00;
-	double l01;
-	double l11;
+
 
 	//get genotype likelihood for every sample
 	for (int i = ncolID; i < ind.size(); i++) {
@@ -252,51 +417,41 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 			gl.L01 = NAN;
 			gl.L11 = NAN;
 			likelihoods.push_back(gl);
+			readDepths.push_back(0);
 
 			continue;
 		}
 
 		while (true) {
+
+			if (vcf[pos] == '\t' || vcf[pos] == '\n')
+				break;
+
 			if (vcf[pos] == ':') {
 				counter++;
 				if (counter == indexPL) {
 					pos++;
-					break;
+					likelihoods.push_back(parsePL(pos, vcf));
 				}
+
+				if (counter == indexDP) {
+					pos++;
+					readDepths.push_back(parseDP(pos, vcf));
+				}
+
 			}
 			pos++;
 		}
 
-		startPos = pos;
-
-		while (vcf[pos] != ',')
-			pos++;
-		pos++;
-		l00 = stod(getString(vcf, startPos, pos));
-		startPos = pos;
-
-		while (vcf[pos] != ',')
-			pos++;
-		pos++;
-		l01 = stod(getString(vcf, startPos, pos));
-		startPos = pos;
-
-		while (vcf[pos] != '\t' && vcf[pos] != ':' && vcf[pos] != '\n')
-			pos++;
-		l11 = stod(getString(vcf, startPos, pos));
-
-		//convert from Phred-scaled likelihoods
-		genotypeLikelihood gl;
-		gl.L00 = pow(10, -l00*0.1);
-		gl.L01 = pow(10, -l01*0.1);
-		gl.L11 = pow(10, -l11*0.1);
-		likelihoods.push_back(gl);
 	}
 
 	snp.gl = likelihoods;
+	snp.rd = readDepths;
 
 	return snp;
 }
+
+
 
 /*
 1)Parses data from VCF file for each SNP (chromosome, location and Phred-scaled likelihoods for each sample)

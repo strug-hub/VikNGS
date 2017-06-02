@@ -52,6 +52,8 @@ struct SNP {
 	int loc;
 
 	std::vector<genotypeLikelihood> gl;
+	std::vector<int> rd;
+
 	std::vector<double> p;
 	std::vector<double> EG;
 
@@ -75,6 +77,36 @@ struct SNP {
 
 };
 
+//========================================================
+// Interval struct
+//========================================================
+
+struct Interval {
+	int start = 0;
+	int end = 0;
+	std::vector<int> indexes;
+	std::string chr;
+
+	std::vector<SNP> getInInterval(std::vector<SNP> &snps) {
+		std::vector<SNP> in;
+		for (size_t i = 0; i < indexes.size(); i++)
+			in.push_back(snps[indexes[i]]);
+
+		return in;
+	}
+
+	bool addIfIn(SNP snp, int index) {
+
+		if (snp.loc >= start && snp.loc <= end && chr.compare(snp.chr) == 0) {
+			indexes.push_back(index);
+			return true;
+		}
+		
+		return false;
+	}
+
+};
+
 
 inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 
@@ -83,12 +115,14 @@ inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 //========================================================
 
 //HelperVCF.cpp
+std::vector<Interval> getIntervals(std::string);
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 std::vector<Sample> getSampleInfo(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
 std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<Sample> &);
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
+void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
 
 //Statistics.cpp
 double meanX(SNP &, Group &);
