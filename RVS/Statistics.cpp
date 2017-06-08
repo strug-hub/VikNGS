@@ -62,6 +62,31 @@ double varX(SNP &snp, Group &group) {
 	return var / (n - 1);
 }
 
+double varX(VectorXd &X, VectorXi &G, int groupID) {
+
+	double mean = 0;
+	double n = 0;
+	size_t i;
+
+	for (i = 0; i < X.rows(); i++) {
+		if (G(i) == groupID) {
+			mean += X(i);
+			n++;
+		}
+	}
+
+	mean = mean / n;
+	double var = 0;
+
+	for (i = 0; i < X.rows(); i++) {
+		if (G(i) == groupID)
+			var += pow(X(i) - mean, 2);
+	}
+
+	return var / (n - 1);
+}
+
+
 double variance(std::vector<double> &vec) {
 
 	double mean = 0;
@@ -129,76 +154,29 @@ double chiSquareOneDOF(double statistic) {
 	return 1 - p;
 }
 
+std::vector<double> CovariateRegression(VectorXd &Y, MatrixXd &Z, std::string distribution) {
 
+	VectorXd beta = Z.householderQr().solve(Y);
 
-#include "Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+	double fitted;
+	std::vector<double> meanValue;
 
-std::vector<double> CovariateRegression(SNP &snp, std::vector<Sample> &sample, std::string distribution) {
-
-	size_t i, j;
-
-	VectorXd y(sample.size());
-	MatrixXd z(sample.size(), sample[0].numeric_cov.size() + 1);
-	int c = 0;
-	bool flag;
-
-	//construct matrix and filter out NAs
-	for (i = 0; i < sample.size(); i++) {
-
-		if (!isnan(snp.EG[i]) && !isnan(sample[i].y)) {
-
-			y(c) = sample[i].y;
-
-			flag = true;
-
-			for (j = 0; j < sample[i].numeric_cov.size(); j++) {
-				if (sample[i].numeric_cov[j] == -899) {
-					flag = false;
-					break;
-				}
-			}
-
-			if (flag) {
-
-				for (j = 0; j < sample[i].numeric_cov.size(); j++)
-					z(c, j + 1) = sample[i].numeric_cov[j];
-
-				z(c, 0) = 1;
-				c++;
-			}
-		}
-	}
-
-
-	VectorXd beta = z.block(0, 0, c, sample[0].numeric_cov.size() + 1)
-		.householderQr()
-		.solve(y.block(0, 0, c, 1));
-
-	double meanValue = 0;
-	double fitted = 0;
-
-	for (i = 0; i < c; i++) {
+	for (size_t i = 0; i < Z.rows(); i++) {
 		fitted = 0;
+		for (size_t j = 0; j < beta.rows(); j++) {
 
-		for (j = 0; j < beta.rows(); j++)
-			fitted += beta(j) * z(i, j);
+			fitted += beta[j] * Z(i, j);
 
-		if (distribution == "binom")
-			fitted = 1 / (1 + exp(-fitted));
-		
-		meanValue += fitted;
+			if (distribution == "binom")
+				fitted = 1 / (1 + exp(-fitted));
+
+
+		}
+		meanValue.push_back(fitted);
 	}
 
-
-	std::cout << meanValue;
-
-	std::vector<double> b;
-	return b;
-
+	return meanValue;
 }
-
 
 
 std::vector<double> LogisticRegression(std::vector<bool> &y, std::vector<double> &x) {

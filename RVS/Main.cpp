@@ -6,145 +6,6 @@
 #include <string>
 #include <vector>
 
-/*
-Generates the expected probabilities of the genotypes E(G_ij | D_ij).
-Using the genotype likelihood for case and controls from VCF file to generates the population frequency by calling function calcEM
-and then use it to calculate the expected genotype probabilities E(G_ij | D_ij) by calling function calcEG. 
-Variants with homozygous call in the whole sample (standard deviation of their E(G_ij | D_ij) < 10^4) are removed.
-
-@param snps A vector of SNPs.
-@return None.
-@effect Sets p for each SNP in snps and removes SNPs from snps with homozygous calls.
-*/
-void getExpGeno(std::vector<SNP> &snps) {
-
-	std::vector<double> EG;
-	std::vector<size_t> filterIndex;
-
-	double mean;
-	double sdSum;
-
-	double n;
-	int filterCount = 0;
-
-	for (size_t i = 0; i < snps.size(); i++) {
-		std::vector<double> p;
-
-		//calculates E(G_ij | D_ij)
-		p = calcEM(snps[i]);
-		snps[i].p = p;
-		EG = calcEG(snps[i]);
-		snps[i].EG = EG;
-
-		//check and filter if variant is homozygous
-		mean = 0;
-		n = 0;
-		for (size_t j = 0; j < EG.size(); j++) {
-			if (!isnan(EG[j])) {
-				mean += EG[j];
-				n++;
-			}
-		}
-		mean = mean / n;
-
-		sdSum = 0;
-		for (size_t j = 0; j < EG.size(); j++)
-			if (EG[j] != NULL)
-				sdSum += pow((EG[j] - mean), 2);
-
-		if (1e-8*(n - 1) > sdSum)
-			filterIndex.push_back(i);
-	}
-
-	for (size_t i = 0; i < filterIndex.size(); i++) {
-		snps.erase(snps.begin() + filterIndex[i]);
-		filterCount++;
-	}
-
-	if (filterCount > 0) {
-		std::cout << filterCount;
-		std::cout << " SNPs were removed because of homozygous call in all samples\n";
-	}
-	return;
-}
-
-/*
-Calculates the minor allele frequency (MAF) from conditional expected genotype probability.
-
-@param snps A vector of SNPs.
-@param mafCut The minor allele frequency cut-off for common or rare variants.
-@param common Indicates common or rare variants, (common = true, rare = false).
-@return None.
-@effect Sets maf for each SNP in snps.
-*/
-void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common) {
-	double maf;
-	int mafCounter = 0;
-
-
-	for (size_t i = 0; i < snps.size(); i++) {
-		maf = 0.5 * snps[i].p[1] + snps[i].p[2];
-		if (maf > 0.5)
-			maf = 1 - maf;
-
-		if (common) {
-			if (maf >= mafCut) {
-				mafCounter++;
-				snps[i].maf = maf;
-			}
-		}
-		else {
-			if (maf < mafCut) {
-				mafCounter++;
-				snps[i].maf = maf;
-			}
-		}
-	}
-
-	std::cout << mafCounter;
-	std::cout << " out of ";
-	std::cout << snps.size();
-	std::cout << " variants satisfy the MAF condition provided\n";
-	
-	//remove SNPs that failed MAF condition
-	int i = 0;
-	while (i < snps.size()) {
-		if (isnan(snps[i].maf))
-			snps.erase(snps.begin() + i);
-		else 
-			i++;
-	}
-}
-
-/*
-Parses a VCF file to get the expected probabilities of the genotypes E(G_ij | D_ij) 
-and expected minor allele frequency.
-@param vcfDir Path of VCF file.
-@param mafCut Cut-off value for minor allele frequency
-@param sample Vector with sample information.
-@return Vector of SNPs parsed from VCF file.
-*/
-std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample) {
-	
-	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, sample);
-
-	if (snps.size() == 0)
-		std::cout << "No SNPs left after filtering .vcf file\n";
-
-	getExpGeno(snps);
-	
-	if (snps.size() == 0)
-		std::cout << "No SNPs left removing homozygous variants\n";
-
-	getExpMAF(snps, mafCut, true);
-
-	if (snps.size() == 0)
-		std::cout << "No SNPs left after applying MAF condition\n";
-
-	std::cout << "==========\n";
-
-	return snps;
-}
 
 /*
 Creates a vector of Groups based on the sample information
@@ -156,6 +17,7 @@ Creates a vector of Groups based on the sample information
 std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snps) {
 	std::vector<Group> group;
 	std::vector<bool> done;
+
 	for (size_t i = 0; i < sample.size(); i++)
 		done.push_back(false);
 
@@ -164,7 +26,8 @@ std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snp
 			Group g;
 			g.ID = sample[i].groupID;
 			g.hrg = sample[i].hrg;
-			
+			g.groupIndex = sample[i].groupIndex;
+
 			for (size_t j = i; j < sample.size(); j++) 
 				if (sample[j].groupID == g.ID && sample[j].hrg == g.hrg) {
 					g.index.push_back(j);
@@ -181,6 +44,7 @@ std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snp
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	std::ofstream X("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
@@ -188,6 +52,8 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	std::ofstream P("C:/Users/Scott/Desktop/RVS-master/example/P.txt");
 	std::ofstream M("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
 	std::ofstream Z("C:/Users/Scott/Desktop/RVS-master/example/Z.txt");
+
+	int precise = 12;
 
 	if (M.is_open())
 	{
@@ -207,7 +73,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	if (Y.is_open())
 	{
 		for (size_t i = 0; i < sample.size(); i++) {
-			Y << sample[i].y;
+			Y << std::setprecision(precise) << sample[i].y;
 			Y << '\n';
 		}
 		Y.close();
@@ -221,7 +87,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 				if (isnan(snps[i].EG[j]))
 					X << "NA";
 				else
-					X << snps[i].EG[j];
+					X << std::setprecision(precise) << snps[i].EG[j];
 
 				if(j <snps[i].EG.size()-1)
 					X << '\t';
@@ -234,11 +100,11 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	if (P.is_open())
 	{
 		for (size_t i = 0; i < snps.size(); i++) {
-			P << snps[i].p[0];
+			P << std::setprecision(precise) << snps[i].p[0];
 			P << '\t';
-			P << snps[i].p[1];
+			P << std::setprecision(precise) << snps[i].p[1];
 			P << '\t';
-			P << snps[i].p[2];
+			P << std::setprecision(precise) << snps[i].p[2];
 			P << '\n';
 		}
 		
@@ -249,19 +115,10 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	{
 		for (size_t i = 0; i < sample.size(); i++) {
 
-			for (size_t j = 0; j < sample[i].numeric_cov.size(); j++) {
-
-				Z << sample[i].numeric_cov[j];
-				if (sample[i].factor_cov.size() == 0 &&
-					sample[i].numeric_cov.size() - 1 != j)
-					Z << '\t';
-			}
-
-			for (size_t j = 0; j < sample[i].factor_cov.size(); j++) {
-
-				Z << sample[i].factor_cov[j];
-
-				if (sample[i].factor_cov.size() - 1 != j)
+			for (size_t j = 0; j < sample[i].covariates.size(); j++) {
+				Z << std::setprecision(precise) << sample[i].covariates[j];
+				
+				if(j+1 != sample[i].covariates.size())
 					Z << '\t';
 			}
 
@@ -285,25 +142,24 @@ int main() {
 
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
-
 	std::vector<Interval> collapse = getIntervals(bedDir);
 	std::vector<Sample> sample = getSampleInfo(vcfDir, sampleInfoDir, 9);
 	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
+	generateForR(sample, snps);
+
+
 	std::vector<Group> group = calcGroups(sample, snps);
 
 	collapseVariants(snps, collapse);
 
-	CovariateRegression(snps[0], sample);
-
-	generateForR( sample, snps);
+	generateForR(sample, snps);
 
 	std::vector<bool> IDmap;
 	for (size_t i = 0; i < snps.size(); i++) {
 		IDmap.push_back(sample[i].y);
 	}
 
-
-	std::vector<double> pvals = RVSasy(snps, sample, group);
+	std::vector<double> pvals = runCommonTest(snps, sample, group, false);
 	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
 	/*

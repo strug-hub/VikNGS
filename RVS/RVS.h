@@ -7,6 +7,10 @@
 #include <algorithm>
 #include <iostream>  
 #include <regex>
+#include "Eigen/Dense"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::VectorXi;
 
 //========================================================
 // Group struct
@@ -14,11 +18,8 @@
 
 struct Group {
 	std::string ID = "";
+	int groupIndex = 0;
 	std::vector<size_t> index;
-	//double n = 0;
-	//double meanY = 0;
-	//double meanX = 0;
-	//double varX = 0;
 	bool hrg = false;
 };
 
@@ -28,13 +29,30 @@ struct Group {
 
 struct Sample {
 	std::string ID = "";
+	int groupIndex = 0;
 	std::string groupID = "";
 	double y = 0;
-	bool hrg = false;
-	std::vector<double> numeric_cov;
-	std::vector<std::string> factor_cov;
-};
+	double hrg = 0;
+	std::vector<double> covariates;
 
+	void print() {
+		std::cout << ID;
+		std::cout << '\t';
+		std::cout << y;
+		std::cout << '\t';
+		std::cout << groupID;
+		std::cout << "->";
+		std::cout << groupIndex;
+		std::cout << '\t';
+		std::cout << hrg;
+		std::cout << '\t';
+		for (size_t i = 0; i < covariates.size(); i++) {
+			std::cout << covariates[i];
+			std::cout << '\t';
+		}
+		std::cout << '\n';
+	}
+};
 
 //========================================================
 // SNP struct
@@ -115,26 +133,37 @@ inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 //========================================================
 
 //HelperVCF.cpp
-std::vector<Interval> getIntervals(std::string);
-std::vector<std::string> parseHeader(MemoryMapped &, int &);
 std::vector<Sample> getSampleInfo(std::string, std::string, int);
 SNP initSNP(MemoryMapped &, std::vector<int>, int);
 std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<Sample> &);
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
+void getExpGeno(std::vector<SNP> &);
+void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common);
+
+
+//VCFParser.cpp
+std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample);
+std::vector<std::string> parseHeader(MemoryMapped &, int &);
+
+//BEDParser.cpp
+std::vector<Interval> getIntervals(std::string);
 void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
 
 //Statistics.cpp
 double meanX(SNP &, Group &);
 double meanY(std::vector<Sample> &, SNP &);
 double varX(SNP &, Group &);
+double varX(VectorXd &X, VectorXi &G, int groupID);
 double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
-std::vector<double> CovariateRegression(SNP &, std::vector<Sample> &, std::string = "norm");
+std::vector<double> CovariateRegression(VectorXd &Y, MatrixXd &Z, std::string distribution= "norm");
+
+
 
 //CommonTest.cpp
-std::vector<double> RVSasy(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, bool = true);
+std::vector<double> runCommonTest(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int nboot=0, bool rvs = true);
 std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool, bool = true);
 
 //RareTest.cpp
@@ -155,6 +184,7 @@ Removes whitespace from a string
 */
 inline std::string trim(std::string str)
 {
+	str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
 	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 	return str;
 }
@@ -168,7 +198,6 @@ Checks if a string is a number
 inline bool isNumeric(const std::string& str) {
 	return (std::regex_match(str, std::regex("-?[1234567890]+(\.[1234567890]+)?")));
 }
-//-?\d+(\.\d+)?
 
 /**
 Extracts string from a MemoryMapped class
