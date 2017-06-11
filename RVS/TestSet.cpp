@@ -64,7 +64,6 @@ TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &grou
 		grps[index].X = x.block(0, 0, c, 1);
 		grps[index].Y = y.block(0, 0, c, 1);;
 		grps[index].Z = z.block(0, 0, c, sample[0].covariates.size() + 1);
-		grps[index].Z = z.block(0, 0, c, sample[0].covariates.size() + 1);
 		grps[index].P = snp.p;
 	}
 
@@ -76,13 +75,26 @@ TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &grou
 	calculateYbar();
 }
 
+void TestGroup::centerX() {
+	VectorXd xmid(length());
 
+	double mean = X.mean();
+
+	for (size_t i = 0; i < length(); i++)
+		xmid[i] = X[i] - mean;
+
+	Xcenter = xmid;
+	isCentered = true;
+}
 
 void TestGroup::bootstrapX() {
+	if (!isCentered)
+		centerX();
+
 	VectorXd xrand(length());
 
 	for (size_t i = 0; i < length(); i++) 
-		xrand[i] = X[generateRandomNumber(0, length() - 1)];
+		xrand[i] = Xcenter[generateRandomNumber(0, length() - 1)];
 
 	Xboot = xrand;
 }

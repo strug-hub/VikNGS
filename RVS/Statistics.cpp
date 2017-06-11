@@ -85,6 +85,7 @@ double var(VectorXd &X) {
 }
 
 
+
 double variance(std::vector<double> &vec) {
 
 	double mean = 0;

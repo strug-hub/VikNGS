@@ -74,13 +74,7 @@ double commonBootstrap(TestSet &ts, int nboot, bool earlyStop, bool rvs) {
 		average += score;
 	}
 
-	std::cout << average / nboot;
-	std::cout << '\n';
-
-
 	return (tcount + 1) / (nboot + 1);
-
-
 
 	/*	
 	if (earlyStop && bootcount > 1000) {

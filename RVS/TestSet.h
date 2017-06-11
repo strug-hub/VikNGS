@@ -15,20 +15,22 @@ private:
 	bool hrg = false;
 	std::string id;
 	int index;
-
-public:
-	VectorXd Y;
-	VectorXd Ybar;
-	VectorXd X;
 	VectorXd Xboot;
 	VectorXd Xcenter;
+	bool isCentered = false;
 
+public:
+	VectorXd X;
+	VectorXd Y;
+	VectorXd Ybar;
 	MatrixXd Z;
 	std::vector<double> P;
 
 	TestGroup();
 	TestGroup(std::string id, int index, bool hrg);
 	void bootstrapX();
+	void centerX();
+
 	double score();
 	double variance(bool rvs);
 	double bootScore();
