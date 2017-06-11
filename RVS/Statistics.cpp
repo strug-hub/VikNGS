@@ -4,6 +4,10 @@
 #include <vector>
 #include <random>
 
+std::random_device random;
+std::mt19937 generate(random());
+
+
 double meanX(SNP &snp, Group &group) {
 
 	double sum = 0;
@@ -62,26 +66,20 @@ double varX(SNP &snp, Group &group) {
 	return var / (n - 1);
 }
 
-double varX(VectorXd &X, VectorXi &G, int groupID) {
+double var(VectorXd &X) {
 
 	double mean = 0;
-	double n = 0;
-	size_t i;
+	double n = X.rows();
+	int i;
 
-	for (i = 0; i < X.rows(); i++) {
-		if (G(i) == groupID) {
-			mean += X(i);
-			n++;
-		}
-	}
+	for (i = 0; i < n; i++)
+		mean += X[i];
 
 	mean = mean / n;
 	double var = 0;
 
-	for (i = 0; i < X.rows(); i++) {
-		if (G(i) == groupID)
-			var += pow(X(i) - mean, 2);
-	}
+	for (i = 0; i < X.rows(); i++)
+		var += pow(X[i] - mean, 2);
 
 	return var / (n - 1);
 }
@@ -104,17 +102,20 @@ double variance(std::vector<double> &vec) {
 	return var / (vec.size() - 1);
 }
 
-std::random_device rd;
-std::mt19937 gen(rd());
 
 std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
 	std::vector<double> rvec;
 	std::uniform_int_distribution<> sample(0, vec.size()-1);
 
 	for (size_t i = 0; i < nsample; i++)
-		rvec.push_back(vec[sample(gen)]);
+		rvec.push_back(vec[sample(generate)]);
 	
 	return rvec;
+}
+
+int generateRandomNumber(int from, int to) {
+	std::uniform_int_distribution<> sample(from, to);
+	return sample(generate);
 }
 
 
@@ -154,12 +155,14 @@ double chiSquareOneDOF(double statistic) {
 	return 1 - p;
 }
 
-std::vector<double> CovariateRegression(VectorXd &Y, MatrixXd &Z, std::string distribution) {
+VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
+	return Z.householderQr().solve(Y);
+}
 
-	VectorXd beta = Z.householderQr().solve(Y);
+VectorXd fitModel(VectorXd &beta, MatrixXd &Z, std::string distribution) {
 
 	double fitted;
-	std::vector<double> meanValue;
+	VectorXd meanValue(Z.rows());
 
 	for (size_t i = 0; i < Z.rows(); i++) {
 		fitted = 0;
@@ -169,10 +172,8 @@ std::vector<double> CovariateRegression(VectorXd &Y, MatrixXd &Z, std::string di
 
 			if (distribution == "binom")
 				fitted = 1 / (1 + exp(-fitted));
-
-
 		}
-		meanValue.push_back(fitted);
+		meanValue[i] = fitted;
 	}
 
 	return meanValue;

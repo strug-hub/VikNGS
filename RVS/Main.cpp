@@ -159,7 +159,7 @@ int main() {
 		IDmap.push_back(sample[i].y);
 	}
 
-	std::vector<double> pvals = runCommonTest(snps, sample, group, false);
+	std::vector<double> pvals = runCommonTest(snps, sample, group, 1000, true);
 	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
 	/*

@@ -693,6 +693,9 @@
     <ClInclude Include="MemoryMapped\MemoryMapped.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -723,6 +726,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BEDParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

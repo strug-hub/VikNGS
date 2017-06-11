@@ -154,17 +154,18 @@ void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
 double meanX(SNP &, Group &);
 double meanY(std::vector<Sample> &, SNP &);
 double varX(SNP &, Group &);
-double varX(VectorXd &X, VectorXi &G, int groupID);
+double var(VectorXd &);
 double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
-std::vector<double> CovariateRegression(VectorXd &Y, MatrixXd &Z, std::string distribution= "norm");
+VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z);
+VectorXd fitModel(VectorXd &beta, MatrixXd &Z, std::string distribution = "norm");
+int generateRandomNumber(int from, int to);
 
 
 
 //CommonTest.cpp
 std::vector<double> runCommonTest(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int nboot=0, bool rvs = true);
-std::vector<double> RVSbtrap(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool, bool = true);
 
 //RareTest.cpp
 std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool = true, int = 5, int = 1, int = 1);
