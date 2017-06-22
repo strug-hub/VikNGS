@@ -1,57 +1,45 @@
 #pragma once
-#include "stdafx.h"
-#include "Eigen/Dense"
-
-#include <vector>
-#include <random>
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::VectorXi;
-
-
-
-class TestGroup {
-private:
-	bool hrg = false;
-	std::string id;
-	int index;
-	VectorXd Xboot;
-	VectorXd Xcenter;
-	bool isCentered = false;
-
-public:
-	VectorXd X;
-	VectorXd Y;
-	VectorXd Ybar;
-	MatrixXd Z;
-	std::vector<double> P;
-
-	TestGroup();
-	TestGroup(std::string id, int index, bool hrg);
-	void bootstrapX();
-	void centerX();
-
-	double score();
-	double variance(bool rvs);
-	double bootScore();
-	double bootVariance();
-
-	inline bool isHRG() { return(hrg); }
-	inline int length() { return X.rows(); }
-};
+#include "TestGroup.h"
 
 class TestSet {
 	private:
-		VectorXd Y;
-		VectorXd X;
-		MatrixXd Z;
-		void calculateYbar();
+		double robustVar;
+		VectorXd getBeta(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group);
+
+		//for rare tests:
+		//after filtering for NAN in X, Y, and Z
+		int nhrg;
+		int nlrg;
+		//after filtering for NAN in Y and Z
+		int nhrg_filterz;
+		int nlrg_filterz;
 
 	public:
-		TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group);
+		TestSet() {};
+		TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group, bool rare);
+		TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group)
+			: TestSet(snp, sample, group, false) {}	
 
-		std::vector<TestGroup> groups;
+		std::vector<TestHRG> groupHRG;
+		std::vector<TestLRG> groupLRG;
 
-		inline int length() { return groups.size(); }
-		TestGroup & operator [](int i) { return groups[i]; }
+		inline double getRobustVariance() { return robustVar; }
+		inline int length() { return groupHRG.size() + groupLRG.size(); }
+		TestGroup & operator [](int i) { return get(i); }
+
+		inline TestGroup & get(int i) {
+			int index = i - groupHRG.size();
+			if (index < 0)
+				return groupHRG[i];
+			else
+				return groupLRG[index];
+		}
+
+		//rare tests:
+		double getYmLRG();
+		double getYmHRG();
+		inline VectorXd getX(int index) { return get(index).getX_filterz(); }
+		inline bool isHRG(int index) { return index < groupHRG.size(); }
+
 };
+

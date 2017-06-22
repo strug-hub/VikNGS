@@ -1,7 +1,6 @@
 #pragma once
 #include "stdafx.h"
 #include "MemoryMapped/MemoryMapped.h"
-
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -11,6 +10,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::VectorXi;
+using Eigen::DiagonalMatrix;
 
 //========================================================
 // Group struct
@@ -159,15 +159,17 @@ double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
 VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z);
-VectorXd fitModel(VectorXd &beta, MatrixXd &Z, std::string distribution = "norm");
 int generateRandomNumber(int from, int to);
-
-
+MatrixXd nanToZero(MatrixXd &M);
+VectorXd nanToZero(VectorXd &V);
+MatrixXd covariance(MatrixXd &M);
+MatrixXd correlation(MatrixXd &M);
 
 //CommonTest.cpp
 std::vector<double> runCommonTest(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int nboot=0, bool rvs = true);
 
 //RareTest.cpp
+double runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot = 0, bool rvs = true);
 std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool = true, int = 5, int = 1, int = 1);
 
 //CompQuadForm.cpp

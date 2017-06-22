@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "RVS.h"
 #include "TestSet.h"
+#include "TestGroup.h"
 
 #include <iostream>  
 #include <math.h> 
@@ -94,10 +95,11 @@ std::vector<double> runCommonTest(std::vector<SNP> &snps, std::vector<Sample> &s
 	for (size_t i = 0; i < snps.size(); i++) {
 		TestSet ts(snps[i], sample, group);
 
-		if (nboot == 0)
-			pvals.push_back(commonAsymptotic(ts, rvs));
-		else
+		if (nboot > 0)
 			pvals.push_back(commonBootstrap(ts, nboot, false, true));
+		else
+			pvals.push_back(commonAsymptotic(ts, rvs));
+
 	}
 
 	return pvals;

@@ -696,6 +696,12 @@
     <ClInclude Include="TestSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TestGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiTestSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -729,6 +735,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiTestSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

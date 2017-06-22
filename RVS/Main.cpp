@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "TestSet.h"
 
 /*
 Creates a vector of Groups based on the sample information
@@ -40,7 +41,6 @@ std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snp
 
 	return group;
 }
-
 
 #include <iostream>
 #include <fstream>
@@ -97,6 +97,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 
 		X.close();
 	}
+
 	if (P.is_open())
 	{
 		for (size_t i = 0; i < snps.size(); i++) {
@@ -159,8 +160,9 @@ int main() {
 		IDmap.push_back(sample[i].y);
 	}
 
-	std::vector<double> pvals = runCommonTest(snps, sample, group, 1000, true);
+	std::vector<double> pvals = runCommonTest(snps, sample, group);
 	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
+
 
 	/*
 	for (size_t i = 2; i <= 6; i++) {
@@ -169,8 +171,8 @@ int main() {
 	RVSbtrap(snps, sample, nboot, true);
 	endTime(t, std::to_string(nboot));
 	}
-	*/
 
+*/
 	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";
 	for (size_t i = 0; i < snps.size(); i++) {
 		if (!isnan(snps[i].maf)) {
@@ -187,29 +189,19 @@ int main() {
 		}
 	}
 
+	std::vector<SNP> toTest;
+	toTest.push_back(snps[0]);
+	toTest.push_back(snps[1]);
+	toTest.push_back(snps[2]);
+	toTest.push_back(snps[3]);
+	toTest.push_back(snps[4]);
+
+
+	std::cout << runRareTest(toTest, sample, group, 100, true);
+	
 //	auto t = startTime();
 //	pvals = RVSbtrap(snps, sample, 1000000, true, true);
 //	endTime(t, "btrp=1000000");
-
-
-	
-	for (size_t i = 0; i < snps.size(); i += 5) {
-		std::vector<SNP> snps2eval;
-
-		for (size_t j = 0; j <= 4; j++) {
-			snps2eval.push_back(snps[i+j]);
-
-		}
-		
-		std::vector<double> p = RVSrare(snps2eval, sample, group, 100000);
-
-		std::cout << p[0];
-		std::cout << "\t";
-		std::cout << p[1];
-		std::cout << "\n";
-
-
-	}
 
 	
 

@@ -160,146 +160,46 @@ VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
 	return Z.householderQr().solve(Y);
 }
 
-VectorXd fitModel(VectorXd &beta, MatrixXd &Z, std::string distribution) {
+MatrixXd nanToZero(MatrixXd &M) {
 
-	double fitted;
-	VectorXd meanValue(Z.rows());
+	for (size_t i = 0; i < M.cols(); i++) 
+		for (size_t j = 0; j < M.rows(); j++) 
+			if (isnan(M(j, i)))
+				M(j, i) = 0;
 
-	for (size_t i = 0; i < Z.rows(); i++) {
-		fitted = 0;
-		for (size_t j = 0; j < beta.rows(); j++) {
-
-			fitted += beta[j] * Z(i, j);
-
-			if (distribution == "binom")
-				fitted = 1 / (1 + exp(-fitted));
-		}
-		meanValue[i] = fitted;
-	}
-
-	return meanValue;
+	return  M;
 }
 
+VectorXd nanToZero(VectorXd &V) {
 
-std::vector<double> LogisticRegression(std::vector<bool> &y, std::vector<double> &x) {
-	double w0 = 0;
-	double w = 0;
+	for (size_t i = 0; i < V.rows(); i++)
+			if (isnan(V[i]))
+				V[i] = 0;
 
-	double w0last = 1;
-	double wlast = 1;
-
-	double temp;
-	double sigmoid;
-	double det;
-
-	double gradw0;
-	double gradw;
-	double a;
-	double bc;
-	double d;
-
-	int iteration = 0;
-
-	while (true) {
-
-		iteration++;
-
-		gradw0 = 0;
-		gradw = 0;
-		a = 0;
-		bc = 0;
-		d = 0;
-
-		for (size_t i = 0; i < y.size(); i++) {
-			if (!isnan(x[i])) {
-				sigmoid = (1.0 / (1.0 + exp(-(w * x[i] + w0))));
-
-				//calculate 1st derivative of likelihood function
-				temp = sigmoid - y[i];
-				gradw0 += temp;
-				gradw += temp * x[i];
-
-				//calculate Hessian matrix
-				temp = sigmoid * (1 - sigmoid);
-				a += temp;
-				bc += temp * x[i];
-				d += temp * x[i] * x[i];
-			}
-		}
-
-		temp = a*d - bc*bc;
-		if (temp == 0) {
-			std::cout << "Warning: Hessian not invertible (logistic regression).\n";
-			std::vector<double> out;
-			out.push_back(w0);
-			out.push_back(w);
-		}
-
-		det = 1 / temp;
-
-		w0 -= det * ((d * gradw0) + (-bc * gradw));
-		w -= det * ((-bc * gradw0) + (a * gradw));
-
-		if (iteration > 100 || (abs(w - wlast) < 1e-7 && abs(w0 - w0last) < 1e-7 && iteration > 1)) {
-
-			if (iteration > 100)
-				std::cout << "Warning: Logistic regression failed to converge after 100 iterations.\n";
-
-			std::vector<double> out;
-			out.push_back(w0);
-			out.push_back(w);
-			return out;
-		}
-
-		wlast = w;
-		w0last = w0;
-	}
+	return V;
 }
 
+MatrixXd covariance(MatrixXd &M) {
 
-double LogisticRegressionInterceptOnly(std::vector<bool> &y, std::vector<double> &x) {
-	double w0 = 0;
-	double w = 0;
-
-	double w0last = 1;
-
-	double sigmoid;
-
-	double gradw0;
-	double hessw0;
-
-	int iteration = 0;
-
-	while (true) {
-
-		iteration++;
-
-		gradw0 = 0;
-		hessw0 = 0;
-
-		for (size_t i = 0; i < y.size(); i++) {
-			if (!isnan(x[i])) {
-
-				sigmoid = (1.0 / (1.0 + exp(-w0)));
-
-				//calculate 1st derivative of likelihood function
-				gradw0 += sigmoid - y[i];
-
-				//calculate 2nd derivative of likelihood function
-				hessw0 += sigmoid * (1 - sigmoid);
-			}
-		}
-
-		w0 -= gradw0 / hessw0;
-
-		if (iteration > 100 || (abs(w0 - w0last) < 1e-7 && iteration > 1)) {
-
-			if (iteration > 100)
-				std::cout << "Warning: Logistic regression failed to converge after 100 iterations.\n";
-
-			return w0;
-		}
-
-		w0last = w0;
+	//TODO:something better??
+	if (M.rows() <= 1) {
+		std::cout << "Cannot compute covariate matrix with 1 row!!";
+		return M;
 	}
+
+	MatrixXd centered = M.rowwise() - M.colwise().mean();
+	MatrixXd cov = (centered.adjoint() * centered) / double(M.rows() - 1);
+
+	return cov;
+}
+
+MatrixXd correlation(MatrixXd &M) {
+	std::cout << M;
+
+	MatrixXd cov = covariance(M);
+	VectorXd D = cov.diagonal().array().sqrt();
+	
+	MatrixXd cor = D.asDiagonal().inverse() * cov * D.asDiagonal().inverse();
+
+	return cor;
 }

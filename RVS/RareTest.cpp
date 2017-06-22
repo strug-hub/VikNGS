@@ -1,34 +1,9 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include "Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-
 #include <iostream>
-#include <vector>
-#include <random>
-
-
-//TODO!!
-//takes matrix
-//finds columns which are all identical (except NAN)
-//picks first row without *any* NAN or random row  without *any* NAN (depends on hom)
-//in columns with identical rows, takes above^^ row and if it is 0, sets to 10e-15
-//if not zero, either divides cell by 2 or multiplies by 2 and takes min of 2 and itself
-//eg.
-//[, 1][, 2][, 3]			[, 1][, 2][, 3]
-//[1, ]	1	1	0			[1, ]	NA	1	0.00E+00
-//[2, ]	1	1	0			[2, ]	2	1	1.00E-15
-//[3, ]	1	2	0			[3, ]	1	2	0.00E+00
-//[4, ]	1	3	0	->		[4, ]	1	3	0.00E+00
-//[5, ]	1	1	0			[5, ]	1	1	0.00E+00
-//[6, ]	1	1	0			[6, ]	1	1	0.00E+00
-//[7, ]	1	4	0			[7, ]	1	4	0.00E+00
-//[8, ]	1	5	0			[8, ]	1	5	0.00E+00
-//[9, ]	1	3	0			[9, ]	1	3	0.00E+00
-//[10,]	1	2	0			[10, ]	1	2	0.00E+00
-//void checkHomMatrix()
-
+#include "MultiTestSet.h"
+#include "TestSet.h"
+#include "TestGroup.h"
 
 /*
 Approximates the p-value from the pdf of the normal distribution where x is a Z-score
@@ -346,3 +321,28 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample,
 
 	return{ (tcountLinear+1)/(bootcount+1), (tcountQuadratic+1)/(bootcount+1) };
 }
+
+
+double RVSrare(MultiTestSet ts, int nboot) {
+	size_t i, j;
+	int n = ts.length();
+
+	VectorXd var = sqrt(ts.getRobustVariance().array());
+	MatrixXd diagS = var.asDiagonal();
+
+	VectorXd YmHRG = ts.getYm(true);
+	VectorXd YmLRG = ts.getYm(false);
+
+	ts.getCovariateMatrix(0);
+	ts.getCorrelationMatrix(0);
+
+	return 0;
+}
+
+double runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group,
+	int nboot, bool rvs) {
+
+	MultiTestSet ts(snps, sample, group);
+	return RVSrare(ts, nboot);
+}
+

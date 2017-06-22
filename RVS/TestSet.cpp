@@ -2,147 +2,100 @@
 #include "RVS.h"
 #include "TestSet.h"
 
-void TestSet::calculateYbar() {
-	VectorXd beta = CovariateRegression(Y, Z);
+TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group, bool rare) {
+	size_t i;
+	int ncov = sample[0].covariates.size();
 
-	for (size_t i = 0; i < groups.size(); i++)
-		groups[i].Ybar = fitModel(beta, groups[i].Z);
+	for (i = 0; i < group.size(); i++)
+		if (group[i].hrg)
+			this->groupHRG.push_back(TestHRG(snp, sample, group[i], rare));
+		else 
+			this->groupLRG.push_back(TestLRG(snp, sample, group[i], rare));
+
+	this->nhrg = 0;
+	this->nlrg = 0;
+	for (i = 0; i < groupHRG.size(); i++)
+		this->nhrg += groupHRG[i].length();
+	for (i = 0; i < groupLRG.size(); i++)
+		this->nlrg += groupLRG[i].length();
+
+	if (rare) {
+		this->nhrg_filterz = 0;
+		this->nlrg_filterz = 0;
+		for (i = 0; i < groupHRG.size(); i++)
+			this->nhrg_filterz += groupHRG[i].length_filterz();
+		for (i = 0; i < groupLRG.size(); i++)
+			this->nlrg_filterz += groupLRG[i].length_filterz();
+	}
+
+	this->robustVar = calcRobustVar(snp.p);
+
+	VectorXd beta = getBeta(snp, sample, group);
+	for (i = 0; i < groupHRG.size(); i++)
+		groupHRG[i].fitModel(beta, "normal");
+	for (i = 0; i < groupLRG.size(); i++) 
+		groupLRG[i].fitModel(beta, "normal");
 }
 
-TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group) {
-
+VectorXd TestSet::getBeta(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group) {
 	size_t i, j, k;
-	int index, length, c;
-	bool flag;
-	std::vector<TestGroup> grps(group.size());
+	int ncov = sample[0].covariates.size();
+	int nobs = snp.EG.size();
 
-	VectorXd bigx(sample.size());
-	VectorXd bigy(sample.size());
-	MatrixXd bigz(sample.size(), sample[0].covariates.size() + 1);
-	int d = 0;
 
-	for (i = 0; i < group.size(); i++) {
-		index = group[i].groupIndex;
-		length = group[i].index.size();
-		grps[index] = TestGroup(group[i].ID, index, group[i].hrg);
+	VectorXd y(nobs);
+	MatrixXd z(nobs, ncov + 1);
 
-		VectorXd x(length);
-		VectorXd y(length);
-		MatrixXd z(length, sample[0].covariates.size() + 1);
+	std::vector<bool> toRemove(nobs, false);
 
-		c = 0;
-		for (j = 0; j < length; j++) {
-			index = group[i].index[j];
-
-			if (!isnan(snp.EG[index]) && !isnan(sample[index].y)) {
-
-				x[c] = snp.EG[index];
-				bigx[d] = snp.EG[index];
-				y[c] = sample[index].y;
-				bigy[d] = sample[index].y;
-
-				flag = false;
-
-				for (size_t k = 0; k < sample[index].covariates.size(); k++) {
-					if (isnan(sample[index].covariates[k])) {
-						flag = true;
-						break;
-					}
-					z(c, k + 1) = sample[index].covariates[k];
-					bigz(d, k + 1) = sample[index].covariates[k];
-				}
-
-				if (!flag) {
-					z(c, 0) = 1;
-					bigz(d, 0) = 1;
-					c++;
-					d++;
-				}
-			}
+	for (i = 0; i < nobs; i++) {
+		if (isnan(snp.EG[i]) || isnan(sample[i].y))
+			toRemove[i] = true;
+		else {
+			for (j = 0; j < ncov; j++)
+				if (isnan(sample[i].covariates[j]))
+					toRemove[i] = true;
 		}
-		index = group[i].groupIndex;
-		grps[index].X = x.block(0, 0, c, 1);
-		grps[index].Y = y.block(0, 0, c, 1);;
-		grps[index].Z = z.block(0, 0, c, sample[0].covariates.size() + 1);
-		grps[index].P = snp.p;
 	}
 
-	groups = grps;
-	X = bigx.block(0, 0, d, 1);
-	Y = bigy.block(0, 0, d, 1);;
-	Z = bigz.block(0, 0, d, sample[0].covariates.size() + 1);
+	int c = 0;
+	for (i = 0; i < nobs; i++) {
+		if (!toRemove[i]) {
+			y[c] = sample[i].y;
+			for (j = 0; j < ncov; j++)
+				z(c, j + 1) = sample[i].covariates[j];
 
-	calculateYbar();
-}
-
-void TestGroup::centerX() {
-	VectorXd xmid(length());
-
-	double mean = X.mean();
-
-	for (size_t i = 0; i < length(); i++)
-		xmid[i] = X[i] - mean;
-
-	Xcenter = xmid;
-	isCentered = true;
-}
-
-void TestGroup::bootstrapX() {
-	if (!isCentered)
-		centerX();
-
-	VectorXd xrand(length());
-
-	for (size_t i = 0; i < length(); i++) 
-		xrand[i] = Xcenter[generateRandomNumber(0, length() - 1)];
-
-	Xboot = xrand;
-}
-
-TestGroup::TestGroup(){}
-TestGroup::TestGroup(std::string id, int index, bool hrg) {
-	this->id = id;
-	this->index = index;
-	this->hrg = hrg;
-}
-
-double TestGroup::score() {
-	double score = 0;
-	for (size_t i = 0; i < length(); i++)
-		score += (Y[i] - Ybar[i]) * X[i];
-
-	return score;
-}
-
-double TestGroup::variance(bool rvs) {
-	double variance = 0;
-	if (rvs && isHRG()) {
-		for (size_t i = 0; i < length(); i++)
-			variance += pow(Y[i] - Ybar[i], 2);
-		variance = variance * calcRobustVar(P);
-	}
-	else{
-		for (size_t i = 0; i < length(); i++)
-			variance += pow(Y[i] - Ybar[i], 2);
-		variance = variance * var(X);
+			z(c, 0) = 1;
+			c++;
+		}
 	}
 
-	return variance;
+	VectorXd yblock = y.block(0, 0, c, 1);
+	MatrixXd zblock = z.block(0, 0, c, ncov + 1);
+
+	return CovariateRegression(yblock, zblock);
 }
 
-double TestGroup::bootScore() {
-	double score = 0;
-	for (size_t i = 0; i < length(); i++)
-		score += (Y[i] - Ybar[i]) * Xboot[i];
+//---------------------------------
+//	For RareTest
+//---------------------------------
 
-	return score;
+double TestSet::getYmLRG() {
+	double Ym = 0;
+
+	for (size_t i = 0; i < groupLRG.size(); i++)
+		Ym += groupLRG[i].Ycenter.array().pow(2).sum();
+
+	Ym = Ym / nlrg * nlrg_filterz;
+	return sqrt(Ym);
 }
 
-double TestGroup::bootVariance() {
-	double variance = 0;
-	for (size_t i = 0; i < length(); i++)
-		variance += pow(Y[i] - Ybar[i], 2);
-	variance = variance * var(Xboot);
+double TestSet::getYmHRG() {
+	double Ym = 0;
 
-	return variance;
+	for (size_t i = 0; i < groupHRG.size(); i++)
+		Ym += groupHRG[i].Ycenter.array().pow(2).sum();
+
+	Ym = Ym / nhrg * nhrg_filterz;
+	return sqrt(Ym);
 }
