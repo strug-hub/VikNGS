@@ -36,6 +36,9 @@ class TestSet {
 		}
 
 		//rare tests:
+		double getScore();
+		double getBootstrapScore();
+
 		double getYmLRG();
 		double getYmHRG();
 		inline VectorXd getX(int index) { return get(index).getX_filterz(); }

@@ -6,7 +6,6 @@ MultiTestSet::MultiTestSet(std::vector<SNP> &snps, std::vector<Sample> &sample, 
 
 	for (size_t i = 0; i < snps.size(); i++)
 		this->testset.push_back(TestSet(snps[i], sample, group, true));
-
 }
 
 VectorXd MultiTestSet::getRobustVariance() {
@@ -19,65 +18,59 @@ VectorXd MultiTestSet::getRobustVariance() {
 }
 
 
-VectorXd MultiTestSet::getYm(bool hrg) {
+VectorXd MultiTestSet::getYmHRG() {
 	VectorXd Ym(length());
 
 	for (size_t i = 0; i < length(); i++)
-		if (hrg)
 			Ym[i] = testset[i].getYmHRG();
-		else
-			Ym[i] = testset[i].getYmLRG();
 
 	return Ym;
 }
 
-std::vector<double> MultiTestSet::calculateYbar()
-{
-	size_t i, j, k;
-	std::vector<double> yhrg;
-	std::vector<double> ylrg;
-
-	TestSet ts;
-//	TestGroup tg;
-
-	double temp;
-
-	for (i = 0; i < length(); i++) {
-		ts = testset[i];
-		temp = 0;
-		for (j = 0; j < ts.length(); j++) {
-//			tg = ts.groups[i];
-
-			//	for (k = 0; k < tg.length(); k++)
-			//
-			//	variance += pow(Y[i] - Ybar[i], 2);
-
-
-
-		}
-	}
-
-
-	return std::vector<double>();
-}
-
-
-MatrixXd MultiTestSet::getCovariateMatrix(int index) {
-
-	MatrixXd X(testset[0].groupLRG[index].length_filterz(), length());
-
-	for (size_t i = 0; i < length(); i++) 
-		X.col(i) = testset[i].groupLRG[index].getX_filterz();
-
-	return covariance(X);
-}
-
-MatrixXd MultiTestSet::getCorrelationMatrix(int index) {
-
-	MatrixXd X(testset[0].groupHRG[index].length_filterz(), length());
+VectorXd MultiTestSet::getYmLRG() {
+	VectorXd Ym(length());
 
 	for (size_t i = 0; i < length(); i++)
-		X.col(i) = testset[i].groupHRG[index].getX_filterz();
+		Ym[i] = testset[i].getYmLRG();
 
-	return correlation(X);
+	return Ym;
+}
+
+
+VectorXd MultiTestSet::getScoreVector() {
+	VectorXd score(length());
+
+	for (size_t i = 0; i < length(); i++)
+		score[i] = testset[i].getScore();
+
+	return score;
+}
+
+VectorXd MultiTestSet::getBootstrapScoreVector() {
+	VectorXd score(length());
+
+	for (size_t i = 0; i < length(); i++)
+		score[i] = testset[i].getBootstrapScore();
+
+	return score;
+}
+
+MatrixXd MultiTestSet::getXMatrix(int index) {
+
+	MatrixXd X(testset[0].get(index).length_filterz(), length());
+
+	for (size_t i = 0; i < length(); i++)
+		X.col(i) = testset[i].get(index).getX_filterz();
+
+	return X;
+}
+
+
+MatrixXd MultiTestSet::getBootstrapXMatrix(int index) {
+	MatrixXd X(testset[0].get(index).length_filterz(), length());
+
+	for (size_t i = 0; i < length(); i++)
+		X.col(i) = testset[i].get(index).getBootstrapX_filterz();
+
+	return X;
 }

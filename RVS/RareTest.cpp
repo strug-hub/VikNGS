@@ -6,238 +6,6 @@
 #include "TestGroup.h"
 
 /*
-Approximates the p-value from the pdf of the normal distribution where x is a Z-score
-
-@param x Z-score.
-@return p-value.
-*/
-double pnorm(double x)
-{
-	// constants
-	double a1 = 0.254829592;
-	double a2 = -0.284496736;
-	double a3 = 1.421413741;
-	double a4 = -1.453152027;
-	double a5 = 1.061405429;
-	double p = 0.3275911;
-
-	x = fabs(x) / sqrt(2.0);
-
-	// A&S formula 7.1.26
-	double t = 1.0 / (1.0 + p*x);
-	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
-}
-
-std::vector<double> calcScoreVector(std::vector<SNP> &snps, std::vector<Sample> &sample) {
-	SNP snp;
-	std::vector<double> score;
-	double s;
-	double ybar;
-	size_t i, j;
-
-	//calculate score vector
-	for (i = 0; i < snps.size(); i++) {
-		snp = snps[i];
-		ybar = meanY(sample, snp);
-		s = 0;
-
-		for (j = 0; j < sample.size(); j++)
-			s += (sample[j].y - ybar) * snp.EG[j];
-
-		score.push_back(s);
-	}
-
-	return score;
-}
-
-MatrixXd correlation(std::vector<SNP> &snps, Group group) {
-	int n = snps.size();
-	MatrixXd cor(n, n);
-	size_t i, j, k, l;
-	
-	double count;
-	double vari;
-	double varj;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-			if (i == j) {
-				cor(i, j) = 1;
-				cor(j, i) = 1;
-			}
-			else {
-				sum = 0;
-				count = 0;
-				vari = 0;
-				varj = 0;
-				meani = 0;
-				meanj = 0;
-
-				for (l = 0; l < group.index.size(); l++) {
-					k = group.index[l];
-					if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
-						count++;
-						meani += snps[i].EG[k];
-						meanj += snps[j].EG[k];
-					}
-				}
-
-				meani /= count;
-				meanj /= count;
-
-				for (l = 0; l < group.index.size(); l++) {
-					k = group.index[l];
-					if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
-						vari += pow((snps[i].EG[k] - meani), 2);
-						varj += pow((snps[j].EG[k] - meanj), 2);
-						sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
-					}
-				}
-
-				sum /= sqrt(vari * varj);
-				cor(i, j) = sum;
-				cor(j, i) = sum;
-			}
-		}
-	}
-	
-	return cor;
-}
-
-MatrixXd covariance(std::vector<SNP> &snps, Group group) {
-	int n = snps.size();
-	MatrixXd cov(n, n);
-	size_t i, j, k, l;
-
-	double count;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-
-			sum = 0;
-			count = 0;
-			meani = 0;
-			meanj = 0;
-
-			for (l = 0; l < group.index.size(); l++) {
-				k = group.index[l];
-				if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k])) {
-					count++;
-					meani += snps[i].EG[k];
-					meanj += snps[j].EG[k];
-				}
-			}
-
-			meani /= count;
-			meanj /= count;
-
-			for (l = 0; l < group.index.size(); l++) {
-				k = group.index[l];
-				if (!isnan(snps[i].EG[k]) && !isnan(snps[j].EG[k]))
-					sum += (snps[i].EG[k] - meani) * (snps[j].EG[k] - meanj);
-			}
-			sum /= count-1;
-			cov(i, j) = sum;
-			cov(j, i) = sum;
-			
-		}
-	}
-
-	return cov;
-}
-
-std::vector<double> testStatistic(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, bool rvs) {
-	size_t i, j, k, l, m;
-	int n = snps.size();
-
-	MatrixXd sigma;
-	MatrixXd diagS(n, n);
-
-	for (i = 0; i < n; i++)
-		for (j = 0; j < n; j++)
-			diagS(i, j) = 0;
-
-	double ybar;
-	double sum;
-	double count;
-	std::vector<double> var;
-
-	//TODO: check_hom_matrix
-
-	for (i = 0; i < n; i++)
-		var.push_back(sqrt(calcRobustVar(snps[i].p)));
-
-	for (m = 0; m < group.size(); m++) {
-
-		std::vector<double> Ym;
-
-		for (j = 0; j < snps.size(); j++) {
-			ybar = meanY(sample, snps[j]);
-			sum = 0;
-			count = 0;
-
-			for (l = 0; l < group[m].index.size(); l++) {
-				k = group[m].index[l];
-				if (!isnan(snps[j].EG[k])) {
-					sum += std::pow(sample[k].y - ybar, 2);
-					count++;
-				}
-			}
-			Ym.push_back(std::sqrt(sum / count * group[m].index.size()));
-		}
-
-		if (group[m].hrg && rvs) {
-			sigma = correlation(snps, group[m]);
-			for (i = 0; i < n; i++) {
-				for (j = i; j < n; j++) {
-					diagS(i, j) = diagS(i, j) + sigma(i, j) * var[i] * var[j] * Ym[i] * Ym[j];
-					diagS(j, i) = diagS(i, j);
-				}
-			}
-		}
-		else {
-			sigma = covariance(snps, group[m]);
-			for (i = 0; i < n; i++) {
-				for (j = i; j < n; j++) {
-					diagS(i, j) = diagS(i, j) + sigma(i, j) * Ym[i] * Ym[j];
-					diagS(j, i) = diagS(i, j);
-				}
-			}
-		}
-	}
-
-	VectorXd e = diagS.eigenvalues().real();
-	std::vector<double> eigenvals(e.data(), e.data() + e.size());
-	
-	sum = 0;
-	for (i = 0; i < n; i++) 
-		for (j = 0; j < n; j++) 
-			sum += diagS(i, j);
-
-	double s = 0;
-	double s2 = 0;
-	std::vector<double> score = calcScoreVector(snps, sample);
-
-	for (i = 0; i < n; i++) {
-		s += score[i];
-		s2 += score[i] * score[i];
-	}
-	
-	//CAST -> linear test
-	double cast = pnorm(s / sqrt(sum));
-	//C-alpha -> quadratic test
-	double calpha = qfc(eigenvals, s2, snps.size());
-
-	return {cast, calpha};
-}
-
-/*
 RVS analysis with rare variants for one group. Get p-values from RVS
 with CAST and C-alpha (resampling: bootstrap; variance estimate : robust)
 
@@ -257,7 +25,7 @@ checkHomMatrix parameters:
 std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot, bool rvs, int njoint, int hom, int multiplier) {
 	
 	SNP snp;
-	std::vector<double> tobs = testStatistic(snps, sample, group, rvs);
+	//std::vector<double> tobs = testStatistic(snps, sample, group, rvs);
 	std::vector<double> tsamp;
 	std::vector<SNP> samples = cloneAll(snps);
 
@@ -308,12 +76,12 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample,
 			}
 		}
 		
-		tsamp = testStatistic(samples, sample, group, false);
+	//	tsamp = testStatistic(samples, sample, group, false);
 
-		if (tsamp[0] <= tobs[0])
-			tcountLinear++;
-		if (tsamp[1] <= tobs[1])
-			tcountQuadratic++;
+	//	if (tsamp[0] <= tobs[0])
+	//		tcountLinear++;
+	//	if (tsamp[1] <= tobs[1])
+	//		tcountQuadratic++;
 
 		bootcount++;
 
@@ -322,27 +90,101 @@ std::vector<double> RVSrare(std::vector<SNP> &snps, std::vector<Sample> &sample,
 	return{ (tcountLinear+1)/(bootcount+1), (tcountQuadratic+1)/(bootcount+1) };
 }
 
+std::vector<double> getTestStatistics(MatrixXd &diagS, VectorXd &score) {
 
-double RVSrare(MultiTestSet ts, int nboot) {
-	size_t i, j;
-	int n = ts.length();
+	VectorXd e = diagS.eigenvalues().real();
+	std::vector<double> eigenvals(e.data(), e.data() + e.size());
 
-	VectorXd var = sqrt(ts.getRobustVariance().array());
-	MatrixXd diagS = var.asDiagonal();
+	//CAST -> linear test
+	double cast = pnorm(score.sum() / sqrt(diagS.sum()));
+	//C-alpha -> quadratic test
+	double calpha = qfc(eigenvals, score.array().pow(2).sum(), score.rows());
 
-	VectorXd YmHRG = ts.getYm(true);
-	VectorXd YmLRG = ts.getYm(false);
-
-	ts.getCovariateMatrix(0);
-	ts.getCorrelationMatrix(0);
-
-	return 0;
+	return{ cast, calpha };
 }
 
-double runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group,
+std::vector<double> bootstrap(MultiTestSet &ts, int nboot, std::vector<double> &tobs) {
+	size_t i;
+	int n = ts.length();
+	std::vector<double> tBoot;
+	int tCountLinear = 0;
+	int tCountQuadratic = 0;
+	int bootCount = 0;
+
+	MatrixXd diagYmHRG = ts.getYmHRG().asDiagonal();
+	MatrixXd diagYmLRG = ts.getYmLRG().asDiagonal();
+	MatrixXd X;
+	MatrixXd diagS;
+
+	for (size_t h = 0; h < nboot; h++) {
+		diagS = MatrixXd::Constant(n, n, 0);
+
+		for (i = 0; i < ts.ngroups(); i++) {
+			X = ts.getBootstrapXMatrix(i);
+			diagS += diagYmLRG * covariance(X) * diagYmLRG;
+		}
+
+		tBoot = getTestStatistics(diagS,, sample, group, false);
+
+			if (tBoot[0] <= tobs[0])
+				tCountLinear++;
+			if (tBoot[1] <= tobs[1])
+				tCountQuadratic++;
+
+			bootCount++;
+		
+	}
+
+	return{ (tCountLinear + 1.0) / (bootCount + 1.0), 
+		    (tCountQuadratic + 1.0) / (bootCount + 1.0) };
+}
+
+std::vector<double> RVSrare(MultiTestSet &ts, int nboot, bool rvs) {
+	size_t i, j;
+	int n = ts.length();
+	MatrixXd diagS = MatrixXd::Constant(n, n, 0);
+
+	VectorXd var = sqrt(ts.getRobustVariance().array());
+	MatrixXd diagVar = var.asDiagonal();
+
+	VectorXd YmHRG = ts.getYmHRG();
+	MatrixXd diagYmHRG = YmHRG.asDiagonal();
+
+	VectorXd YmLRG = ts.getYmLRG();
+	MatrixXd diagYmLRG = YmLRG.asDiagonal();
+
+	MatrixXd X;
+
+	for (i = 0; i < ts.ngroups(); i++) {
+		X = ts.getXMatrix(i);
+
+		if (ts.isHRG(i)) {
+			if (rvs) {
+				MatrixXd varHRG = diagVar.transpose() * correlation(X) * diagVar;
+				diagS += diagYmHRG * varHRG * diagYmHRG;
+			}
+			else
+				diagS += diagYmHRG * covariance(X) * diagYmHRG;
+		}
+		else 
+			diagS += diagYmLRG * covariance(X) * diagYmLRG;
+	}
+
+	std::vector<double> tobs = getTestStatistics(diagS, ts.getScoreVector());
+
+	std::cout << "\n";
+	std::cout << tobs[0];
+	std::cout << "\n";
+	std::cout << tobs[1];
+
+	return tobs;
+	//TODO: bootstrapping!!
+}
+
+std::vector<double> runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group,
 	int nboot, bool rvs) {
 
 	MultiTestSet ts(snps, sample, group);
-	return RVSrare(ts, nboot);
+	return RVSrare(ts, nboot, rvs);
 }
 

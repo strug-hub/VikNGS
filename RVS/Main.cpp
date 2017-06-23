@@ -197,7 +197,7 @@ int main() {
 	toTest.push_back(snps[4]);
 
 
-	std::cout << runRareTest(toTest, sample, group, 100, true);
+	runRareTest(toTest, sample, group, 100, true);
 	
 //	auto t = startTime();
 //	pvals = RVSbtrap(snps, sample, 1000000, true, true);

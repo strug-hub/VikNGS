@@ -118,15 +118,17 @@ void TestGroup::filterNAN_z() {
 	this->X_filterz = x.block(0, 0, c, 1);
 	this->Y_filterz = y.block(0, 0, c, 1);
 	this->Z_filterz = z.block(0, 0, c, ncov);
-
-	this->X_filterz = nanToZero(X_filterz);
-	this->Y_filterz = nanToZero(Y_filterz);
-	this->Z_filterz = nanToZero(Z_filterz);
 }
 
 void TestGroup::centerX() {
 	Xcenter = (X.array() - X.mean());
 	isCentered = true;
+}
+
+void TestGroup::centerX_filterz() {
+										// VV removed NAs
+	Xcenter_filterz = (X_filterz.array() - X.mean());
+	isCentered_filterz = true;
 }
 
 void TestGroup::bootstrapX() {
@@ -140,6 +142,21 @@ void TestGroup::bootstrapX() {
 
 	Xboot = xrand;
 }
+
+VectorXd TestGroup::getBootstrapX_filterz() {
+	int len = Xcenter_filterz.rows();
+
+	if (!isCentered_filterz)
+		centerX_filterz();
+
+	VectorXd xrand(len);
+
+	for (size_t i = 0; i < length(); i++)
+		xrand[i] = Xcenter_filterz[generateRandomNumber(0, len - 1)];
+
+	return xrand;
+}
+
 
 double TestGroup::bootVariance() {
 	double variance = Ycenter.array().pow(2).sum();

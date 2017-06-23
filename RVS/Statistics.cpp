@@ -161,6 +161,12 @@ VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
 }
 
 MatrixXd nanToZero(MatrixXd &M) {
+	std::cout << "\n";	std::cout << "\n";
+	std::cout << "\n";
+	std::cout << "\n";
+	std::cout << "\n";
+
+	std::cout << M;
 
 	for (size_t i = 0; i < M.cols(); i++) 
 		for (size_t j = 0; j < M.rows(); j++) 
@@ -179,27 +185,128 @@ VectorXd nanToZero(VectorXd &V) {
 	return V;
 }
 
+//same as doing pairwise.complete.obs in R
 MatrixXd covariance(MatrixXd &M) {
+	int n = M.cols();
+	int m = M.rows();
 
-	//TODO:something better??
-	if (M.rows() <= 1) {
-		std::cout << "Cannot compute covariate matrix with 1 row!!";
-		return M;
+	MatrixXd cov(n, n);
+	size_t i, j, k;
+
+	double count;
+	double meani;
+	double meanj;
+	double sum;
+
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
+
+			sum = 0;
+			count = 0;
+			meani = 0;
+			meanj = 0;
+
+			for (k = 0; k < m; k++) {
+				if (!isnan(M(k,i)) && !isnan(M(k,j))) {
+					count++;
+					meani += M(k, i);
+					meanj += M(k, j);
+				}
+			}
+
+			meani /= count;
+			meanj /= count;
+
+			for (k = 0; k < m; k++) 
+				if (!isnan(M(k, i)) && !isnan(M(k, j)))
+					sum += (M(k, i) - meani) * (M(k, j) - meanj);
+			
+			sum /= count - 1;
+			cov(i, j) = sum;
+			cov(j, i) = sum;
+		}
 	}
-
-	MatrixXd centered = M.rowwise() - M.colwise().mean();
-	MatrixXd cov = (centered.adjoint() * centered) / double(M.rows() - 1);
 
 	return cov;
 }
 
-MatrixXd correlation(MatrixXd &M) {
-	std::cout << M;
 
-	MatrixXd cov = covariance(M);
-	VectorXd D = cov.diagonal().array().sqrt();
-	
-	MatrixXd cor = D.asDiagonal().inverse() * cov * D.asDiagonal().inverse();
+MatrixXd correlation(MatrixXd &M) {
+	int n = M.cols();
+	int m = M.rows();
+
+	MatrixXd cor(n, n);
+	size_t i, j, k;
+
+	double count;
+	double vari;
+	double varj;
+	double meani;
+	double meanj;
+	double sum;
+
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
+			if (i == j) {
+				cor(i, j) = 1;
+				cor(j, i) = 1;
+			}
+			else {
+				sum = 0;
+				count = 0;
+				vari = 0;
+				varj = 0;
+				meani = 0;
+				meanj = 0;
+
+				for (k = 0; k < m; k++) {
+					if (!isnan(M(k,i)) && !isnan(M(k,j))) {
+						count++;
+						meani += M(k,i);
+						meanj += M(k,j);
+					}
+				}
+
+				meani /= count;
+				meanj /= count;
+
+				for (k = 0; k < m; k++) {
+					if (!isnan(M(k, i)) && !isnan(M(k, j))) {
+						vari += pow(M(k,i) - meani, 2);
+						varj += pow(M(k,j) - meanj, 2);
+						sum += (M(k, i) - meani) * (M(k, j) - meanj);
+					}
+				}
+
+				sum /= sqrt(vari * varj);
+				cor(i, j) = sum;
+				cor(j, i) = sum;
+			}
+		}
+	}
 
 	return cor;
+}
+
+/*
+Approximates the p-value from the pdf of the normal distribution where x is a Z-score
+
+@param x Z-score.
+@return p-value.
+*/
+double pnorm(double x)
+{
+	// constants
+	double a1 = 0.254829592;
+	double a2 = -0.284496736;
+	double a3 = 1.421413741;
+	double a4 = -1.453152027;
+	double a5 = 1.061405429;
+	double p = 0.3275911;
+
+	x = fabs(x) / sqrt(2.0);
+
+	// A&S formula 7.1.26
+	double t = 1.0 / (1.0 + p*x);
+	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }

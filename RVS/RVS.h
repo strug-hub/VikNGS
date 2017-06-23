@@ -164,13 +164,13 @@ MatrixXd nanToZero(MatrixXd &M);
 VectorXd nanToZero(VectorXd &V);
 MatrixXd covariance(MatrixXd &M);
 MatrixXd correlation(MatrixXd &M);
+double pnorm(double x);
 
 //CommonTest.cpp
 std::vector<double> runCommonTest(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int nboot=0, bool rvs = true);
 
 //RareTest.cpp
-double runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot = 0, bool rvs = true);
-std::vector<double> RVSrare(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int, bool = true, int = 5, int = 1, int = 1);
+std::vector<double> runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot = 0, bool rvs = true);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);

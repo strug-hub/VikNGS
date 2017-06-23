@@ -4,9 +4,12 @@ class TestGroup {
 	protected:
 		VectorXd Xboot;
 		VectorXd Xcenter;
+
 		bool isCentered = false;
-	
+		bool isCentered_filterz = false;
 		void centerX();
+		void centerX_filterz();
+
 		void filterNAN();
 		void filterNAN_z();
 
@@ -21,6 +24,7 @@ class TestGroup {
 		VectorXd X_filterz;
 		VectorXd Y_filterz;
 		MatrixXd Z_filterz;
+		VectorXd Xcenter_filterz;
 
 	public:
 
@@ -34,6 +38,11 @@ class TestGroup {
 		void fitModel(VectorXd &beta, std::string distribution);
 
 		inline double score() { return (Ycenter.array() * X.array()).sum(); }
+
+		//may be a lot more work than anticipated....  :(
+		//TODO!!!
+		//inline double bootstrapScore() { return (Ycenter.array() * X.array()).sum(); }
+		
 		virtual double variance(bool rvs) = 0;
 		inline double bootScore() { return (Ycenter.array() * Xboot.array()).sum(); };
 		double bootVariance();
@@ -41,6 +50,8 @@ class TestGroup {
 		inline int length() { return X.size(); }
 		inline int length_filterz() { return X_filterz.size(); }
 		inline VectorXd getX_filterz() { return X_filterz; }
+		inline VectorXd getBootstrapX_filterz();
+
 };
 
 class TestHRG : public TestGroup {
