@@ -366,6 +366,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="RVS.h" />
     <ClInclude Include="MemoryMapped\MemoryMapped.h" />
+    <ClInclude Include="Simulation.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestSet.h" />
@@ -379,6 +380,8 @@
     <ClCompile Include="MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RareTest.cpp" />
+    <ClCompile Include="Simulation.cpp" />
+    <ClCompile Include="SimulationHelper.cpp" />
     <ClCompile Include="TestSet.cpp" />
     <ClCompile Include="VCFParser.cpp" />
     <ClCompile Include="Statistics.cpp" />

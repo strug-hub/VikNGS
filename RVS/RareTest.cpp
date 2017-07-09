@@ -124,7 +124,7 @@ std::vector<double> bootstrap(MultiTestSet &ts, int nboot, std::vector<double> &
 			diagS += diagYmLRG * covariance(X) * diagYmLRG;
 		}
 
-		tBoot = getTestStatistics(diagS,, sample, group, false);
+	//	tBoot = getTestStatistics(diagS, sample, group, false);
 
 			if (tBoot[0] <= tobs[0])
 				tCountLinear++;

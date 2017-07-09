@@ -132,6 +132,9 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 
 
 int main() {
+
+	//simulate();
+
 	//TODO: take as input from command line
 	//---------------------------------------
 	double mafCut = 0.05;

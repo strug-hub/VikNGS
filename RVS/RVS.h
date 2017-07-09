@@ -159,7 +159,9 @@ double variance(std::vector<double> &);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
 VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z);
-int generateRandomNumber(int from, int to);
+int generateRandomInteger(int from, int to);
+double generateRandomDouble (double from, double to);
+double randomNormal(double mean, double sd);
 MatrixXd nanToZero(MatrixXd &M);
 VectorXd nanToZero(VectorXd &V);
 MatrixXd covariance(MatrixXd &M);
@@ -174,6 +176,9 @@ std::vector<double> runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sam
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
+
+//Simulation.cpp
+void simulate();
 
 //========================================================
 // inline functions

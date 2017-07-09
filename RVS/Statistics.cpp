@@ -114,10 +114,19 @@ std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
 	return rvec;
 }
 
-int generateRandomNumber(int from, int to) {
+int generateRandomInteger(int from, int to) {
 	std::uniform_int_distribution<> sample(from, to);
 	return sample(generate);
 }
+double generateRandomDouble(double from, double to) {
+	std::uniform_real_distribution<double> sample(from, to);
+	return sample(generate);
+}
+double randomNormal(double mean, double sd) {
+	std::normal_distribution<> sample(mean, sd);
+	return sample(generate);
+}
+
 
 
 /*

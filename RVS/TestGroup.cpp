@@ -138,7 +138,7 @@ void TestGroup::bootstrapX() {
 	VectorXd xrand(length());
 
 	for (size_t i = 0; i < length(); i++)
-		xrand[i] = Xcenter[generateRandomNumber(0, length() - 1)];
+		xrand[i] = Xcenter[generateRandomInteger(0, length() - 1)];
 
 	Xboot = xrand;
 }
@@ -152,7 +152,7 @@ VectorXd TestGroup::getBootstrapX_filterz() {
 	VectorXd xrand(len);
 
 	for (size_t i = 0; i < length(); i++)
-		xrand[i] = Xcenter_filterz[generateRandomNumber(0, len - 1)];
+		xrand[i] = Xcenter_filterz[generateRandomInteger(0, len - 1)];
 
 	return xrand;
 }

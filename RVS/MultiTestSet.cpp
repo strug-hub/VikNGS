@@ -69,8 +69,8 @@ MatrixXd MultiTestSet::getXMatrix(int index) {
 MatrixXd MultiTestSet::getBootstrapXMatrix(int index) {
 	MatrixXd X(testset[0].get(index).length_filterz(), length());
 
-	for (size_t i = 0; i < length(); i++)
-		X.col(i) = testset[i].get(index).getBootstrapX_filterz();
+//	for (size_t i = 0; i < length(); i++)
+//		X.col(i) = testset[i].get(index).getBootstrapX_filterz();
 
 	return X;
 }

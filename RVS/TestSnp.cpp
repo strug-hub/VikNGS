@@ -1,15 +1,50 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include "TestSet.h"
+#include "TestSnp.h"
 
-TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group, bool rare) {
-	size_t i;
+TestSnp::TestSnp(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &group, bool rare) {
+	
+	int ngroups = group.size();
+	int ncov = sample[0].covariates.size();
+	int nobs, index;
+	size_t g, i, j;
+
+	
+	this->robustVar = calcRobustVar(snp.p);
+
+
+	for (g = 0; g < ngroups; g++) {
+		nobs = group[g].index.size();
+
+		VectorXd x(nobs);
+		VectorXd y(nobs);
+		MatrixXd z(nobs, ncov + 1);
+
+		for (i = 0; i < nobs; i++) {
+			index = group[g].index[i];
+
+			x[i] = snp.EG[index];
+			y[i] = sample[index].y;
+			for (j = 0; j < ncov; j++) {
+				z(i, j + 1) = sample[index].covariates[j];
+				z(i, 0) = 1;
+			}
+		}
+		this->X.push_back(x);
+		this->Y.push_back(y);
+		this->Z.push_back(z);
+	}
+	
+	
+	
+	
+	
 	int ncov = sample[0].covariates.size();
 
 	for (i = 0; i < group.size(); i++)
 		if (group[i].hrg)
 			this->groupHRG.push_back(TestHRG(snp, sample, group[i], rare));
-		else 
+		else
 			this->groupLRG.push_back(TestLRG(snp, sample, group[i], rare));
 
 	this->nhrg = 0;
@@ -33,7 +68,7 @@ TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &grou
 	VectorXd beta = getBeta(snp, sample, group);
 	for (i = 0; i < groupHRG.size(); i++)
 		groupHRG[i].fitModel(beta, "normal");
-	for (i = 0; i < groupLRG.size(); i++) 
+	for (i = 0; i < groupLRG.size(); i++)
 		groupLRG[i].fitModel(beta, "normal");
 }
 
@@ -112,8 +147,8 @@ double TestSet::getScore() {
 double TestSet::getBootstrapScore() {
 	double s = 0;
 
-//	for (size_t i = 0; i < length(); i++)
-//		s += get(i).bootstrapScore();
+	//	for (size_t i = 0; i < length(); i++)
+	//		s += get(i).bootstrapScore();
 
 	return s;
 
