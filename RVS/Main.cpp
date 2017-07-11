@@ -133,13 +133,33 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 
 int main() {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	//simulate();
 
 	//TODO: take as input from command line
 	//---------------------------------------
 	double mafCut = 0.05;
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
-	std::string sampleInfoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+	std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
 	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 	//---------------------------------------
 
@@ -147,8 +167,12 @@ int main() {
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 	std::vector<Interval> collapse = getIntervals(bedDir);
-	std::vector<Sample> sample = getSampleInfo(vcfDir, sampleInfoDir, 9);
-	std::vector<SNP> snps = processVCF(vcfDir, sampleInfoDir, mafCut, sample);
+
+	VectorXd Y, G, H; MatrixXd X, Z;
+
+	std::vector<SNP> snps = parseInput(vcfDir, infoDir, mafCut, Y, G, H, Z);
+	
+	/*
 	generateForR(sample, snps);
 
 
@@ -167,15 +191,8 @@ int main() {
 	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
 
-	/*
-	for (size_t i = 2; i <= 6; i++) {
-	int nboot = pow(10, i);
-	auto t = startTime();
-	RVSbtrap(snps, sample, nboot, true);
-	endTime(t, std::to_string(nboot));
-	}
 
-*/
+
 	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";
 	for (size_t i = 0; i < snps.size(); i++) {
 		if (!isnan(snps[i].maf)) {
@@ -209,6 +226,9 @@ int main() {
 	
 
 	std::cout << "done...>";
+
+
+	*/
 
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!

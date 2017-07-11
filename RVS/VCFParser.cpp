@@ -1,88 +1,5 @@
 #include "stdafx.h"
-#include "RVS.h"
-#include "MemoryMapped/MemoryMapped.h"
-
-#include <iostream>  
-#include <string>
-#include <vector>
-#include <set>
-
-
-/*
-Parses a VCF file to get the expected probabilities of the genotypes E(G_ij | D_ij)
-and expected minor allele frequency.
-@param vcfDir Path of VCF file.
-@param mafCut Cut-off value for minor allele frequency
-@param sample Vector with sample information.
-@return Vector of SNPs parsed from VCF file.
-*/
-std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample) {
-
-	std::vector<SNP> snps = parseAndFilter(vcfDir, 9, 0.2, sample);
-
-	if (snps.size() == 0)
-		std::cout << "No SNPs left after filtering .vcf file\n";
-
-	getExpGeno(snps);
-
-	if (snps.size() == 0)
-		std::cout << "No SNPs left removing homozygous variants\n";
-
-	getExpMAF(snps, mafCut, true);
-
-	if (snps.size() == 0)
-		std::cout << "No SNPs left after applying MAF condition\n";
-
-	std::cout << "==========\n";
-
-	return snps;
-}
-
-
-
-
-
-genotypeLikelihood parsePL(int pos, MemoryMapped &vcf) {
-	int startPos = pos;
-	double l00;
-	double l01;
-	double l11;
-
-	while (vcf[pos] != ',')
-		pos++;
-	pos++;
-	l00 = stod(getString(vcf, startPos, pos));
-	startPos = pos;
-
-	while (vcf[pos] != ',')
-		pos++;
-	pos++;
-	l01 = stod(getString(vcf, startPos, pos));
-	startPos = pos;
-
-	while (vcf[pos + 1] != '\t' && vcf[pos + 1] != ':' && vcf[pos + 1] != '\n')
-		pos++;
-
-	l11 = stod(getString(vcf, startPos, pos + 1));
-
-	//convert from Phred-scaled likelihoods
-	genotypeLikelihood gl;
-	gl.L00 = pow(10, -l00*0.1);
-	gl.L01 = pow(10, -l01*0.1);
-	gl.L11 = pow(10, -l11*0.1);
-	return gl;
-
-}
-
-int parseDP(int pos, MemoryMapped &vcf) {
-	int startPos = pos;
-
-	while (vcf[pos + 1] != '\t' && vcf[pos + 1] != ':' && vcf[pos + 1] != '\n')
-		pos++;
-
-	return stoi(getString(vcf, startPos, pos + 1));
-}
-
+#include "InputParser.h"
 
 /*
 Extracts the last header row from a VCF file
@@ -115,11 +32,11 @@ std::vector<std::string> parseHeader(MemoryMapped &vcf, int &pos) {
 	//assumes last line of header and first variant are separated by return character
 	while (true) {
 		if (vcf[pos] == '\t') {
-			colNames.push_back(getString(vcf, lastPos, pos));
+			colNames.push_back(extractString(vcf, lastPos, pos));
 			lastPos = pos + 1;
 		}
 		else if (vcf[pos] == '\n') {
-			colNames.push_back(getString(vcf, lastPos, pos));
+			colNames.push_back(extractString(vcf, lastPos, pos));
 			pos++;
 			break;
 		}
@@ -129,216 +46,74 @@ std::vector<std::string> parseHeader(MemoryMapped &vcf, int &pos) {
 	return colNames;
 }
 
+GenotypeLikelihood parsePL(int pos, MemoryMapped &vcf) {
+	int startPos = pos;
+	double l00;
+	double l01;
+	double l11;
 
-/*
-1)Parses data from VCF file for each SNP (chromosome, location and Phred-scaled likelihoods for each sample)
-2)Filters each SNP by ignoring ones that fail the following criteria:
-- FILTER column contains "PASS"
-- REF and ALT columns contain exactly one base
-- the proportion of missing PL values for control samples is less than missingTh
-- the proportion of missing PL values for case samples is less than missingTh
-- every SNP passing the above criteria must have a unique pair of CHR and LOC values (no duplications)
+	while (vcf[pos] != ',')
+		pos++;
+	pos++;
+	l00 = stod(extractString(vcf, startPos, pos));
+	startPos = pos;
 
-@param vcfDir Full directory path of the VCF file.
-@param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
-@param missingTh Proportion of missing values tolerable.
-@param sample Vector with sample information.
-@return A list of SNPs that pass the filtering step.
-*/
-std::vector<SNP> parseAndFilter(std::string vcfDir, int ncolID, double missingTh, std::vector<Sample> &sample) {
+	while (vcf[pos] != ',')
+		pos++;
+	pos++;
+	l01 = stod(extractString(vcf, startPos, pos));
+	startPos = pos;
 
-	MemoryMapped vcf(vcfDir);
-	std::vector<SNP> snps;
+	while (pos < vcf.mappedSize() && vcf[pos + 1] != '\t' && vcf[pos + 1] != ':' && vcf[pos + 1] != '\n')
+		pos++;
 
-	int pos = 0;
-	std::vector<std::string> colNames = parseHeader(vcf, pos);
+	l11 = stod(extractString(vcf, startPos, pos + 1));
 
+	//convert from Phred-scaled likelihoods
+	GenotypeLikelihood gl;
+	gl.L00 = pow(10, -l00*0.1);
+	gl.L01 = pow(10, -l01*0.1);
+	gl.L11 = pow(10, -l11*0.1);
+	return gl;
+
+}
+
+int parseDP(int pos, MemoryMapped &vcf) {
+	int startPos = pos;
+	while (pos < vcf.mappedSize() && vcf[pos + 1] != '\t' && vcf[pos + 1] != ':' && vcf[pos + 1] != '\n')
+		pos++;
+	return stoi(extractString(vcf, startPos, pos + 1));
+}
+
+
+VCFLine extractLine(MemoryMapped &vcf, std::vector<int> &colPos) {
+
+	//TODO: get this data from reading header!
 	//assumes order of columns in VCF file
-	int chrom = 0;
+	int chr = 0;
 	int loc = 1;
 	int ref = 3;
 	int alt = 4;
 	int filter = 6;
+	int format = 8;
 
-	//counts number of cases and controls
-	int ncase = 0;
-	int ncontrol = 0;
-	for (size_t i = 0; i < sample.size(); i++) {
-		ncase += sample[i].y;
-		ncontrol += !sample[i].y;
-	}
+	VCFLine variant;
 
-	int allowedMissCase = (int)floor(ncase * missingTh);
-	int allowedMissControl = (int)floor(ncontrol * missingTh);
-
-	int filterPass = 0;
-	int filterBase = 0;
-	int filterCase = 0;
-	int filterControl = 0;
-	int filterDuplicate = 0;
-
-	//parallelize if speed-up desired?
-	//======================================
-	int start = pos;
-	int end = (int)vcf.mappedSize();
-
-	int currInd = 0;
-	int missCase = 0;
-	int missControl = 0;
-	bool filtered = false;
-
-	int counter = 0;
-	int successcounter = 0;
-	while (start < end) {
-		std::vector<int> ind;
-		ind.push_back(start);
-		currInd = 1;
-		missCase = 0;
-		missControl = 0;
-		filtered = false;
-
-		while (true) {
-			//parsing the columns before ID columns
-			if (currInd < ncolID) {
-				if (vcf[start] == '\t') {
-					ind.push_back(start + 1);
-
-					//filter out SNPs where REF and ALT are not single base
-					if (currInd == 3 || currInd == 4) {
-						if (vcf[start + 2] != '\t') {
-							filtered = true;
-							filterBase++;
-							break;
-						}
-					}
-
-					//filter out SNPs where FILTER is not "PASS"
-					else if (currInd == 6) {
-						if (vcf[start + 1] != 'P' ||
-							vcf[start + 2] != 'A' ||
-							vcf[start + 3] != 'S' ||
-							vcf[start + 4] != 'S') {
-							filtered = true;
-							filterPass++;
-							break;
-						}
-					}
-					currInd++;
-				}
-			}
-
-			//parsing ID columns
-			else {
-				if (start < vcf.mappedSize() && vcf[start] == '\t') {
-					ind.push_back(start + 1);
-					if (vcf[start + 1] == '.') {
-
-						if (sample[currInd - ncolID].y) {
-							missCase++;
-							if (missCase > allowedMissCase) {
-								filtered = true;
-								filterCase++;
-								break;
-							}
-						}
-						else {
-							missControl++;
-							if (missControl > allowedMissControl) {
-								filtered = true;
-								filterCase++;
-								break;
-							}
-						}
-					}
-					currInd++;
-				}
-
-				else if (start >= vcf.mappedSize() || vcf[start] == '\n')
-					break;
-			}
-			start++;
-		}
-
-		while (start - 1 < vcf.mappedSize() && vcf[start - 1] != '\n')
-			start++;
-
-		counter++;
-
-		//if SNP looks good, keep it 
-		if (!filtered) {
-			successcounter++;
-			snps.push_back(initSNP(vcf, ind, ncolID));
-		}
-	}
-	//======================================
+	variant.chr = extractString(vcf, colPos[chr], colPos[chr + 1] - 1);
+	variant.loc = std::stoi(extractString(vcf, colPos[loc], colPos[loc + 1] - 1));
+	variant.ref = extractString(vcf, colPos[ref], colPos[ref + 1] - 1);
+	variant.alt = extractString(vcf, colPos[alt], colPos[alt + 1] - 1);
+	variant.filter = extractString(vcf, colPos[filter], colPos[filter + 1] - 1);
 
 
-	//sort by location
-	std::sort(snps.begin(), snps.end(), locCompare);
-
-	//keep track of duplicated SNPs
-	std::set<size_t> toDelete;
-	size_t j;
-
-	for (size_t i = 0; i < snps.size(); i++) {
-		j = 1;
-		while (i + j < snps.size() && snps[i].loc == snps[i + j].loc) {
-
-			if (snps[i].chr == snps[i + j].chr) {
-				toDelete.insert(i);
-				toDelete.insert(i + j);
-			}
-			j++;
-		}
-	}
-
-	for (auto it = toDelete.rbegin(); it != toDelete.rend(); it++) {
-		snps.erase(snps.begin() + *it);
-		filterDuplicate++;
-	}
-
-	std::cout << filterPass;
-	std::cout << " SNPs were filtered by FILTER column\n";
-	std::cout << filterBase;
-	std::cout << " SNPs were filtered by ALT and REF column\n";
-	std::cout << filterCase;
-	std::cout << " SNPs were filtered by missing case values\n";
-	std::cout << filterControl;
-	std::cout << " SNPs were filtered by missing control values\n";
-	std::cout << filterDuplicate;
-	std::cout << " SNPs were filtered by duplication\n";
-	std::cout << successcounter;
-	std::cout << " SNPs remain after filtering\n";
-
-	return snps;
-}
-
-
-/*
-Creates a new SNP object from one row in a VCF file
-
-@param vcf MemoryMapped object containing a VCF file.
-@param ind Index of the first character in every column of the MemoryMapped file.
-@param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
-@return A SNP object with chr, loc and genotype likelihoods initialized.
-*/
-SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
-
-	SNP snp;
-
-	//get chromosome and location from VCF file
-	//assumes CHR is first column and LOC is second column
-	snp.chr = getString(vcf, ind[0], ind[1] - 1);
-	snp.loc = std::stoi(getString(vcf, ind[1], ind[2] - 1));
-
-	//finds the index of "PL" from the FORMAT column
+	//finds the index of "PL" and "DP" from the FORMAT column
 	//assumes FORMAT column is the 9th column
 
 	int index = 0;
 	int indexPL = -1;
 	int indexDP = -1;
 
-	int pos = ind[8];
+	int pos = colPos[format];
 	while (true) {
 		if (vcf[pos] == ':')
 			index++;
@@ -361,42 +136,43 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 		pos++;
 	}
 
-	std::vector<genotypeLikelihood> likelihoods;
-	std::vector<int> readDepths;
+	std::vector<GenotypeLikelihood> likelihood;
+	std::vector<int> readDepth;
 	int counter;
 
 
 	//get genotype likelihood for every sample
-	for (int i = ncolID; i < ind.size(); i++) {
-		pos = ind[i];
+	for (int i = format + 1; i < colPos.size(); i++) {
+		pos = colPos[i];
 		counter = 0;
 
 		if (vcf[pos] == '.') {
-			genotypeLikelihood gl;
+			GenotypeLikelihood gl;
 			gl.L00 = NAN;
 			gl.L01 = NAN;
 			gl.L11 = NAN;
-			likelihoods.push_back(gl);
-			readDepths.push_back(0);
+			gl.missing = true;
+			likelihood.push_back(gl);
+			readDepth.push_back(0);
 
 			continue;
 		}
 
 		while (true) {
 
-			if (vcf[pos] == '\t' || vcf[pos] == '\n')
+			if (pos >= vcf.mappedSize() || vcf[pos] == '\t' || vcf[pos] == '\n')
 				break;
 
 			if (vcf[pos] == ':') {
 				counter++;
 				if (counter == indexPL) {
 					pos++;
-					likelihoods.push_back(parsePL(pos, vcf));
+					likelihood.push_back(parsePL(pos, vcf));
 				}
 
 				if (counter == indexDP) {
 					pos++;
-					readDepths.push_back(parseDP(pos, vcf));
+					readDepth.push_back(parseDP(pos, vcf));
 				}
 
 			}
@@ -405,10 +181,73 @@ SNP initSNP(MemoryMapped &vcf, std::vector<int> ind, int ncolID) {
 
 	}
 
-	snp.gl = likelihoods;
-	snp.rd = readDepths;
+	variant.likelihood = likelihood;
+	variant.readDepth = readDepth;
 
-	return snp;
+	return variant;
+
 }
 
 
+std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
+
+	MemoryMapped vcf(vcfDir);
+	std::vector<VCFLine> variants;
+
+	int pos = 0;
+
+	//skips header
+	std::vector<std::string> colNames = parseHeader(vcf, pos);
+
+	int end = (int)vcf.mappedSize();
+
+	while (pos < end) {
+		std::vector<int> colPos;
+		colPos.push_back(pos);
+
+		while (true) {
+
+			//parsing the columns before ID columns
+			if (vcf[pos] == '\t')
+				colPos.push_back(pos + 1);
+
+			pos++;
+			if (pos >= vcf.mappedSize() || vcf[pos] == '\n')
+				break;
+
+		}
+
+		if (colPos.size() > 1)
+			variants.push_back(extractLine(vcf, colPos));
+
+		pos++;
+	}
+
+	vcf.close();
+	return variants;
+}
+
+
+std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
+
+	//open VCF file and find the line with column names
+	MemoryMapped vcf(vcfDir);
+	int pos = 0;
+	std::vector<std::string> ID = parseHeader(vcf, pos);
+	vcf.close();
+
+	bool flag = false;
+	int count = 0;
+	std::map<std::string, int> IDmap;
+
+	for (int i = 0; i < ID.size(); i++) {
+		if (flag) {
+			IDmap[ID[i]] = count;
+			count++;
+		}
+		else if (ID[i] == "FORMAT")
+			flag = true;
+	}
+
+	return IDmap;
+}

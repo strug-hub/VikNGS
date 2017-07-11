@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "RVS.h"
 #include "MemoryMapped/MemoryMapped.h"
+#include "InputParser.h"
 
 #include <iostream>  
 #include <string>
@@ -9,49 +10,19 @@
 #include <algorithm>
 #include <map>
 
-std::vector<std::string> readLine(MemoryMapped &sampleInfo, int &pos) {
-	int startPos = pos;
-	std::vector<std::string> split;
-
-	while (pos < sampleInfo.mappedSize() && sampleInfo[pos] != '\n') {
-
-		if (sampleInfo[pos] == '\t') {
-			split.push_back(trim(getString(sampleInfo, startPos, pos)));
-			startPos = pos;
-		}
-
-		pos++;
-	}
-
-	if(split.size() > 0)
-		split.push_back(trim(getString(sampleInfo, startPos, pos)));
-	pos++;
-	return split;
-}
 
 
-std::vector<double> handleCovariates(std::vector<std::string> cov) {
-	std::vector<double> covariates;
 
-	//todo: handle non-numeric covariates
-
-	if (cov.size() > 0) 
-		for (size_t i = 0; i < cov.size(); i++) 
-			covariates.push_back(stod(cov[i]));
-	
-
-	return covariates;
-}
 
 
 /*
-Seperates the case and control IDs
+Separates the case and control IDs
 
 @param vcfDir Full directory path of the VCF file.
 @param sampleInfoDir Full directory path of the sampleInfo file.
 @param ncolID The number of columns before the sample IDs start in the last line of the headers in the VCF file.
 @return A vector of Samples with information parsed from sampleInfo file
-*/
+
 std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir, int ncolID) {
 
 	//open VCF file and find the line with column names
@@ -124,17 +95,17 @@ std::vector<Sample> getSampleInfo(std::string vcfDir, std::string sampleInfoDir,
 	//TODO: dummyproofing parsing here before finalized product
 
 
-	/*
-	if (lineCounter != countCase)
-	std::cout << "Warning: " + std::to_string(lineCounter) + " lines were counted in case ID file but only " +
-	std::to_string(countCase) + " were found to correspond to columns in .vcf file.\n";
-	*/
+	
+	//if (lineCounter != countCase)
+	//std::cout << "Warning: " + std::to_string(lineCounter) + " lines were counted in case ID file but only " +
+	//std::to_string(countCase) + " were found to correspond to columns in .vcf file.\n";
+
 
 	sampleInfo.close();
 	return sample;
 }
-
-
+*/
+	
 
 /*
 Generates the expected probabilities of the genotypes E(G_ij | D_ij).

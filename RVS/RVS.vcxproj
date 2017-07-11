@@ -363,6 +363,7 @@
     <ClInclude Include="Eigen\src\SVD\SVDBase.h" />
     <ClInclude Include="Eigen\src\SVD\UpperBidiagonalization.h" />
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
+    <ClInclude Include="InputParser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RVS.h" />
     <ClInclude Include="MemoryMapped\MemoryMapped.h" />
@@ -377,12 +378,16 @@
     <ClCompile Include="BEDParser.cpp" />
     <ClCompile Include="CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
+    <ClCompile Include="InfoParser.cpp" />
     <ClCompile Include="MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="InputParser.cpp" />
+    <ClCompile Include="ParserHelper.cpp" />
     <ClCompile Include="RareTest.cpp" />
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="SimulationHelper.cpp" />
     <ClCompile Include="TestSet.cpp" />
+    <ClCompile Include="VariantFilter.cpp" />
     <ClCompile Include="VCFParser.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="stdafx.cpp">

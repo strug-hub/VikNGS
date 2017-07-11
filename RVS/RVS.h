@@ -5,7 +5,6 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>  
-#include <regex>
 #include "Eigen/Dense"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -128,14 +127,30 @@ struct Interval {
 
 inline bool locCompare(SNP lhs, SNP rhs) { return lhs < rhs; }
 
+
+/**
+Extracts string from a MemoryMapped class
+
+@param charArray MemoryMapped to extract string from.
+@param start Index to start extracting string from.
+@param end Index to stop extracting string from.
+@return Extracted string.
+*/
+inline std::string getString(MemoryMapped &charArray, int start, int end) {
+	std::string ret;
+	for (; start < end; start++) { ret += charArray[start]; }
+	return ret;
+}
+
+
+
+
+
 //========================================================
 // functions
 //========================================================
 
 //HelperVCF.cpp
-std::vector<Sample> getSampleInfo(std::string, std::string, int);
-SNP initSNP(MemoryMapped &, std::vector<int>, int);
-std::vector<SNP> parseAndFilter(std::string, int, double, std::vector<Sample> &);
 std::vector<double> calcEM(SNP &);
 std::vector<double> calcEG(SNP &);
 void getExpGeno(std::vector<SNP> &);
@@ -143,7 +158,8 @@ void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common);
 
 
 //VCFParser.cpp
-std::vector<SNP> processVCF(std::string vcfDir, std::string sampleInfoDir, double mafCut, std::vector<Sample> sample);
+std::vector<SNP> parseInput(std::string vcfDir, std::string infoDir, double mafCut,
+	VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z);
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 
 //BEDParser.cpp
@@ -184,62 +200,8 @@ void simulate();
 // inline functions
 //========================================================
 
-/**
-Removes whitespace from a string
 
-@param str String to remove whitespace from.
-@return str without whitespace.
-*/
-inline std::string trim(std::string str)
-{
-	str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
-	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
-	return str;
-}
 
-/**
-Checks if a string is a number
-
-@param str string to check
-@return true if str is numeric
-*/
-inline bool isNumeric(const std::string& str) {
-	return (std::regex_match(str, std::regex("-?[1234567890]+(\.[1234567890]+)?")));
-}
-
-/**
-Extracts string from a MemoryMapped class
-
-@param charArray MemoryMapped to extract string from.
-@param start Index to start extracting string from.
-@param end Index to stop extracting string from.
-@return Extracted string.
-*/
-inline std::string getString(MemoryMapped &charArray, int start, int end) {
-	std::string ret;
-	for (; start < end; start++) { ret += charArray[start]; }
-	return ret;
-}
-
-/**
-Separates a string into a vector, splitting at every postion with
-the sep character
-
-@param s String to split.
-@param sep Character to split the string at.
-@return Split string.
-*/
-inline std::vector<std::string> split(std::string s, char sep) {
-	std::vector<std::string> split;
-	int start = 0;
-	for (int i = 0; i <= s.length(); i++) {
-		if (s[i] == sep || i == s.length()) {
-			split.push_back(s.substr(start, i- start));
-			start = i+1;
-		}
-	}
-	return split;
-}
 
 /**
 Finds a string in a vector of strings.
