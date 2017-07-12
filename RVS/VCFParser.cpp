@@ -85,7 +85,6 @@ int parseDP(int pos, MemoryMapped &vcf) {
 	return stoi(extractString(vcf, startPos, pos + 1));
 }
 
-
 VCFLine extractLine(MemoryMapped &vcf, std::vector<int> &colPos) {
 
 	//TODO: get this data from reading header!
@@ -104,7 +103,6 @@ VCFLine extractLine(MemoryMapped &vcf, std::vector<int> &colPos) {
 	variant.ref = extractString(vcf, colPos[ref], colPos[ref + 1] - 1);
 	variant.alt = extractString(vcf, colPos[alt], colPos[alt + 1] - 1);
 	variant.filter = extractString(vcf, colPos[filter], colPos[filter + 1] - 1);
-
 
 	//finds the index of "PL" and "DP" from the FORMAT column
 	//assumes FORMAT column is the 9th column
@@ -185,9 +183,7 @@ VCFLine extractLine(MemoryMapped &vcf, std::vector<int> &colPos) {
 	variant.readDepth = readDepth;
 
 	return variant;
-
 }
-
 
 std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 
@@ -226,7 +222,6 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 	vcf.close();
 	return variants;
 }
-
 
 std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 

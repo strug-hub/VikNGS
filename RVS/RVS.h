@@ -150,16 +150,10 @@ inline std::string getString(MemoryMapped &charArray, int start, int end) {
 // functions
 //========================================================
 
-//HelperVCF.cpp
-std::vector<double> calcEM(SNP &);
-std::vector<double> calcEG(SNP &);
-void getExpGeno(std::vector<SNP> &);
-void getExpMAF(std::vector<SNP> &snps, double mafCut, bool common);
-
 
 //VCFParser.cpp
-std::vector<SNP> parseInput(std::string vcfDir, std::string infoDir, double mafCut,
-	VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z);
+bool parseInput(std::string vcfDir, std::string infoDir, double mafCut, bool common,
+	MatrixXd &X, VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z);
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 
 //BEDParser.cpp
@@ -200,22 +194,6 @@ void simulate();
 // inline functions
 //========================================================
 
-
-
-
-/**
-Finds a string in a vector of strings.
-
-@param query The string to find.
-@param v The vector to search in.
-@return Index of query in v or -1 if query is not found in v.
-*/
-inline int findIndex(std::string query, std::vector<std::string> v) {
-	for (size_t i = 0; i <= v.size(); i++)
-		if (query.compare(v[i]) == 0)
-			return i;
-	return -1;
-}
 
 /*
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2

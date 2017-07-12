@@ -734,9 +734,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VCFHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BEDParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

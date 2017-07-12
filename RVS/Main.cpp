@@ -133,31 +133,11 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 
 int main() {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	//simulate();
 
 	//TODO: take as input from command line
 	//---------------------------------------
-	double mafCut = 0.05;
+	double mafCutoff = 0.05;
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
 	std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
 	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
@@ -166,12 +146,17 @@ int main() {
 
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
-	std::vector<Interval> collapse = getIntervals(bedDir);
+	
+	//TODO:
+	//std::vector<Interval> collapse = getIntervals(bedDir);
 
 	VectorXd Y, G, H; MatrixXd X, Z;
 
-	std::vector<SNP> snps = parseInput(vcfDir, infoDir, mafCut, Y, G, H, Z);
-	
+	bool valid = parseInput(vcfDir, infoDir, mafCutoff, true, X, Y, G, H, Z);
+	if (!valid)
+		return 0;
+
+
 	/*
 	generateForR(sample, snps);
 

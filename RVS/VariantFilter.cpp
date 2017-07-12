@@ -24,7 +24,6 @@ inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missi
 	return true;
 }
 
-
 std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, double missingThreshold) {
 	int filterCounter = 0;
 	int missingCounter = 0;
@@ -57,11 +56,11 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, 
 	}
 
 	std::cout << filterCounter;
-	std::cout << " SNPs were filtered by FILTER column.\n";
+	std::cout << " Variant(s) were filtered by FILTER column.\n";
 	std::cout << indelCounter;
-	std::cout << " SNPs were filtered by ALT and REF column.\n";
+	std::cout << " Variant(s) were filtered by ALT and REF column.\n";
 	std::cout << missingCounter;
-	std::cout << " SNPs were filtered by missing threshold.\n";
+	std::cout << " Variant(s) were filtered by missing threshold.\n";
 
 	return filteredVariants;
 }
@@ -85,9 +84,71 @@ std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants) {
 	}
 
 	std::cout << variants.size() - filteredVariants.size();
-	std::cout << " SNPs were filtered by duplication\n";
-	std::cout << filteredVariants.size();
-	std::cout << " SNPs remain after filtering\n";
+	std::cout << " Variant(s) were filtered by duplication.\n";
+
+	return filteredVariants;
+}
+
+std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants) {
+
+	int i, j;
+
+	double mean, n, sd;
+	std::vector<VCFLine> filteredVariants;
+
+	for (i = 0; i < variants.size(); i++) {
+		VectorXd EG = variants[i].expectedGenotype;
+
+		//check and filter if variant is homozygous
+		mean = 0;
+		n = 0;
+		for (j = 0; j < EG.size(); j++) {
+			if (!isnan(EG[j])) {
+				mean += EG[j];
+				n++;
+			}
+		}
+		mean = mean / n;
+
+		sd = 0;
+		for (j = 0; j < EG.size(); j++)
+			if (!isnan(EG[j]))
+				sd += pow((EG[j] - mean), 2);
+
+		if (1e-8*(n - 1) < sd)
+			filteredVariants.push_back(variants[i]);
+	}
+	
+	std::cout << variants.size() - filteredVariants.size();
+	std::cout << " Variant(s) were removed because of homozygous call in all samples.\n";
+
+	return filteredVariants;
+}
+
+/*
+Calculates the minor allele frequency (MAF) from conditional expected genotype probability.
+
+@param snps A vector of SNPs.
+@param mafCut The minor allele frequency cut-off for common or rare variants.
+@param common Indicates common or rare variants, (common = true, rare = false).
+@return None.
+@effect Sets maf for each SNP in snps.
+*/
+std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, double mafCutoff, bool common) {
+	double maf;
+	std::vector<VCFLine> filteredVariants;
+
+	for (size_t i = 0; i < variants.size(); i++) {
+		maf = 0.5 * variants[i].P[1] + variants[i].P[2];
+		if (maf > 0.5)
+			maf = 1 - maf;
+
+		if (common && maf >= mafCutoff || !common && (maf < mafCutoff))
+			filteredVariants.push_back(variants[i]);
+	}
+		
+	std::cout << variants.size() - filteredVariants.size();
+	std::cout << " Variant(s) filtered by minor allele frequency.\n";
 
 	return filteredVariants;
 }
