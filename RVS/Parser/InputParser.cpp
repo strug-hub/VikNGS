@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "RVS.h"
 #include "InputParser.h"
 
 /*
@@ -8,7 +7,7 @@ Uses EM algorithm to estimate the genotype frequencies in the sample
 @param likelihood A vector with genotype likelihoods.
 @return A vector with three doubles to stand for probability of 0, 1 or 2 minor alleles.
 */
-std::vector<double> calcEM(std::vector<GenotypeLikelihood> &likelihood) {
+VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood) {
 	double p = 0.15;
 	double q = 0.15;
 	double qn = 1;
@@ -53,10 +52,10 @@ std::vector<double> calcEM(std::vector<GenotypeLikelihood> &likelihood) {
 			break;
 	}
 
-	std::vector<double> freq;
-	freq.push_back(p);
-	freq.push_back(q);
-	freq.push_back(1 - p - q);
+	VectorXd freq(3);
+	freq[0] = p;
+	freq[1] = q;
+	freq[2] = 1 - p - q;
 
 	return freq;
 }
@@ -71,7 +70,7 @@ where P(G_ij = g | D_ij) = P(D_ij | G_ij = g) * P(G_ij = g)/P(D_ij).
 @param snp SNP with genotype likelihoods P(D_ij | G=AA, Aa or aa)} for one locus.
 @return A vector containing conditional expectation probability E( P(G_ij | D_ij) ).
 */
-VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, std::vector<double> &p) {
+VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p) {
 
 	double m0;
 	double m1;
@@ -118,10 +117,10 @@ std::vector<VCFLine> calculatedExpectedGenotypes(std::vector<VCFLine> &variants)
 }
 
 bool parseInput(std::string vcfDir, std::string infoDir, double mafCutoff, bool common,
-	MatrixXd &X, VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z) {
+	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
 
 	std::map<std::string, int> IDmap = getSampleIDMap(vcfDir);
-	parseInfo(infoDir, IDmap, Y, G, H, Z);
+	parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
 	
 	std::vector<VCFLine> variants = parseVCFLines(vcfDir);
 
@@ -141,8 +140,12 @@ bool parseInput(std::string vcfDir, std::string infoDir, double mafCutoff, bool 
 	for (int i = 0; i < variants.size(); i++) 
 		x.col(i) = variants[i].expectedGenotype;
 	
-	X = x.transpose();
-	std::cout << X;
+	MatrixXd p(variants.size(), 3);
+	for (int i = 0; i < variants.size(); i++)
+		p.row(i) = variants[i].P;
+	
+	X = x;
+	P = p;
 
 	return true;
 }

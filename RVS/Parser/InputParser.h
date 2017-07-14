@@ -1,14 +1,12 @@
 #pragma once
-#include "RVS.h"
 #include "MemoryMapped/MemoryMapped.h"
-#include <vector>
 #include <iostream>  
+#include <vector>
 #include <string>
 #include <algorithm>
-#include <regex>
 #include <map>
 
-#include "Eigen/Dense"
+#include "../Eigen/Dense"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -27,7 +25,7 @@ struct VCFLine {
 	std::string filter;
 	std::vector<int> readDepth;
 	std::vector<GenotypeLikelihood> likelihood;
-	std::vector<double> P;
+	VectorXd P;
 	VectorXd expectedGenotype;
 
 	inline bool operator<(VCFLine& line) {
@@ -62,7 +60,7 @@ inline bool lineCompare(VCFLine lhs, VCFLine rhs) { return lhs < rhs; }
 
 //InfoParser.cpp
 void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
-	VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z);
+	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup);
 
 //VCFParser.cpp
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);

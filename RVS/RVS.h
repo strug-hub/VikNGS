@@ -1,8 +1,11 @@
 #pragma once
 #include "stdafx.h"
-#include "MemoryMapped/MemoryMapped.h"
+#include "Parser/InputParser.h"
+
 #include <string>
 #include <vector>
+#include <map>
+
 #include <algorithm>
 #include <iostream>  
 #include "Eigen/Dense"
@@ -153,14 +156,24 @@ inline std::string getString(MemoryMapped &charArray, int start, int end) {
 
 //VCFParser.cpp
 bool parseInput(std::string vcfDir, std::string infoDir, double mafCut, bool common,
-	MatrixXd &X, VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z);
+	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 
 //BEDParser.cpp
-std::vector<Interval> getIntervals(std::string);
-void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
+//std::vector<Interval> getIntervals(std::string);
+//void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
 
 //Statistics.cpp
+inline VectorXd centerVector(VectorXd &v);
+VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);
+MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals);
+VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z);
+std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution);
+VectorXd whereNAN(VectorXd X, VectorXd Y, MatrixXd Z);
+double variance(VectorXd &v);
+double calcRobustVar(VectorXd p);
+
+
 double meanX(SNP &, Group &);
 double meanY(std::vector<Sample> &, SNP &);
 double varX(SNP &, Group &);
@@ -178,8 +191,10 @@ MatrixXd covariance(MatrixXd &M);
 MatrixXd correlation(MatrixXd &M);
 double pnorm(double x);
 
+
 //CommonTest.cpp
-std::vector<double> runCommonTest(std::vector<SNP> &, std::vector<Sample> &, std::vector<Group> &, int nboot=0, bool rvs = true);
+std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
+	int nboot=0, bool rvs=true);
 
 //RareTest.cpp
 std::vector<double> runRareTest(std::vector<SNP> &snps, std::vector<Sample> &sample, std::vector<Group> &group, int nboot = 0, bool rvs = true);
@@ -194,16 +209,6 @@ void simulate();
 // inline functions
 //========================================================
 
-
-/*
-Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
-
-@param p Genotype frequency from EM algorithm
-@return Robust variance of E(G | D)
-*/
-inline double calcRobustVar(std::vector<double> p) {
-	return (4 * p[2] + p[1]) - pow(2 * p[2] + p[1], 2);
-}
 
 
 /*

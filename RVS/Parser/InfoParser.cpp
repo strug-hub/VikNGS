@@ -16,7 +16,7 @@ std::vector<double> handleCovariates(std::vector<std::string> cov) {
 
 //returns Y,G,H,Z sorted by 
 void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
-	VectorXd &Y, VectorXd &G, VectorXd &H, MatrixXd &Z) {
+	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup) {
 	
 	MemoryMapped sampleInfo(sampleInfoDir);
 	int pos = 0;
@@ -24,7 +24,6 @@ void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 
 	Y = VectorXd(nID);
 	G = VectorXd(nID);
-	H = VectorXd(nID);
 
 	bool initializeZ = false;
 
@@ -33,7 +32,6 @@ void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 	int index;
 
 	std::map<std::string, int> groupIDMap;
-	std::vector<int> hrg;
 	int groupIndex = 0;
 
 	while (true) {
@@ -52,18 +50,18 @@ void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 			groupIDMap[groupID] = groupIndex;
 
 			std::string depth = lineSplit[3];
-
+		
+			//TODO:check to see if readGroup is the consistent for every sample in a group
 			if (depth.find("H") != std::string::npos ||
 				depth.find("h") != std::string::npos)
-				hrg.push_back(1);
+				readGroup[groupIndex] = 1;
 			else
-				hrg.push_back(0);
+				readGroup[groupIndex] = 0;
 
 			groupIndex++;
 		}
 			
 		G[index] = groupIDMap[groupID];
-		H[index] = hrg[groupIDMap[groupID]];
 
 		std::vector<std::string> cov;
 		for (size_t i = 4; i < lineSplit.size(); i++)

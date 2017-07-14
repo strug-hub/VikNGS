@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "InputParser.h"
+#include <regex>
 
 std::vector<std::string> readLine(MemoryMapped &charArray, int &pos) {
 	int startPos = pos;

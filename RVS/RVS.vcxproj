@@ -363,11 +363,11 @@
     <ClInclude Include="Eigen\src\SVD\SVDBase.h" />
     <ClInclude Include="Eigen\src\SVD\UpperBidiagonalization.h" />
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
-    <ClInclude Include="InputParser.h" />
+    <ClInclude Include="Parser\InputParser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RVS.h" />
-    <ClInclude Include="MemoryMapped\MemoryMapped.h" />
-    <ClInclude Include="Simulation.h" />
+    <ClInclude Include="Parser\MemoryMapped\MemoryMapped.h" />
+    <ClInclude Include="Simulation\Simulation.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestSet.h" />
@@ -375,20 +375,20 @@
     <ClInclude Include="MultiTestSet.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BEDParser.cpp" />
+    <ClCompile Include="Parser\BEDParser.cpp" />
     <ClCompile Include="CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
-    <ClCompile Include="InfoParser.cpp" />
-    <ClCompile Include="MemoryMapped\MemoryMapped.cpp" />
+    <ClCompile Include="Parser\InfoParser.cpp" />
+    <ClCompile Include="Parser\MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="InputParser.cpp" />
-    <ClCompile Include="ParserHelper.cpp" />
+    <ClCompile Include="Parser\InputParser.cpp" />
+    <ClCompile Include="Parser\ParserHelper.cpp" />
     <ClCompile Include="RareTest.cpp" />
-    <ClCompile Include="Simulation.cpp" />
-    <ClCompile Include="SimulationHelper.cpp" />
+    <ClCompile Include="Simulation\Simulation.cpp" />
+    <ClCompile Include="Simulation\SimulationHelper.cpp" />
     <ClCompile Include="TestSet.cpp" />
-    <ClCompile Include="VariantFilter.cpp" />
-    <ClCompile Include="VCFParser.cpp" />
+    <ClCompile Include="Parser\VariantFilter.cpp" />
+    <ClCompile Include="Parser\VCFParser.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

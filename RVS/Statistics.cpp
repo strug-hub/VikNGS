@@ -4,8 +4,140 @@
 #include <vector>
 #include <random>
 
+inline VectorXd centerVector(VectorXd &v) {
+	return v.array() - v.mean();
+}
+
+VectorXd extractRows(VectorXd &v, VectorXd &where, double equals) {
+	VectorXd subset(v.rows());
+	int c = 0;
+
+	for (int i = 0; i < where.rows(); i++) {
+		if (where[i] == equals) {
+			subset[c] = v[i];
+			c++;
+		}
+	}
+
+	return subset.block(0, 0, c, 1);
+}
+
+MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals) {
+	MatrixXd subset(m.rows(), m.cols());
+	int c = 0;
+	int i, j;
+
+	for (i = 0; i < where.rows(); i++) {
+		if (where[i] == equals) {
+			for (j = 0; j < m.cols(); j++)
+				subset(c, j) = m(i, j);
+			c++;
+		}
+	}
+
+	return subset.block(0, 0, c, m.cols());
+}
+
+VectorXd whereNAN(VectorXd X, VectorXd Y, MatrixXd Z) {
+	int nobs = X.rows();
+	int ncov = Z.cols();
+
+	VectorXd toRemove(nobs);
+	
+	for (int i = 0; i < nobs; i++) {
+		toRemove[i] = 0;
+
+		if (isnan(X[i]) || isnan(Y[i]))
+			toRemove[i] = 1;
+		else {
+			for (int j = 0; j < ncov; j++)
+				if (isnan(Z(i, j)))
+					toRemove[i] = 1;
+		}
+	}
+
+	return toRemove;
+}
+
+inline VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
+	return Z.householderQr().solve(Y);
+}
+
+VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z) {
+	size_t i, j, k;
+	int ncov = Z.cols();
+	int nobs = Y.rows();
+
+	VectorXd toRemove = whereNAN(X, Y, Z);
+	VectorXd y_filtered = extractRows(Y, toRemove, 0);
+	MatrixXd z_filtered = extractRows(Z, toRemove, 0);
+
+	return CovariateRegression(y_filtered, z_filtered);
+}
+
+std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution) {
+	std::vector<VectorXd> ycenter;
+
+	for (int i = 0; i < y.size(); i++) {
+
+		VectorXd meanValue = z[i] * beta;
+
+		if (distribution == "binom")
+			meanValue = 1 / (1 + exp(-meanValue.array()));
+
+		ycenter.push_back(y[i] - meanValue);
+	}
+	return ycenter;
+}
+
+double variance(VectorXd &v) {
+
+	double mean = v.mean();
+	double var = (v.array() - mean).pow(2).sum();
+
+	return var/(v.rows()-1);
+}
+
+/*
+Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
+
+@param p Genotype frequency from EM algorithm
+@return Robust variance of E(G | D)
+*/
+double calcRobustVar(VectorXd p) {
+	return (4 * p[2] + p[1]) - pow(2 * p[2] + p[1], 2);
+}
+
 std::random_device random;
 std::mt19937 generate(random());
+
+int generateRandomInteger(int from, int to) {
+	std::uniform_int_distribution<> sample(from, to);
+	return sample(generate);
+}
+double generateRandomDouble(double from, double to) {
+	std::uniform_real_distribution<double> sample(from, to);
+	return sample(generate);
+}
+double randomNormal(double mean, double sd) {
+	std::normal_distribution<> sample(mean, sd);
+	return sample(generate);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 double meanX(SNP &snp, Group &group) {
@@ -114,19 +246,6 @@ std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
 	return rvec;
 }
 
-int generateRandomInteger(int from, int to) {
-	std::uniform_int_distribution<> sample(from, to);
-	return sample(generate);
-}
-double generateRandomDouble(double from, double to) {
-	std::uniform_real_distribution<double> sample(from, to);
-	return sample(generate);
-}
-double randomNormal(double mean, double sd) {
-	std::normal_distribution<> sample(mean, sd);
-	return sample(generate);
-}
-
 
 
 /*
@@ -165,9 +284,7 @@ double chiSquareOneDOF(double statistic) {
 	return 1 - p;
 }
 
-VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
-	return Z.householderQr().solve(Y);
-}
+
 
 MatrixXd nanToZero(MatrixXd &M) {
 	std::cout << "\n";	std::cout << "\n";

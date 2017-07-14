@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include "MemoryMapped/MemoryMapped.h"
 
 #include <iostream>  
 #include <string>
@@ -150,16 +149,24 @@ int main() {
 	//TODO:
 	//std::vector<Interval> collapse = getIntervals(bedDir);
 
-	VectorXd Y, G, H; MatrixXd X, Z;
+	VectorXd Y, G; MatrixXd X, Z, P;
+	std::map<int, int> readGroup;
 
-	bool valid = parseInput(vcfDir, infoDir, mafCutoff, true, X, Y, G, H, Z);
+	bool valid = parseInput(vcfDir, infoDir, mafCutoff, true, X, Y, Z, G, readGroup, P);
 	if (!valid)
 		return 0;
 
 
-	/*
-	generateForR(sample, snps);
+	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+	std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
 
+	std::cout << "Common Test p-values\n";
+	for (size_t i = 0; i < pvals.size(); i++) {
+			std::cout << pvals[i];
+			std::cout << '\n';
+	}
+
+	/*
 
 	std::vector<Group> group = calcGroups(sample, snps);
 
@@ -172,10 +179,11 @@ int main() {
 		IDmap.push_back(sample[i].y);
 	}
 
-	std::vector<double> pvals = runCommonTest(snps, sample, group);
+	*/
+
 	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
 
-
+	/*
 
 
 	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";

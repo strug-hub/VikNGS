@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "RVS.h"
+#include "../RVS.h"
 #include "Simulation.h"
 
 VectorXd baseCall(std::vector<char> trueGenotype, VectorXd error, int readDepth) {

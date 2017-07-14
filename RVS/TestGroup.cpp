@@ -38,7 +38,7 @@ TestGroup::TestGroup(SNP &snp, std::vector<Sample> &sample, Group &group, bool r
 		filterNAN_z();
 
 	centerX();
-	this->robustVar = calcRobustVar(snp.p);
+//	this->robustVar = calcRobustVar(snp.p);
 
 }
 

@@ -28,7 +28,7 @@ TestSet::TestSet(SNP &snp, std::vector<Sample> &sample, std::vector<Group> &grou
 			this->nlrg_filterz += groupLRG[i].length_filterz();
 	}
 
-	this->robustVar = calcRobustVar(snp.p);
+	//this->robustVar = calcRobustVar(snp.p);
 
 	VectorXd beta = getBeta(snp, sample, group);
 	for (i = 0; i < groupHRG.size(); i++)
