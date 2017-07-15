@@ -76,6 +76,21 @@ VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
 	return toRemove;
 }
 
+VectorXd whereNAN(VectorXd &X) {
+	VectorXd toRemove(X.rows());
+	for (int i = 0; i < X.rows(); i++) {
+		toRemove[i] = 0;
+
+		if (isnan(X[i]))
+			toRemove[i] = 1;
+		else 
+			toRemove[i] = 0;
+	}
+
+	return toRemove;
+}
+
+
 inline VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
 	return Z.householderQr().solve(Y);
 }
@@ -106,6 +121,7 @@ std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::ve
 	}
 	return ycenter;
 }
+
 
 double variance(VectorXd &v) {
 

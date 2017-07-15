@@ -385,7 +385,7 @@
     <ClCompile Include="Simulation\SimulationHelper.cpp" />
     <ClCompile Include="Parser\VariantFilter.cpp" />
     <ClCompile Include="Parser\VCFParser.cpp" />
-    <ClCompile Include="Statistics.cpp" />
+    <ClCompile Include="Helper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

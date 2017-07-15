@@ -66,6 +66,7 @@ VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z);
 std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution);
 VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z); 
 VectorXd whereNAN(VectorXd &Y, MatrixXd &Z);
+VectorXd whereNAN(VectorXd &X);
 double variance(VectorXd &v);
 double calcRobustVar(VectorXd p);
 double chiSquareOneDOF(double);

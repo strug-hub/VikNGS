@@ -2,16 +2,25 @@
 #include "RVS.h"
 #include <iostream>
 
+
+//todo: bootstrapping
+//1) bootstrap on x (already filtered NANs from Y,Z)
+//2) Reconstruct X, Y, Z from bootstraped (can save Y, Z across all bootstraps)
+//2b) filter NAN from ((X)),Y,Z
+//3) compute new betas
+//4) compute new ycenter
+//5) ???
+//6) profit
+
+
+
 class RareTestObject {
 private:
+
+	//filter NAN from Y and Z only
 	std::vector<VectorXd> x;
 	std::vector<VectorXd> y;
 	std::vector<MatrixXd> z;
-
-	//filter all NAN
-	std::vector<VectorXd> x__;
-	std::vector<VectorXd> y__;
-	std::vector<MatrixXd> z__;
 
 	//filter NAN from Y and Z only
 	std::vector<VectorXd> x_;
@@ -21,38 +30,55 @@ private:
 	std::vector<int> readDepth;
 	std::vector<VectorXd> ycenter;
 	double robustVar;
+	double nhrd;
+	double nlrd;
 	double nhrd_;
 	double nlrd_;
-	double nhrd__;
-	double nlrd__;
-
-	void filterNAN() {
-		for (int i = 0; i < size(); i++) {
-			VectorXd toRemove = whereNAN(x[i], y[i], z[i]);
-			x__.push_back(extractRows(x[i], toRemove, 0));
-			y__.push_back(extractRows(y[i], toRemove, 0));
-			z__.push_back(extractRows(z[i], toRemove, 0));
-		}
-	}
 
 	void filterNAN_ZYOnly() {
 		for (int i = 0; i < size(); i++) {
 			VectorXd toRemove = whereNAN(y[i], z[i]);
+			x[i] = extractRows(x[i], toRemove, 0);
+			y[i] = extractRows(y[i], toRemove, 0);
+			z[i] = extractRows(z[i], toRemove, 0);
+		}
+	}
+
+	void filterNAN() {
+		for (int i = 0; i < size(); i++) {
+			VectorXd toRemove = whereNAN(x[i], y[i], z[i]);
 			x_.push_back(extractRows(x[i], toRemove, 0));
 			y_.push_back(extractRows(y[i], toRemove, 0));
 			z_.push_back(extractRows(z[i], toRemove, 0));
 		}
 	}
 
+	void bootFilterNAN() {
+		std::vector<VectorXd> xnew;
+		std::vector<VectorXd> ynew;
+		std::vector<MatrixXd> znew;
+
+		for (int i = 0; i < size(); i++) {
+			VectorXd toRemove = whereNAN(xboot[i]);
+			xnew.push_back(extractRows(x[i], toRemove, 0));
+			ynew.push_back(extractRows(y[i], toRemove, 0));
+			znew.push_back(extractRows(z[i], toRemove, 0));
+		}
+
+		xboot_ = xnew;
+		yboot_ = ynew;
+		zboot_ = znew;
+	}
+
 	void countRD() {
 		for (int i = 0; i < size(); i++) {
 			if (readDepth[i] == 1) {
+				nhrd += x[i].rows();
 				nhrd_ += x_[i].rows();
-				nhrd__ += x__[i].rows();
 			}
 			else {
+				nlrd += x[i].rows();
 				nlrd_ += x_[i].rows();
-				nlrd__ += x__[i].rows();
 			}
 		}
 	}
@@ -67,12 +93,12 @@ public:
 		this->z = z;
 		this->readDepth = readDepth;
 
-		filterNAN();
 		filterNAN_ZYOnly();
+		filterNAN();
 		countRD();
 
 		VectorXd beta = getBeta(X, Y, Z);
-		this->ycenter = fitModel(beta, y__, z__, "norm");
+		this->ycenter = fitModel(beta, y_, z_, "norm");
 		
 		for (int i = 0; i < size(); i++)
 			this->xcenter.push_back(this->x[i].array() - this->x[i].mean());
@@ -88,9 +114,9 @@ public:
 				ym += ycenter[i].array().pow(2).sum();
 
 		if(depth ==1)
-			ym = ym / nhrd__ * nhrd_;
+			ym = ym / nhrd_ * nhrd;
 		else
-			ym = ym / nlrd__ * nlrd_;
+			ym = ym / nlrd_ * nlrd;
 
 		return sqrt(ym);
 	}
@@ -98,18 +124,21 @@ public:
 	inline double getScore() {
 		double score = 0;
 		for (int i = 0; i < size(); i++)
-			score += (ycenter[i].array() * x__[i].array()).sum();
+			score += (ycenter[i].array() * x_[i].array()).sum();
 		return score;
 	}
 
 	inline bool isHRG(int i) { return readDepth[i] == 1; }
-	inline VectorXd getX(int i) { return x_[i]; }
+	inline VectorXd getX(int i) { return x[i]; }
 	inline int size() { return x.size(); }
 
 	//bootstrapping ------------------------------
 	std::vector<VectorXd> xcenter;
 	std::vector<VectorXd> xboot;
-
+	std::vector<VectorXd> xboot_;
+	std::vector<VectorXd> yboot_;
+	std::vector<MatrixXd> zboot_;
+	
 	void bootstrap() {
 		std::vector<VectorXd> newxboot;
 		int i, j, length;
@@ -124,9 +153,14 @@ public:
 
 		}
 		xboot = newxboot;
+		bootFilterNAN();
 	}
-	inline double bootScore(int i) { return (ycenter[i].array() * xboot[i].array()).sum(); }
-	inline double bootVariance(int i) { return ycenter[i].array().pow(2).sum() * variance(xboot[i]); }
+	inline double bootScore() {
+		double score = 0;
+		for (int i = 0; i < size(); i++)
+			score += (ycenter[i].array() * xboot_[i].array()).sum();
+		return score;
+	}
 	//bootstrapping ------------------------------
 
 };
@@ -233,7 +267,7 @@ std::vector<double> getTestStatistics(MatrixXd &diagS, VectorXd &score) {
 
 std::vector<double> rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs) {
 
-	int i, j;
+	int i, j, h;
 	int nsnp = t.size();
 	MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
 
@@ -276,9 +310,33 @@ std::vector<double> rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs
 		score[i] = t[i].getScore();
 
 	std::vector<double> tobs = getTestStatistics(diagS, score);
+	double linearObs = tobs[0];
+	double quadObs = tobs[1];
+	
+	//start bootstrapping!
 
-	return tobs;
-	//TODO: bootstrapping!!
+	double bootCount = 0;
+	double linearCount = 0;
+	double quadCount = 0;
+	for (h = 0; h < nboot; h++) {
+
+		for (i = 0; i < nsnp; i++)
+			t[i].bootstrap();
+		for (i = 0; i < nsnp; i++)
+			score[i] = t[i].bootScore();
+
+		//	tsamp = testStatistic(samples, sample, group, false);
+
+		//	if (tsamp[0] <= tobs[0])
+		//		tcountLinear++;
+		//	if (tsamp[1] <= tobs[1])
+		//		tcountQuadratic++;
+
+		bootCount++;
+
+	}
+
+	return{ (linearCount + 1) / (bootCount + 1), (quadCount + 1) / (bootCount + 1) };
 }
 
 
