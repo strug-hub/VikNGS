@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 
-
+//todo
+/*
 std::vector<Interval> getIntervals(std::string bedDir) {
 
 	MemoryMapped bed(bedDir);
@@ -113,3 +114,4 @@ void collapseVariants(std::vector<SNP> &snps, std::vector<Interval> &collapse) {
 
 	return;
 }
+*/

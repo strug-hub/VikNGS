@@ -4,10 +4,6 @@
 #include <vector>
 #include <random>
 
-inline VectorXd centerVector(VectorXd &v) {
-	return v.array() - v.mean();
-}
-
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals) {
 	VectorXd subset(v.rows());
 	int c = 0;
@@ -38,8 +34,8 @@ MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals) {
 	return subset.block(0, 0, c, m.cols());
 }
 
-VectorXd whereNAN(VectorXd X, VectorXd Y, MatrixXd Z) {
-	int nobs = X.rows();
+VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z) {
+	int nobs = Y.rows();
 	int ncov = Z.cols();
 
 	VectorXd toRemove(nobs);
@@ -48,6 +44,27 @@ VectorXd whereNAN(VectorXd X, VectorXd Y, MatrixXd Z) {
 		toRemove[i] = 0;
 
 		if (isnan(X[i]) || isnan(Y[i]))
+			toRemove[i] = 1;
+		else {
+			for (int j = 0; j < ncov; j++)
+				if (isnan(Z(i, j)))
+					toRemove[i] = 1;
+		}
+	}
+
+	return toRemove;
+}
+
+VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
+	int nobs = Y.rows();
+	int ncov = Z.cols();
+
+	VectorXd toRemove(nobs);
+
+	for (int i = 0; i < nobs; i++) {
+		toRemove[i] = 0;
+
+		if (isnan(Y[i]))
 			toRemove[i] = 1;
 		else {
 			for (int j = 0; j < ncov; j++)
@@ -124,117 +141,131 @@ double randomNormal(double mean, double sd) {
 	return sample(generate);
 }
 
+//same as doing pairwise.complete.obs in R
+MatrixXd covariance(MatrixXd &M) {
+	int n = M.cols();
+	int m = M.rows();
 
+	MatrixXd cov(n, n);
+	size_t i, j, k;
 
+	double count;
+	double meani;
+	double meanj;
+	double sum;
 
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
 
+			sum = 0;
+			count = 0;
+			meani = 0;
+			meanj = 0;
 
+			for (k = 0; k < m; k++) {
+				if (!isnan(M(k, i)) && !isnan(M(k, j))) {
+					count++;
+					meani += M(k, i);
+					meanj += M(k, j);
+				}
+			}
 
+			meani /= count;
+			meanj /= count;
 
+			for (k = 0; k < m; k++)
+				if (!isnan(M(k, i)) && !isnan(M(k, j)))
+					sum += (M(k, i) - meani) * (M(k, j) - meanj);
 
-
-
-
-
-
-
-
-
-double meanX(SNP &snp, Group &group) {
-
-	double sum = 0;
-	double n = 0;
-	size_t i, j;
-
-	for (i = 0; i < group.index.size(); i++) {
-		 j = group.index[i];
-		if (!isnan(snp.EG[j])) {
-			sum += snp.EG[j];
-			n++;
+			sum /= count - 1;
+			cov(i, j) = sum;
+			cov(j, i) = sum;
 		}
 	}
 
-	return sum / n;
+	return cov;
 }
 
 
-double meanY(std::vector<Sample> &sample, SNP &snp) {
+MatrixXd correlation(MatrixXd &M) {
+	int n = M.cols();
+	int m = M.rows();
 
-	double sum = 0;
-	double n = 0;
+	MatrixXd cor(n, n);
+	size_t i, j, k;
 
-	for (size_t i = 0; i < sample.size(); i++) {
-		if (!isnan(snp.EG[i])) {
-			sum += sample[i].y;
-			n++;
+	double count;
+	double vari;
+	double varj;
+	double meani;
+	double meanj;
+	double sum;
+
+	for (i = 0; i < n; i++) {
+		for (j = i; j < n; j++) {
+			if (i == j) {
+				cor(i, j) = 1;
+				cor(j, i) = 1;
+			}
+			else {
+				sum = 0;
+				count = 0;
+				vari = 0;
+				varj = 0;
+				meani = 0;
+				meanj = 0;
+
+				for (k = 0; k < m; k++) {
+					if (!isnan(M(k, i)) && !isnan(M(k, j))) {
+						count++;
+						meani += M(k, i);
+						meanj += M(k, j);
+					}
+				}
+
+				meani /= count;
+				meanj /= count;
+
+				for (k = 0; k < m; k++) {
+					if (!isnan(M(k, i)) && !isnan(M(k, j))) {
+						vari += pow(M(k, i) - meani, 2);
+						varj += pow(M(k, j) - meanj, 2);
+						sum += (M(k, i) - meani) * (M(k, j) - meanj);
+					}
+				}
+
+				sum /= sqrt(vari * varj);
+				cor(i, j) = sum;
+				cor(j, i) = sum;
+			}
 		}
 	}
 
-	return sum / n;
+	return cor;
 }
 
-double varX(SNP &snp, Group &group) {
+/*
+Approximates the p-value from the pdf of the normal distribution where x is a Z-score
 
-	double mean = 0;
-	double n = 0;
-	size_t i;
+@param x Z-score.
+@return p-value.
+*/
+double pnorm(double x)
+{
+	// constants
+	double a1 = 0.254829592;
+	double a2 = -0.284496736;
+	double a3 = 1.421413741;
+	double a4 = -1.453152027;
+	double a5 = 1.061405429;
+	double p = 0.3275911;
 
-	for (i = 0; i < group.index.size(); i++) {
-		if (!isnan(snp.EG[group.index[i]])) {
-			mean += snp.EG[group.index[i]];
-			n++;
-		}
-	}
+	x = fabs(x) / sqrt(2.0);
 
-	mean = mean / n;
-	double var = 0;
-
-	for (i = 0; i < group.index.size(); i++) {
-		if (!isnan(snp.EG[group.index[i]])) {
-			var += pow(snp.EG[group.index[i]] - mean, 2);
-		}
-	}
-
-	return var / (n - 1);
+	// A&S formula 7.1.26
+	double t = 1.0 / (1.0 + p*x);
+	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }
-
-double var(VectorXd &X) {
-
-	double mean = 0;
-	double n = X.rows();
-	int i;
-
-	for (i = 0; i < n; i++)
-		mean += X[i];
-
-	mean = mean / n;
-	double var = 0;
-
-	for (i = 0; i < X.rows(); i++)
-		var += pow(X[i] - mean, 2);
-
-	return var / (n - 1);
-}
-
-
-
-double variance(std::vector<double> &vec) {
-
-	double mean = 0;
-	size_t i;
-
-	for (i = 0; i < vec.size(); i++)
-		mean += vec[i];
-
-	mean = mean / vec.size();
-	double var = 0;
-
-	for (i = 0; i < vec.size(); i++)
-		var += std::pow(vec[i] - mean, 2);
-
-	return var / (vec.size() - 1);
-}
-
 
 std::vector<double> randomSample(std::vector<double> &vec, int nsample) {
 	std::vector<double> rvec;
@@ -284,8 +315,6 @@ double chiSquareOneDOF(double statistic) {
 	return 1 - p;
 }
 
-
-
 MatrixXd nanToZero(MatrixXd &M) {
 	std::cout << "\n";	std::cout << "\n";
 	std::cout << "\n";
@@ -309,130 +338,4 @@ VectorXd nanToZero(VectorXd &V) {
 				V[i] = 0;
 
 	return V;
-}
-
-//same as doing pairwise.complete.obs in R
-MatrixXd covariance(MatrixXd &M) {
-	int n = M.cols();
-	int m = M.rows();
-
-	MatrixXd cov(n, n);
-	size_t i, j, k;
-
-	double count;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-
-			sum = 0;
-			count = 0;
-			meani = 0;
-			meanj = 0;
-
-			for (k = 0; k < m; k++) {
-				if (!isnan(M(k,i)) && !isnan(M(k,j))) {
-					count++;
-					meani += M(k, i);
-					meanj += M(k, j);
-				}
-			}
-
-			meani /= count;
-			meanj /= count;
-
-			for (k = 0; k < m; k++) 
-				if (!isnan(M(k, i)) && !isnan(M(k, j)))
-					sum += (M(k, i) - meani) * (M(k, j) - meanj);
-			
-			sum /= count - 1;
-			cov(i, j) = sum;
-			cov(j, i) = sum;
-		}
-	}
-
-	return cov;
-}
-
-
-MatrixXd correlation(MatrixXd &M) {
-	int n = M.cols();
-	int m = M.rows();
-
-	MatrixXd cor(n, n);
-	size_t i, j, k;
-
-	double count;
-	double vari;
-	double varj;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-			if (i == j) {
-				cor(i, j) = 1;
-				cor(j, i) = 1;
-			}
-			else {
-				sum = 0;
-				count = 0;
-				vari = 0;
-				varj = 0;
-				meani = 0;
-				meanj = 0;
-
-				for (k = 0; k < m; k++) {
-					if (!isnan(M(k,i)) && !isnan(M(k,j))) {
-						count++;
-						meani += M(k,i);
-						meanj += M(k,j);
-					}
-				}
-
-				meani /= count;
-				meanj /= count;
-
-				for (k = 0; k < m; k++) {
-					if (!isnan(M(k, i)) && !isnan(M(k, j))) {
-						vari += pow(M(k,i) - meani, 2);
-						varj += pow(M(k,j) - meanj, 2);
-						sum += (M(k, i) - meani) * (M(k, j) - meanj);
-					}
-				}
-
-				sum /= sqrt(vari * varj);
-				cor(i, j) = sum;
-				cor(j, i) = sum;
-			}
-		}
-	}
-
-	return cor;
-}
-
-/*
-Approximates the p-value from the pdf of the normal distribution where x is a Z-score
-
-@param x Z-score.
-@return p-value.
-*/
-double pnorm(double x)
-{
-	// constants
-	double a1 = 0.254829592;
-	double a2 = -0.284496736;
-	double a3 = 1.421413741;
-	double a4 = -1.453152027;
-	double a5 = 1.061405429;
-	double p = 0.3275911;
-
-	x = fabs(x) / sqrt(2.0);
-
-	// A&S formula 7.1.26
-	double t = 1.0 / (1.0 + p*x);
-	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }

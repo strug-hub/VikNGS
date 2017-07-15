@@ -690,15 +690,6 @@
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TestGroup.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MultiTestSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Parser\InputParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -726,15 +717,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TestSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TestGroup.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MultiTestSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Parser\VCFParser.cpp">

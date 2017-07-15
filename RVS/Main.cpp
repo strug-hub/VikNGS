@@ -5,46 +5,12 @@
 #include <string>
 #include <vector>
 
-#include "TestSet.h"
-
-/*
-Creates a vector of Groups based on the sample information
-
-@param sample Vector with sample information.
-@param snps Vector of SNPs. TODO: is this actually needed?
-@return Vector of Groups.
-*/
-std::vector<Group> calcGroups(std::vector<Sample> &sample, std::vector<SNP> &snps) {
-	std::vector<Group> group;
-	std::vector<bool> done;
-
-	for (size_t i = 0; i < sample.size(); i++)
-		done.push_back(false);
-
-	for (size_t i = 0; i < sample.size(); i++){
-		if (!done[i]) {
-			Group g;
-			g.ID = sample[i].groupID;
-			g.hrg = sample[i].hrg;
-			g.groupIndex = sample[i].groupIndex;
-
-			for (size_t j = i; j < sample.size(); j++) 
-				if (sample[j].groupID == g.ID && sample[j].hrg == g.hrg) {
-					g.index.push_back(j);
-					done[j] = true;
-				}
-		
-			group.push_back(g);
-		}
-	}
-
-	return group;
-}
 
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 
+/*
 void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 	std::ofstream X("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
 	std::ofstream Y("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
@@ -128,7 +94,7 @@ void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
 		Z.close();
 	}
 }
-
+*/
 
 int main() {
 
@@ -157,14 +123,24 @@ int main() {
 		return 0;
 
 
-	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
-	std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
+	std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
 
 	std::cout << "Common Test p-values\n";
 	for (size_t i = 0; i < pvals.size(); i++) {
 			std::cout << pvals[i];
 			std::cout << '\n';
 	}
+
+	std::vector<std::vector<double>> pval = runRareTest(X, Y, Z, G, readGroup, P, 1, true);
+
+	std::cout << "Rare Test p-values\n";
+	std::cout << pval[0][0];
+	std::cout << '\t';
+	std::cout << pval[0][1];
+
+
+
 
 	/*
 
@@ -202,15 +178,6 @@ int main() {
 		}
 	}
 
-	std::vector<SNP> toTest;
-	toTest.push_back(snps[0]);
-	toTest.push_back(snps[1]);
-	toTest.push_back(snps[2]);
-	toTest.push_back(snps[3]);
-	toTest.push_back(snps[4]);
-
-
-	runRareTest(toTest, sample, group, 100, true);
 	
 //	auto t = startTime();
 //	pvals = RVSbtrap(snps, sample, 1000000, true, true);
@@ -218,13 +185,15 @@ int main() {
 
 	
 
-	std::cout << "done...>";
 
 
 	*/
 
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!
+
+	std::cout << "done...>";
+
 	while (true) {}
 	return 0;
 }

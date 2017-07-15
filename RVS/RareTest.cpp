@@ -7,16 +7,53 @@ private:
 	std::vector<VectorXd> x;
 	std::vector<VectorXd> y;
 	std::vector<MatrixXd> z;
+
+	//filter all NAN
+	std::vector<VectorXd> x__;
+	std::vector<VectorXd> y__;
+	std::vector<MatrixXd> z__;
+
+	//filter NAN from Y and Z only
+	std::vector<VectorXd> x_;
+	std::vector<VectorXd> y_;
+	std::vector<MatrixXd> z_;
+
 	std::vector<int> readDepth;
 	std::vector<VectorXd> ycenter;
 	double robustVar;
+	double nhrd_;
+	double nlrd_;
+	double nhrd__;
+	double nlrd__;
 
 	void filterNAN() {
 		for (int i = 0; i < size(); i++) {
 			VectorXd toRemove = whereNAN(x[i], y[i], z[i]);
-			x[i] = extractRows(x[i], toRemove, 0);
-			y[i] = extractRows(y[i], toRemove, 0);
-			z[i] = extractRows(z[i], toRemove, 0);
+			x__.push_back(extractRows(x[i], toRemove, 0));
+			y__.push_back(extractRows(y[i], toRemove, 0));
+			z__.push_back(extractRows(z[i], toRemove, 0));
+		}
+	}
+
+	void filterNAN_ZYOnly() {
+		for (int i = 0; i < size(); i++) {
+			VectorXd toRemove = whereNAN(y[i], z[i]);
+			x_.push_back(extractRows(x[i], toRemove, 0));
+			y_.push_back(extractRows(y[i], toRemove, 0));
+			z_.push_back(extractRows(z[i], toRemove, 0));
+		}
+	}
+
+	void countRD() {
+		for (int i = 0; i < size(); i++) {
+			if (readDepth[i] == 1) {
+				nhrd_ += x_[i].rows();
+				nhrd__ += x__[i].rows();
+			}
+			else {
+				nlrd_ += x_[i].rows();
+				nlrd__ += x__[i].rows();
+			}
 		}
 	}
 
@@ -31,25 +68,42 @@ public:
 		this->readDepth = readDepth;
 
 		filterNAN();
+		filterNAN_ZYOnly();
+		countRD();
 
 		VectorXd beta = getBeta(X, Y, Z);
-		this->ycenter = fitModel(beta, this->y, this->z, "norm");
+		this->ycenter = fitModel(beta, y__, z__, "norm");
+		
 		for (int i = 0; i < size(); i++)
 			this->xcenter.push_back(this->x[i].array() - this->x[i].mean());
 
 		this->robustVar = calcRobustVar(P);
 	}
 
-	inline double getScore(int i) { return (ycenter[i].array() * x[i].array()).sum(); }
+	inline double getRobustVar() { return robustVar; }
+	inline double getYm(int depth) {
+		double ym = 0;
+		for (int i = 0; i < size(); i++)
+			if (readDepth[i] == depth)
+				ym += ycenter[i].array().pow(2).sum();
 
-	inline double getVariance(int i, bool rvs) {
-		double var = ycenter[i].array().pow(2).sum();
-		if (rvs && readDepth[i] == 1)
-			return var * robustVar;
+		if(depth ==1)
+			ym = ym / nhrd__ * nhrd_;
 		else
-			return var * variance(x[i]);
+			ym = ym / nlrd__ * nlrd_;
+
+		return sqrt(ym);
 	}
 
+	inline double getScore() {
+		double score = 0;
+		for (int i = 0; i < size(); i++)
+			score += (ycenter[i].array() * x__[i].array()).sum();
+		return score;
+	}
+
+	inline bool isHRG(int i) { return readDepth[i] == 1; }
+	inline VectorXd getX(int i) { return x_[i]; }
 	inline int size() { return x.size(); }
 
 	//bootstrapping ------------------------------
@@ -76,6 +130,7 @@ public:
 	//bootstrapping ------------------------------
 
 };
+
 
 /*
 RVS analysis with rare variants for one group. Get p-values from RVS
@@ -174,126 +229,54 @@ std::vector<double> getTestStatistics(MatrixXd &diagS, VectorXd &score) {
 
 	return{ cast, calpha };
 }
-/*
-std::vector<double> bootstrap(MultiTestSet &ts, int nboot, std::vector<double> &tobs) {
-	size_t i;
-	int n = ts.length();
-	std::vector<double> tBoot;
-	int tCountLinear = 0;
-	int tCountQuadratic = 0;
-	int bootCount = 0;
 
-	MatrixXd diagYmHRG = ts.getYmHRG().asDiagonal();
-	MatrixXd diagYmLRG = ts.getYmLRG().asDiagonal();
-	MatrixXd X;
-	MatrixXd diagS;
 
-	for (size_t h = 0; h < nboot; h++) {
-		diagS = MatrixXd::Constant(n, n, 0);
+std::vector<double> rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs) {
 
-		for (i = 0; i < ts.ngroups(); i++) {
-			X = ts.getBootstrapXMatrix(i);
-			diagS += diagYmLRG * covariance(X) * diagYmLRG;
-		}
+	int i, j;
+	int nsnp = t.size();
+	MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
 
-	//	tBoot = getTestStatistics(diagS, sample, group, false);
+	VectorXd var(nsnp);
+	VectorXd ym_hrd(nsnp);
+	VectorXd ym_lrd(nsnp);
 
-			if (tBoot[0] <= tobs[0])
-				tCountLinear++;
-			if (tBoot[1] <= tobs[1])
-				tCountQuadratic++;
-
-			bootCount++;
-		
+	for (i = 0; i < nsnp; i++){
+		var[i] = sqrt(t[i].getRobustVar());
+		ym_hrd[i] = t[i].getYm(1);
+		ym_lrd[i] = t[i].getYm(0);
 	}
 
-	return{ (tCountLinear + 1.0) / (bootCount + 1.0), 
-		    (tCountQuadratic + 1.0) / (bootCount + 1.0) };
-}
-
-std::vector<double> RVSrare(MultiTestSet &ts, int nboot, bool rvs) {
-	size_t i, j;
-	int n = ts.length();
-	MatrixXd diagS = MatrixXd::Constant(n, n, 0);
-
-	VectorXd var = sqrt(ts.getRobustVariance().array());
 	MatrixXd diagVar = var.asDiagonal();
+	MatrixXd diagYm_hrd = ym_hrd.asDiagonal();
+	MatrixXd diagYm_lrd = ym_lrd.asDiagonal();
 
-	VectorXd YmHRG = ts.getYmHRG();
-	MatrixXd diagYmHRG = YmHRG.asDiagonal();
+	for (i = 0; i < t[0].size(); i++) {
+		VectorXd x_0 = t[0].getX(i);
+		MatrixXd x(x_0.rows(), nsnp);
+		x.col(0) = x_0;
 
-	VectorXd YmLRG = ts.getYmLRG();
-	MatrixXd diagYmLRG = YmLRG.asDiagonal();
+		for (j = 1; j < nsnp; j++)
+			x.col(j) = t[j].getX(i);
 
-	MatrixXd X;
-
-	for (i = 0; i < ts.ngroups(); i++) {
-		X = ts.getXMatrix(i);
-
-		if (ts.isHRG(i)) {
+		if (t[0].isHRG(i)) {
 			if (rvs) {
-				MatrixXd varHRG = diagVar.transpose() * correlation(X) * diagVar;
-				diagS += diagYmHRG * varHRG * diagYmHRG;
+				MatrixXd var_hrd = diagVar.transpose() * correlation(x) * diagVar;
+				diagS += diagYm_hrd * var_hrd * diagYm_hrd;
 			}
 			else
-				diagS += diagYmHRG * covariance(X) * diagYmHRG;
-		}
-		else 
-			diagS += diagYmLRG * covariance(X) * diagYmLRG;
-	}
-
-	std::vector<double> tobs = getTestStatistics(diagS, ts.getScoreVector());
-
-	std::cout << "\n";
-	std::cout << tobs[0];
-	std::cout << "\n";
-	std::cout << tobs[1];
-
-	return tobs;
-	//TODO: bootstrapping!!
-}
-*/
-
-std::vector<double> rareTest(RareTestObject &t, int nboot, bool rvs) {
-	
-	std::vector<double> tobs;
-	size_t i, j;
-	int n = t.size();
-	MatrixXd diagS = MatrixXd::Constant(n, n, 0);
-	/*
-	VectorXd var = sqrt(ts.getRobustVariance().array());
-	MatrixXd diagVar = var.asDiagonal();
-
-	VectorXd YmHRG = ts.getYmHRG();
-	MatrixXd diagYmHRG = YmHRG.asDiagonal();
-
-	VectorXd YmLRG = ts.getYmLRG();
-	MatrixXd diagYmLRG = YmLRG.asDiagonal();
-
-	MatrixXd X;
-
-	for (i = 0; i < ts.ngroups(); i++) {
-		X = ts.getXMatrix(i);
-
-		if (ts.isHRG(i)) {
-			if (rvs) {
-				MatrixXd varHRG = diagVar.transpose() * correlation(X) * diagVar;
-				diagS += diagYmHRG * varHRG * diagYmHRG;
-			}
-			else
-				diagS += diagYmHRG * covariance(X) * diagYmHRG;
+				diagS += diagYm_hrd * covariance(x) * diagYm_hrd;
 		}
 		else
-			diagS += diagYmLRG * covariance(X) * diagYmLRG;
+			diagS += diagYm_lrd * covariance(x) * diagYm_lrd;
 	}
 
-	std::vector<double> tobs = getTestStatistics(diagS, ts.getScoreVector());
+	VectorXd score(nsnp);
+	for (i = 0; i < nsnp; i++)
+		score[i] = t[i].getScore();
 
-	std::cout << "\n";
-	std::cout << tobs[0];
-	std::cout << "\n";
-	std::cout << tobs[1];
-	*/
+	std::vector<double> tobs = getTestStatistics(diagS, score);
+
 	return tobs;
 	//TODO: bootstrapping!!
 }
@@ -302,8 +285,8 @@ std::vector<double> rareTest(RareTestObject &t, int nboot, bool rvs) {
 std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
 	int nboot, bool rvs) {
 
-	int i, j;
-	std::vector<double> pvals;
+	int i, j, l;
+	std::vector<std::vector<double>> pvals;
 
 	std::vector<MatrixXd> x;
 	std::vector<VectorXd> y;
@@ -319,20 +302,23 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd 
 		rd.push_back(readGroup[i]);
 	}
 
-	for (i = 0; i < X.cols(); i++) {
+	std::vector<RareTestObject> t;
 
+	
+	//for (i = 0; i < X.cols(); i++) {
+	
+	for (i = 0; i < 5; i++) {
 		std::vector<VectorXd> x_i;
 		for (j = 0; j < ngroups; j++)
 			x_i.push_back(x[j].col(i));
 
 		VectorXd X_i = X.col(i);
 		VectorXd P_i = P.row(i);
-		RareTestObject t(X_i, Y, Z, x_i, y, z, rd, P_i);
-
-		pvals.push_back(rareTest());
-
+		RareTestObject t_i(X_i, Y, Z, x_i, y, z, rd, P_i);
+		t.push_back(t_i);
 	}
-
+	
+	pvals.push_back(rareTest(t, nboot, rvs));
 	return pvals;
 }
 

@@ -370,9 +370,6 @@
     <ClInclude Include="Simulation\Simulation.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TestSet.h" />
-    <ClInclude Include="TestGroup.h" />
-    <ClInclude Include="MultiTestSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Parser\BEDParser.cpp" />
@@ -386,7 +383,6 @@
     <ClCompile Include="RareTest.cpp" />
     <ClCompile Include="Simulation\Simulation.cpp" />
     <ClCompile Include="Simulation\SimulationHelper.cpp" />
-    <ClCompile Include="TestSet.cpp" />
     <ClCompile Include="Parser\VariantFilter.cpp" />
     <ClCompile Include="Parser\VCFParser.cpp" />
     <ClCompile Include="Statistics.cpp" />
@@ -396,8 +392,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TestGroup.cpp" />
-    <ClCompile Include="MultiTestSet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Eigen\Cholesky" />

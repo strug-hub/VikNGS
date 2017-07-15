@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include "TestSet.h"
-#include "TestGroup.h"
 
 #include <iostream>  
 #include <math.h> 
