@@ -132,7 +132,7 @@ int main() {
 			std::cout << '\n';
 	}
 
-	std::vector<std::vector<double>> pval = runRareTest(X, Y, Z, G, readGroup, P, 1, true);
+	std::vector<std::vector<double>> pval = runRareTest(X, Y, Z, G, readGroup, P, 50000, true);
 
 	std::cout << "Rare Test p-values\n";
 	std::cout << pval[0][0];

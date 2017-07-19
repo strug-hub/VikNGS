@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "RVS.h"
-
 #include <vector>
 #include <random>
 
@@ -129,6 +128,15 @@ double variance(VectorXd &v) {
 	double var = (v.array() - mean).pow(2).sum();
 
 	return var/(v.rows()-1);
+}
+
+
+double center(VectorXd &v) {
+
+	double mean = v.mean();
+	double var = (v.array() - mean).pow(2).sum();
+
+	return var / (v.rows() - 1);
 }
 
 /*
