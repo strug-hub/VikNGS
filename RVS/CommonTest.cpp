@@ -14,12 +14,20 @@ private:
 	std::vector<VectorXd> ycenter;
 	double robustVar;
 
-	void filterNAN() {
+	void filterNAN_xyz() {
 		for (int i = 0; i < size(); i++) {
 			VectorXd toRemove = whereNAN(x[i], y[i], z[i]);
 			x[i] = extractRows(x[i], toRemove, 0);
 			y[i] = extractRows(y[i], toRemove, 0);
 			z[i] = extractRows(z[i], toRemove, 0);
+		}
+	}
+
+	void filterNAN_xy() {
+		for (int i = 0; i < size(); i++) {
+			VectorXd toRemove = whereNAN(x[i], y[i]);
+			x[i] = extractRows(x[i], toRemove, 0);
+			y[i] = extractRows(y[i], toRemove, 0);
 		}
 	}
 
@@ -33,14 +41,33 @@ public:
 		this->z = z;
 		this->readDepth = readDepth;
 
-		filterNAN();
+		filterNAN_xyz();
 
 		VectorXd beta = getBeta(X, Y, Z);
-		this->ycenter = fitModel(beta, this->y, this->z, "norm");
+		ycenter = fitModel(beta, this->y, this->z, "norm");
 		for (int i = 0; i < size(); i++)
-			this->xcenter.push_back(this->x[i].array() - this->x[i].mean());
+			xcenter.push_back(this->x[i].array() - this->x[i].mean());
 
-		this->robustVar = calcRobustVar(P);
+		robustVar = calcRobustVar(P);
+	}
+
+	CommonTestObject(std::vector<VectorXd> &x, std::vector<VectorXd> &y, 
+		std::vector<int> &readDepth, VectorXd &P) {
+
+		this->x = x;
+		this->y = y;
+		this->readDepth = readDepth;
+
+		filterNAN_xy();
+
+		double meanY = average(this->y);
+		
+		for (int i = 0; i < size(); i++) {
+			xcenter.push_back(this->x[i].array() - this->x[i].mean());
+			ycenter.push_back(this->y[i].array() - meanY);
+		}
+
+		robustVar = calcRobustVar(P);
 	}
 
 	inline double getScore(int i) { return (ycenter[i].array() * x[i].array()).sum(); }
@@ -100,6 +127,7 @@ double commonAsymptotic(CommonTestObject t, bool rvs) {
 		score += t.getScore(i);
 		variance += t.getVariance(i, rvs);
 	}
+	double xxx = pow(score, 2);
 	return chiSquareOneDOF(pow(score, 2) / variance);
 }
 
@@ -158,7 +186,6 @@ double commonBootstrap(CommonTestObject t, int nboot, bool earlyStop, bool rvs) 
 	*/
 }
 
-
 std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
 	int nboot, bool rvs) {
 
@@ -193,10 +220,45 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorX
 			pvals.push_back(commonBootstrap(t, nboot, false, rvs));
 		else
 			pvals.push_back(commonAsymptotic(t, rvs));
-
 	}
 
 	return pvals;
 
 }
 
+std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
+	int nboot, bool rvs) {
+
+	int i, j;
+	std::vector<double> pvals;
+
+	std::vector<MatrixXd> x;
+	std::vector<VectorXd> y;
+	std::vector<int> rd;
+
+	int ngroups = 1 + (int)G.maxCoeff();
+
+	for (i = 0; i < ngroups; i++) {
+		x.push_back(extractRows(X, G, i));
+		y.push_back(extractRows(Y, G, i));
+		rd.push_back(readGroup[i]);
+	}
+
+	for (i = 0; i < X.cols(); i++) {
+
+		std::vector<VectorXd> x_i;
+		for (j = 0; j < ngroups; j++)
+			x_i.push_back(x[j].col(i));
+
+		VectorXd P_i = P.row(i);
+		CommonTestObject t(x_i, y, rd, P_i);
+
+		if (nboot > 0)
+			pvals.push_back(commonBootstrap(t, nboot, false, rvs));
+		else
+			pvals.push_back(commonAsymptotic(t, rvs));
+	}
+
+	return pvals;
+
+}

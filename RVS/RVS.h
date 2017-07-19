@@ -67,6 +67,8 @@ std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::ve
 VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z); 
 VectorXd whereNAN(VectorXd &Y, MatrixXd &Z);
 VectorXd whereNAN(VectorXd &X);
+VectorXd whereNAN(VectorXd &X, VectorXd &Y);
+double average(std::vector<VectorXd> v);
 double variance(VectorXd &v);
 double calcRobustVar(VectorXd p);
 double chiSquareOneDOF(double);
@@ -82,6 +84,8 @@ double pnorm(double x);
 
 //CommonTest.cpp
 std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
+	int nboot=0, bool rvs=true);
+std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
 	int nboot=0, bool rvs=true);
 
 //RareTest.cpp

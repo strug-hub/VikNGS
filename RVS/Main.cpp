@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -122,8 +121,8 @@ int main() {
 	if (!valid)
 		return 0;
 
-
-	std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+	std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
+	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
 	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
 
 	std::cout << "Common Test p-values\n";
@@ -140,51 +139,14 @@ int main() {
 	std::cout << pval[0][1];
 
 
-
-
 	/*
-
-	std::vector<Group> group = calcGroups(sample, snps);
 
 	collapseVariants(snps, collapse);
 
 	generateForR(sample, snps);
-
-	std::vector<bool> IDmap;
-	for (size_t i = 0; i < snps.size(); i++) {
-		IDmap.push_back(sample[i].y);
-	}
-
-	*/
-
-	//std::vector<double> pvals = RVSbtrap(snps, sample, group, 10000, true, true);
-
-	/*
-
-
-	std::cout << "Case\tChr\tLoc\tMAF\tp-value\n";
-	for (size_t i = 0; i < snps.size(); i++) {
-		if (!isnan(snps[i].maf)) {
-			std::cout << sample[i].y;
-			std::cout << '\t';
-			std::cout << snps[i].chr;
-			std::cout << '\t';
-			std::cout << snps[i].loc;
-			std::cout << '\t';
-			std::cout << snps[i].maf;
-			std::cout << '\t';
-			std::cout << pvals[i];
-			std::cout << '\n';
-		}
-	}
-
-	
-//	auto t = startTime();
-//	pvals = RVSbtrap(snps, sample, 1000000, true, true);
-//	endTime(t, "btrp=1000000");
-
-	
-
+	auto t = startTime();
+	pvals = RVSbtrap(snps, sample, 1000000, true, true);
+	endTime(t, "btrp=1000000");
 
 
 	*/

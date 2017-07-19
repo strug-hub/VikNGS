@@ -75,6 +75,19 @@ VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
 	return toRemove;
 }
 
+VectorXd whereNAN(VectorXd &X, VectorXd &Y) {
+	int nobs = X.rows();
+	int ncov = Y.cols();
+	VectorXd toRemove(nobs);
+
+	for (int i = 0; i < nobs; i++) {
+		toRemove[i] = 0;
+		if (isnan(X[i]) || isnan(Y[i]))
+			toRemove[i] = 1;
+	}
+	return toRemove;
+}
+
 VectorXd whereNAN(VectorXd &X) {
 	VectorXd toRemove(X.rows());
 	for (int i = 0; i < X.rows(); i++) {
@@ -121,6 +134,15 @@ std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::ve
 	return ycenter;
 }
 
+double average(std::vector<VectorXd> v) {
+	double sum = 0;
+	double n = 0;
+	for (int i = 0; i < v.size(); i++) {
+		n += v[i].size();
+		sum += v[i].sum();
+	}
+	return sum / n;
+}
 
 double variance(VectorXd &v) {
 
