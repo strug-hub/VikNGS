@@ -121,7 +121,7 @@ int main() {
 	if (!valid)
 		return 0;
 
-	std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
+	std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
 	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
 	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
 
@@ -131,7 +131,8 @@ int main() {
 			std::cout << '\n';
 	}
 
-	std::vector<std::vector<double>> pval = runRareTest(X, Y, Z, G, readGroup, P, 50000, true);
+	std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
+	//std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
 
 	std::cout << "Rare Test p-values\n";
 	std::cout << pval[0][0];

@@ -1,166 +1,6 @@
 #include "stdafx.h"
 #include "RVS.h"
-#include <iostream>
-
-class RareTestObject {
-private:
-	VectorXd Y;
-	MatrixXd Z;
-
-	//filter NAN from Y and Z only
-	//this x stays the same after every bootstrap!
-	std::vector<VectorXd> x;
-	std::vector<VectorXd> y;
-	std::vector<MatrixXd> z;
-
-	std::vector<VectorXd> x_;
-	std::vector<VectorXd> y_;
-	std::vector<MatrixXd> z_;
-
-	std::vector<int> readDepth;
-	std::vector<VectorXd> xcenter;
-	std::vector<VectorXd> ycenter;
-	double robustVar;
-	double nhrd;
-	double nlrd;
-	double nhrd_;
-	double nlrd_;
-
-	void filterNAN_yz() {
-		for (int i = 0; i < size(); i++) {
-			VectorXd toRemove = whereNAN(y[i], z[i]);
-			x[i] = extractRows(x[i], toRemove, 0);
-			y[i] = extractRows(y[i], toRemove, 0);
-			z[i] = extractRows(z[i], toRemove, 0);
-		}
-	}
-
-	void filterNAN() {
-		std::vector<VectorXd> fx;
-		std::vector<VectorXd> fy;
-		std::vector<MatrixXd> fz;
-		for (int i = 0; i < size(); i++) {
-			VectorXd toRemove = whereNAN(x[i], y[i], z[i]);
-			fx.push_back(extractRows(x[i], toRemove, 0));
-			fy.push_back(extractRows(y[i], toRemove, 0));
-			fz.push_back(extractRows(z[i], toRemove, 0));
-		}
-		x_ = fx;
-		y_ = fy;
-		z_ = fz;
-	}
-
-	void filterNAN_YZ() {
-		for (int i = 0; i < size(); i++) {
-			VectorXd toRemove = whereNAN(Y, Z);
-			Y = extractRows(Y, toRemove, 0);
-			Z = extractRows(Z, toRemove, 0);
-		}
-	}
-
-	void countRD() {
-		nhrd = 0;
-		nhrd_ = 0;
-		nlrd = 0;
-		nlrd_ = 0;
-
-		for (int i = 0; i < size(); i++) {
-			if (readDepth[i] == 1) {
-				nhrd += x[i].rows();
-				nhrd_ += x_[i].rows();
-			}
-			else {
-				nlrd += x[i].rows();
-				nlrd_ += x_[i].rows();
-			}
-		}
-	}
-
-
-public:
-	RareTestObject(VectorXd &X, VectorXd &Y, MatrixXd &Z,
-		std::vector<VectorXd> &x, std::vector<VectorXd> &y, std::vector<MatrixXd> &z,
-		std::vector<int> &readDepth, VectorXd &P) {
-
-		this->Y = Y;
-		this->Z = Z;
-		filterNAN_YZ();
-
-		this->x = x;
-		this->y = y;
-		this->z = z;
-		filterNAN_yz();
-
-		this->readDepth = readDepth;
-		this->robustVar = calcRobustVar(P);
-
-		filterNAN();
-		countRD();
-
-		VectorXd beta = getBeta(X, Y, Z);
-		ycenter = fitModel(beta, y_, z_, "norm");
-
-		for (int i = 0; i < size(); i++)
-			this->xcenter.push_back(this->x[i].array() - x_[i].mean());
-	}
-
-	inline double getRobustVar() { return robustVar; }
-	inline double getYm(int depth) {
-		double ym = 0;
-		for (int i = 0; i < size(); i++)
-			if (readDepth[i] == depth)
-				ym += ycenter[i].array().pow(2).sum();
-
-		if(depth == 1)
-			ym = ym / nhrd_ * nhrd;
-		else
-			ym = ym / nlrd_ * nlrd;
-
-		return sqrt(ym);
-	}
-
-	inline double getScore() {
-		double score = 0;
-		for (int i = 0; i < size(); i++)
-			score += (ycenter[i].array() * x_[i].array()).sum();
-		return score;
-	}
-
-	inline bool isHRG(int i) { return readDepth[i] == 1; }
-	inline VectorXd getX(int i) { return x[i]; }
-	inline int size() { return x.size(); }
-
-	//bootstrapping ------------------------------
-	
-	void bootstrap() {
-		std::vector<VectorXd> xboot;
-		int i, j, length;
-		int c = 0;
-		VectorXd Xnew(Y.rows());
-
-		for (i = 0; i < size(); i++) {
-			length = xcenter[i].rows();
-			VectorXd xrand(length);
-			for (j = 0; j < length; j++) {
-				xrand[j] = xcenter[i][generateRandomInteger(0, length - 1)];
-				Xnew[c] = xrand[j];
-				c++;
-			}
-
-			xboot.push_back(xrand);
-		}
-		
-		this->x = xboot;
-		filterNAN();
-		countRD();
-
-		VectorXd beta = getBeta(Xnew, Y, Z);
-		ycenter = fitModel(beta, y_, z_, "norm");
-	}
-
-	//bootstrapping ------------------------------
-
-};
+#include "RareTestObject.h"
 
 std::vector<double> getTestStatistics(std::vector<RareTestObject> &t, bool rvs) {
 	int nsnp = t.size();
@@ -275,8 +115,6 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd 
 
 	std::vector<RareTestObject> t;
 
-	//for (i = 0; i < X.cols(); i++) {
-	
 	for (i = 0; i < 5; i++) {
 		std::vector<VectorXd> x_i;
 		for (j = 0; j < ngroups; j++) 
@@ -288,6 +126,41 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd 
 		t.push_back(t_i);
 	}
 	
+	pvals.push_back(rareTest(t, nboot, rvs));
+	return pvals;
+}
+
+std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
+	int nboot, bool rvs) {
+
+	int i, j, l;
+	std::vector<std::vector<double>> pvals;
+
+	std::vector<MatrixXd> x;
+	std::vector<VectorXd> y;
+	std::vector<int> rd;
+
+	int ngroups = 1 + (int)G.maxCoeff();
+
+	for (i = 0; i < ngroups; i++) {
+		x.push_back(extractRows(X, G, i));
+		y.push_back(extractRows(Y, G, i));
+		rd.push_back(readGroup[i]);
+	}
+
+	std::vector<RareTestObject> t;
+
+	for (i = 0; i < 5; i++) {
+		std::vector<VectorXd> x_i;
+		for (j = 0; j < ngroups; j++)
+			x_i.push_back(x[j].col(i));
+
+		VectorXd X_i = X.col(i);
+		VectorXd P_i = P.row(i);
+		RareTestObject t_i(x_i, y, rd, P_i);
+		t.push_back(t_i);
+	}
+
 	pvals.push_back(rareTest(t, nboot, rvs));
 	return pvals;
 }
