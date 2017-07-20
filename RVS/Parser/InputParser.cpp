@@ -116,8 +116,11 @@ std::vector<VCFLine> calculatedExpectedGenotypes(std::vector<VCFLine> &variants)
 	return variants;
 }
 
-bool parseInput(std::string vcfDir, std::string infoDir, double mafCutoff, bool common,
-	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
+bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
+	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
+	std::vector<std::vector<int>> & interval) {
+
+	//todo: check if file exists? lol
 
 	std::map<std::string, int> IDmap = getSampleIDMap(vcfDir);
 	parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
@@ -146,6 +149,8 @@ bool parseInput(std::string vcfDir, std::string infoDir, double mafCutoff, bool 
 	
 	X = x;
 	P = p;
+	
+	interval = parseIntervals(bedDir, variants);
 
 	return true;
 }

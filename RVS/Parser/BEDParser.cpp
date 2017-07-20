@@ -2,14 +2,42 @@
 #include "../RVS.h"
 #include "InputParser.h"
 
-#include <iostream>  
-#include <string>
-#include <vector>
+struct Interval {
+	int start = 0;
+	int end = 0;
+	std::vector<int> indexes;
+	std::string chr;
 
-//todo
-/*
-std::vector<Interval> getIntervals(std::string bedDir) {
+	inline void addIfIn(VCFLine variant, int index) {
+		if (variant.loc >= start && variant.loc <= end && chr.compare(variant.chr) == 0) 
+			indexes.push_back(index);
+	}
 
+	inline std::vector<int> getIndexes() {
+		return indexes;
+	}
+
+	inline int nIndex() { return indexes.size(); }
+};
+
+std::vector<std::vector<int>> collapseVariants(std::vector<Interval> &collapse, std::vector<VCFLine> variants) {
+
+	for (int i = 0; i < variants.size(); i++)
+		for (int j = 0; j < collapse.size(); j++)
+				collapse[j].addIfIn(variants[i], i);
+
+	std::vector<std::vector<int>> interval;
+
+	for (int i = 0; i < collapse.size(); i++)
+		if (collapse[i].nIndex() > 0)
+			interval.push_back(collapse[i].getIndexes());
+
+	//todo: do we want to keep intervals that are not in the bed file???
+
+	return interval;
+}
+
+std::vector<std::vector<int>> parseIntervals(std::string bedDir, std::vector<VCFLine> variants) {
 	MemoryMapped bed(bedDir);
 	int pos = 0;
 	std::vector<Interval> collapse;
@@ -31,7 +59,7 @@ std::vector<Interval> getIntervals(std::string bedDir) {
 				break;
 			}
 			if (bed[pos] == '\t') {
-				chr = getString(bed, startPos, pos);
+				chr = extractString(bed, startPos, pos);
 				pos++;
 				break;
 			}
@@ -49,7 +77,7 @@ std::vector<Interval> getIntervals(std::string bedDir) {
 				break;
 			}
 			if (bed[pos] == '\t') {
-				start = stoi(getString(bed, startPos, pos));
+				start = stoi(extractString(bed, startPos, pos));
 				pos++;
 				break;
 			}
@@ -67,7 +95,7 @@ std::vector<Interval> getIntervals(std::string bedDir) {
 				break;
 			}
 			if (bed[pos] == '\t') {
-				end = stoi(getString(bed, startPos, pos));
+				end = stoi(extractString(bed, startPos, pos));
 				pos++;
 				break;
 			}
@@ -102,16 +130,5 @@ std::vector<Interval> getIntervals(std::string bedDir) {
 		if (breakFlag)
 			break;
 	}
-	return collapse;
+	return collapseVariants(collapse, variants);
 }
-
-void collapseVariants(std::vector<SNP> &snps, std::vector<Interval> &collapse) {
-
-	for (size_t i = 0; i < snps.size(); i++)
-		for (size_t j = 0; j < collapse.size(); j++)
-			if (!isnan(snps[i].maf))
-				collapse[j].addIfIn(snps[i], i);
-
-	return;
-}
-*/

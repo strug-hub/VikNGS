@@ -5,53 +5,23 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include <algorithm>
 #include <iostream>  
+
 #include "Eigen/Dense"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-using Eigen::VectorXi;
 using Eigen::DiagonalMatrix;
 
-//========================================================
-// Interval struct
-//========================================================
-/*
-struct Interval {
-	int start = 0;
-	int end = 0;
-	std::vector<int> indexes;
-	std::string chr;
-
-	std::vector<SNP> getInInterval(std::vector<SNP> &snps) {
-		std::vector<SNP> in;
-		for (size_t i = 0; i < indexes.size(); i++)
-			in.push_back(snps[indexes[i]]);
-
-		return in;
-	}
-
-	bool addIfIn(SNP snp, int index) {
-
-		if (snp.loc >= start && snp.loc <= end && chr.compare(snp.chr) == 0) {
-			indexes.push_back(index);
-			return true;
-		}
-		
-		return false;
-	}
-
-};
-*/
 
 //========================================================
 // functions
 //========================================================
 
 //VCFParser.cpp
-bool parseInput(std::string vcfDir, std::string infoDir, double mafCut, bool common,
-	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
+bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
+	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
+	std::vector<std::vector<int>> & interval);
 std::vector<std::string> parseHeader(MemoryMapped &, int &);
 
 //BEDParser.cpp

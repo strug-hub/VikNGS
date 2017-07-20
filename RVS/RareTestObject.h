@@ -72,16 +72,6 @@ public:
 		countRD();
 
 		double ybar = average(y_);
-		std::cout << "\n";		std::cout << "\n";
-		std::cout << "\n";
-		std::cout << "\n";
-		std::cout << ybar;
-
-
-		std::cout << "\n";
-		std::cout << "\n";
-		std::cout << "\n";
-		std::cout << "\n";
 
 		for (int i = 0; i < size(); i++) {
 			xcenter.push_back(this->x[i].array() - x_[i].mean());

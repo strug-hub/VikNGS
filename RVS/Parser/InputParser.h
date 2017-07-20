@@ -77,3 +77,6 @@ inline std::string extractString(MemoryMapped &charArray, int start, int end);
 std::vector<std::string> readLine(MemoryMapped &charArray, int &pos);
 inline std::string trim(std::string str);
 inline std::vector<std::string> split(std::string s, char sep);
+
+//BEDParser.cpp
+std::vector<std::vector<int>> parseIntervals(std::string bedDir, std::vector<VCFLine> variants);

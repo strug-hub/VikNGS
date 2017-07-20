@@ -9,91 +9,89 @@
 #include <fstream>
 #include <iomanip>
 
-/*
-void generateForR(std::vector<Sample> sample, std::vector<SNP> snps) {
-	std::ofstream X("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
-	std::ofstream Y("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
-	std::ofstream P("C:/Users/Scott/Desktop/RVS-master/example/P.txt");
-	std::ofstream M("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
-	std::ofstream Z("C:/Users/Scott/Desktop/RVS-master/example/Z.txt");
+void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, std::map<int, int> readGroup) {
+	std::ofstream Xfile("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
+	std::ofstream Yfile("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
+	std::ofstream Pfile("C:/Users/Scott/Desktop/RVS-master/example/P.txt");
+	std::ofstream Mfile("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
+	std::ofstream Zfile("C:/Users/Scott/Desktop/RVS-master/example/Z.txt");
 
 	int precise = 12;
 
-	if (M.is_open())
+	if (Mfile.is_open())
 	{
-		M << "ID\thrg\n";
+		Mfile << "ID\thrg\n";
 
-		for (size_t i = 0; i < sample.size(); i++) {
+		for (size_t i = 0; i < G.rows(); i++) {
 
-			M << sample[i].groupID;
-			M << '\t';
-			M << sample[i].hrg;
-			M << '\n';
+			Mfile << G[i];
+			Mfile << '\t';
+			Mfile << readGroup[G[i]];
+			Mfile << '\n';
 		}
-		M.close();
+		Mfile.close();
 	}
 
 
-	if (Y.is_open())
+	if (Yfile.is_open())
 	{
-		for (size_t i = 0; i < sample.size(); i++) {
-			Y << std::setprecision(precise) << sample[i].y;
-			Y << '\n';
+		for (size_t i = 0; i < Y.rows(); i++) {
+			Yfile << std::setprecision(precise) << Y[i];
+			Yfile << '\n';
 		}
-		Y.close();
+		Yfile.close();
 	}
 
-	if (X.is_open())
+	if (Xfile.is_open())
 	{
-		for (size_t i = 0; i < snps.size(); i++) {
-			for (size_t j = 0; j < snps[i].EG.size(); j++) {
+		for (size_t i = 0; i < X.cols(); i++) {
+			for (size_t j = 0; j < X.rows(); j++) {
 
-				if (isnan(snps[i].EG[j]))
-					X << "NA";
+				if (isnan(X(j,i)))
+					Xfile << "NA";
 				else
-					X << std::setprecision(precise) << snps[i].EG[j];
+					Xfile << std::setprecision(precise) << X(j,i);
 
-				if(j <snps[i].EG.size()-1)
-					X << '\t';
+				if(j < X.rows() - 1)
+					Xfile << '\t';
 			}
-			X << '\n';
+			Xfile << '\n';
 		}
 
-		X.close();
+		Xfile.close();
 	}
 
-	if (P.is_open())
+	if (Pfile.is_open())
 	{
-		for (size_t i = 0; i < snps.size(); i++) {
-			P << std::setprecision(precise) << snps[i].p[0];
-			P << '\t';
-			P << std::setprecision(precise) << snps[i].p[1];
-			P << '\t';
-			P << std::setprecision(precise) << snps[i].p[2];
-			P << '\n';
+		for (size_t i = 0; i < P.rows(); i++) {
+			Pfile << std::setprecision(precise) << P(i,0);
+			Pfile << '\t';
+			Pfile << std::setprecision(precise) << P(i, 1);
+			Pfile << '\t';
+			Pfile << std::setprecision(precise) << P(i, 2);
+			Pfile << '\n';
 		}
 		
-		P.close();
+		Pfile.close();
 	}
 
-	if (Z.is_open())
+	if (Zfile.is_open())
 	{
-		for (size_t i = 0; i < sample.size(); i++) {
-
-			for (size_t j = 0; j < sample[i].covariates.size(); j++) {
-				Z << std::setprecision(precise) << sample[i].covariates[j];
+		for (size_t i = 0; i < Z.rows(); i++) {
+			for (size_t j = 0; j <  Z.cols(); j++) {
+				Zfile << std::setprecision(precise) << Z(i,j);
 				
-				if(j+1 != sample[i].covariates.size())
-					Z << '\t';
+				if (j < Z.cols() - 1)
+					Zfile << '\t';
 			}
 
-			Z << '\n';
+			Zfile << '\n';
 		}
 
-		Z.close();
+		Zfile.close();
 	}
 }
-*/
+
 
 int main() {
 
@@ -116,10 +114,13 @@ int main() {
 
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
+	std::vector<std::vector<int>> interval;
 
-	bool valid = parseInput(vcfDir, infoDir, mafCutoff, true, X, Y, Z, G, readGroup, P);
+	bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
 	if (!valid)
 		return 0;
+
+	generateForR(X, Y, Z, G, P, readGroup);
 
 	std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
 	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
@@ -144,7 +145,6 @@ int main() {
 
 	collapseVariants(snps, collapse);
 
-	generateForR(sample, snps);
 	auto t = startTime();
 	pvals = RVSbtrap(snps, sample, 1000000, true, true);
 	endTime(t, "btrp=1000000");
