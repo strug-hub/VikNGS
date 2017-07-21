@@ -95,7 +95,10 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 
 int main() {
 
-	//simulate();
+	simulate();
+
+	while (true) {}
+
 
 	//TODO: take as input from command line
 	//---------------------------------------

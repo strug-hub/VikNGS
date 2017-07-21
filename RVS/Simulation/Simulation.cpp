@@ -3,9 +3,13 @@
 #include "Simulation.h"
 
 void simulate() {
-	
+
 	int npop = 10000; //The number of population
-	double preval = 0.2; //A decimal between[0, 1], prevalence rate of the disease.
+	double prevalence = 0.2; //A decimal between[0, 1], prevalence rate of the disease.
+	int ncase_pop = floor(npop * prevalence);
+	int ncont_pop = npop - ncase_pop;
+
+
 	double nsnp = 1000;  //Integer.The number of variants or bases.
 
 	double me = 0.01; //The mean error rate of sequencing.
@@ -15,35 +19,47 @@ void simulate() {
 	int ncase = 500;
 	int ncont = nsamp - ncase;
 
-	std::vector<SimulationGroup> groups;
-	groups.push_back(makeSimulationGroup(200, true, 100, 10));
-	groups.push_back(makeSimulationGroup(300, true, 80, 5));
-	groups.push_back(makeSimulationGroup(1500, false, 4, 1));
-
-
-
-	//Generate population data
-
-	//We can randomly generate MAF for each SNP
-		
-	//mafco = runif(nsnp, min = 0.001, max = 0.05) # For common variant choose bigger parameters for uniform.e.g.min = 0.1, max = 0.5
-
-
-	//or we can determine the minor allele frequency fixed for each collapeed SNPs(5 SNPs in the current setting)
-	int njoint = 5;
-	int loopno = nsnp / njoint;
-
-//		mafco_5 = c(0.040856639, 0.021548447, 0.015053696, 0.005911941, 0.022559459)
-	//	mafco = rep(mafco_5, loopno)
-
-//		pop.data = list()
-
 	double oddsRatio = 1.0;  //Under H0
 
-	double maf = 0.040856639;
+	//todo: function to create groups
+	//take in # groups, high/low status vector and number per group (must sum to nsamp) and mean, sd
+	//--------------------------------------------------------
+
+	//note: put cases first!!
+	std::map<int, SimulationGroup> group;
+	group[0] = makeSimulationGroup(200, true, 100, 10);
+	group[1] = makeSimulationGroup(300, true, 80, 5); 
+	group[2] = makeSimulationGroup(1500, false, 4, 1); 
+
+	VectorXd g(nsamp);
+	for (int i = 0; i < nsamp; i++) {
+		if (i < 200)
+			g[i] = 0;
+		else if (i >= 200 && i < 500)
+			g[i] = 1;
+		else
+			g[i] = 2;
+	}
+	//--------------------------------------------------------
+
+	VectorXd maf = simulateMinorAlleleFrequency(nsnp, 0.001, 0.05);
+	//todo:?
+	/* or we can determine the minor allele frequency fixed for each collapeed SNPs(5 SNPs in the current setting)
+		njoint = 5
+		loopno = nsnp / njoint
+
+		mafco_5 = c(0.040856639, 0.021548447, 0.015053696, 0.005911941, 0.022559459)
+		mafco = rep(mafco_5, loopno)
+	*/
+
+	MatrixXd X = simulatePopulationX(npop, ncase_pop, oddsRatio, maf);
+	VectorXd Y = simulatePopulationY(npop, ncase_pop);
+
+
+
+
+
 /*
-	MatrixXd populationCase = simulateCasePopulation(npop, preval, maf, oddsRatio);
-	MatrixXd populationControl = simulateControlPopulation(npop, preval, maf, oddsRatio);
 
 	MatrixXd sampleCase = chooseSample(populationCase, ncase);
 	MatrixXd sampleControl = chooseSample(populationControl, ncont);
