@@ -73,7 +73,7 @@ void RareTestObject::covBootstrap() {
 		length = xcenter[i].rows();
 		VectorXd xrand(length);
 		for (j = 0; j < length; j++) {
-			xrand[j] = xcenter[i][generateRandomInteger(0, length - 1)];
+			xrand[j] = xcenter[i][randomInt(0, length - 1)];
 			Xnew[c] = xrand[j];
 			c++;
 		}
@@ -97,7 +97,7 @@ void RareTestObject::noCovBootstrap() {
 		length = xcenter[i].rows();
 		VectorXd xrand(length);
 		for (j = 0; j < length; j++)
-			xrand[j] = xcenter[i][generateRandomInteger(0, length - 1)];
+			xrand[j] = xcenter[i][randomInt(0, length - 1)];
 
 		xboot.push_back(xrand);
 	}

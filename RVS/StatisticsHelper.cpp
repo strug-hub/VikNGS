@@ -46,11 +46,11 @@ double calcRobustVar(VectorXd p) {
 std::random_device random;
 std::mt19937 generate(random());
 
-int generateRandomInteger(int from, int to) {
+int randomInt(int from, int to) {
 	std::uniform_int_distribution<> sample(from, to);
 	return sample(generate);
 }
-double generateRandomDouble(double from, double to) {
+double randomDouble(double from, double to) {
 	std::uniform_real_distribution<double> sample(from, to);
 	return sample(generate);
 }

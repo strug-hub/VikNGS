@@ -91,7 +91,7 @@ public:
 			length = x[i].rows();
 			VectorXd xrand(length);
 			for (j = 0; j < length; j++)
-				xrand[j] = xcenter[i][generateRandomInteger(0, length - 1)];
+				xrand[j] = xcenter[i][randomInt(0, length - 1)];
 
 			newxboot.push_back(xrand);
 

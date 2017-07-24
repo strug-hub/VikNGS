@@ -11,6 +11,8 @@
 #include "Eigen/Dense"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using Eigen::VectorXi;
+using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
 
@@ -45,8 +47,8 @@ double calcRobustVar(VectorXd p);
 double chiSquareOneDOF(double);
 std::vector<double> randomSample(std::vector<double> &, int);
 VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z);
-int generateRandomInteger(int from, int to);
-double generateRandomDouble(double from, double to);
+int randomInt(int from, int to);
+double randomDouble(double from, double to);
 double randomNormal(double mean, double sd);
 MatrixXd covariance(MatrixXd &M);
 MatrixXd correlation(MatrixXd &M);
