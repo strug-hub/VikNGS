@@ -16,6 +16,8 @@ inline SimulationGroup makeSimulationGroup(int n, bool hrg, double mean, double 
 	return g;
 }
 
+std::map<int, int> simulationToReadGroup(std::map<int, SimulationGroup> &group);
+
 VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max);
 VectorXd simulatePopulationY(int npop, int ncase);
 MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf);

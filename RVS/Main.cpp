@@ -95,10 +95,8 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 
 int main() {
 
-	simulate();
-
-	while (true) {}
-
+	bool simulation = false;
+	bool common = false;
 
 	//TODO: take as input from command line
 	//---------------------------------------
@@ -111,54 +109,59 @@ int main() {
 
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
-	
-	//TODO:
-	//std::vector<Interval> collapse = getIntervals(bedDir);
 
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
 	std::vector<std::vector<int>> interval;
 
-	bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
-	if (!valid)
-		return 0;
+	if (simulation) {
+		simulate(X, Y, G, readGroup, P);
+		//std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
+		std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000, true);
 
-	generateForR(X, Y, Z, G, P, readGroup);
-
-	std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
-	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
-	//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
-
-	std::cout << "Common Test p-values\n";
-	for (size_t i = 0; i < pvals.size(); i++) {
+		std::cout << "Common Test p-values\n";
+		for (size_t i = 0; i < pvals.size(); i++) {
 			std::cout << pvals[i];
 			std::cout << '\n';
+		}
+	}
+	else {
+		bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
+		if (!valid)
+			return 0;
+
+
+		//generateForR(X, Y, Z, G, P, readGroup);
+
+		if (common) {
+			//std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
+			std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+			//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
+
+
+			std::cout << "Common Test p-values\n";
+			for (size_t i = 0; i < pvals.size(); i++) {
+				std::cout << pvals[i];
+				std::cout << '\n';
+			}
+		}
+		else {
+
+			std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
+			//std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
+
+			std::cout << "Rare Test p-values\n";
+			std::cout << pval[0][0];
+			std::cout << '\t';
+			std::cout << pval[0][1];
+
+		}
 	}
 
-	std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
-	//std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
-
-	std::cout << "Rare Test p-values\n";
-	std::cout << pval[0][0];
-	std::cout << '\t';
-	std::cout << pval[0][1];
-
-
-	/*
-
-	collapseVariants(snps, collapse);
-
-	auto t = startTime();
-	pvals = RVSbtrap(snps, sample, 1000000, true, true);
-	endTime(t, "btrp=1000000");
-
-
-	*/
 
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!
-
-	std::cout << "done...>";
+	std::cout << "\ndone...>";
 
 	while (true) {}
 	return 0;

@@ -70,7 +70,7 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd 
 double qfc(std::vector<double>, double, int);
 
 //Simulation.cpp
-void simulate();
+void simulate(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 
 //========================================================
 // timing functions

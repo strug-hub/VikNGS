@@ -160,7 +160,7 @@ VectorXd calculateLikelihood(std::vector<char> &bases, VectorXd &error) {
 
 
 MatrixXd calculateLikelihood2(std::vector<char> &bases, VectorXd &error) {
-	MatrixXd ll(3, bases.size());
+	MatrixXd ll(bases.size(), 3);
 
 	for (int i = 0; i < bases.size(); i++) {
 		std::vector<double> row;
@@ -189,14 +189,13 @@ double pSingle(char base, char true1, char true2, double error) {
 }
 
 VectorXd calcEM(MatrixXd M) {
+
 	double p = 0.15;
 	double q = 0.15;
 	double qn = 1;
 	double pn = 0;
 	double dn = 0;
 	double d = 0;
-	double Ep;
-	double Eq;
 
 	int k = 0;
 
@@ -204,11 +203,9 @@ VectorXd calcEM(MatrixXd M) {
 
 		d = 1 - p - q;
 		Vector3d v = { p, q, d };
-
 		VectorXd pD = M * v;
-		VectorXd Ep = M.col(0).array() * (pD.array() * 1.0 / p).array();
-		VectorXd Eq = M.col(1).array() * (pD.array() * 1.0 / p).array();
-
+		VectorXd Ep = M.col(0).array() * (p / pD.array()).array();
+		VectorXd Eq = M.col(1).array() * (q / pD.array()).array();
 		pn = p;
 		qn = q;
 		dn = 1 - q - p;
@@ -252,4 +249,13 @@ VectorXd calculateExpectedGenotypes(std::vector<MatrixXd> M, VectorXd p){
 	}
 
 	return EG;
+}
+
+std::map<int, int> simulationToReadGroup(std::map<int, SimulationGroup> &group) {
+	std::map<int, int> readGroup;
+
+	for (int i = 0; i < group.size(); i++)
+		readGroup[i] = group[i].hrg;
+
+	return readGroup;
 }

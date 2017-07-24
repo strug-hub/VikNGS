@@ -137,7 +137,19 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::ma
 		rd.push_back(readGroup[i]);
 	}
 
+	std::cout << "Calculating p-values";
+
 	for (i = 0; i < X.cols(); i++) {
+
+		if (i % 25 == 0) {
+			std::cout << "\n";
+			std::cout << i;
+			std::cout << "/";
+			std::cout << X.cols();
+			std::cout << " calculated.";
+			std::cout << "\n";
+		}
+		std::cout << ".";
 
 		std::vector<VectorXd> x_i;
 		for (j = 0; j < ngroups; j++)
