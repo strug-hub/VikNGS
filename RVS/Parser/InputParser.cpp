@@ -1,5 +1,6 @@
-#include "stdafx.h"
+#pragma once
 #include "InputParser.h"
+#include <fstream>
 
 /*
 Uses EM algorithm to estimate the genotype frequencies in the sample
@@ -116,15 +117,36 @@ std::vector<VCFLine> calculatedExpectedGenotypes(std::vector<VCFLine> &variants)
 	return variants;
 }
 
+inline bool fileExists(const std::string& name) {
+
+	std::ifstream f(name.c_str());
+	if (f.good())
+		return true;
+	
+	std::string message = "File does not exist or cannot be opened: ";
+	message.append(name);
+	printError(message);
+	return false;
+}
+
 bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval) {
 
-	//todo: check if file exists? lol
+	if (!fileExists(vcfDir))
+		return false;
+	if (!fileExists(infoDir))
+		return false;
 
 	std::map<std::string, int> IDmap = getSampleIDMap(vcfDir);
-	parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
-	
+
+	if (IDmap.size() <= 0)
+		return false;
+
+	bool valid = parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
+	if (!valid)
+		return false;
+
 	std::vector<VCFLine> variants = parseVCFLines(vcfDir);
 
 	variants = filterVariants(variants, G, 0.2);

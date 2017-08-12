@@ -1,9 +1,9 @@
-#include "stdafx.h"
 #include "InputParser.h"
 
 inline bool validBase(std::string base) {
 	return base == "T" ||  base == "A" || base == "C" || base == "G";
 }
+
 
 //TODO: calculate percent missing by group?
 inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missingThreshold) {
@@ -12,6 +12,7 @@ inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missi
 	std::vector<double> n(ngroup, 0);
 
 	for (int i = 0; i < variant.likelihood.size(); i++) {
+
 		n[G[i]]++;
 		if (variant.likelihood[i].missing)
 			counter[G[i]]++;

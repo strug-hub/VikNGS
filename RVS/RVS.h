@@ -72,6 +72,9 @@ double qfc(std::vector<double>, double, int);
 //Simulation.cpp
 void simulate(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 
+
+
+
 //========================================================
 // timing functions
 //========================================================
@@ -95,3 +98,6 @@ inline double endTime(clock_t t) {
 	t = clock() - t;
 	return (double)t / CLOCKS_PER_SEC;
 }
+
+
+

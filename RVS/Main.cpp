@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iomanip>
 
+
 void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, std::map<int, int> readGroup) {
 	std::ofstream Xfile("C:/Users/Scott/Desktop/RVS-master/example/X.txt");
 	std::ofstream Yfile("C:/Users/Scott/Desktop/RVS-master/example/Y.txt");
@@ -47,12 +48,12 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 		for (size_t i = 0; i < X.cols(); i++) {
 			for (size_t j = 0; j < X.rows(); j++) {
 
-				if (isnan(X(j,i)))
+				if (isnan(X(j, i)))
 					Xfile << "NA";
 				else
-					Xfile << std::setprecision(precise) << X(j,i);
+					Xfile << std::setprecision(precise) << X(j, i);
 
-				if(j < X.rows() - 1)
+				if (j < X.rows() - 1)
 					Xfile << '\t';
 			}
 			Xfile << '\n';
@@ -64,23 +65,23 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 	if (Pfile.is_open())
 	{
 		for (size_t i = 0; i < P.rows(); i++) {
-			Pfile << std::setprecision(precise) << P(i,0);
+			Pfile << std::setprecision(precise) << P(i, 0);
 			Pfile << '\t';
 			Pfile << std::setprecision(precise) << P(i, 1);
 			Pfile << '\t';
 			Pfile << std::setprecision(precise) << P(i, 2);
 			Pfile << '\n';
 		}
-		
+
 		Pfile.close();
 	}
 
 	if (Zfile.is_open())
 	{
 		for (size_t i = 0; i < Z.rows(); i++) {
-			for (size_t j = 0; j <  Z.cols(); j++) {
-				Zfile << std::setprecision(precise) << Z(i,j);
-				
+			for (size_t j = 0; j < Z.cols(); j++) {
+				Zfile << std::setprecision(precise) << Z(i, j);
+
 				if (j < Z.cols() - 1)
 					Zfile << '\t';
 			}
@@ -93,19 +94,35 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 }
 
 
+
+
+
+
+
 int main() {
 
-	bool simulation = false;
-	bool common = false;
+
 
 	//TODO: take as input from command line
 	//---------------------------------------
+	bool simulation = false;
+	bool common = false;
+	
+	//filtering paramaters
 	double mafCutoff = 0.05;
+	double missingThreshold;
+	int highLowCutOff = 30;
+
+
+
+
+
+
+	///input files
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
 	std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
 	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 	//---------------------------------------
-
 
 	//TODO: check to see if file can be opened when another application is using it (excel)
 	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
@@ -127,9 +144,12 @@ int main() {
 	}
 	else {
 		bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
-		if (!valid)
+		if (!valid) {
+			while (true) {}
 			return 0;
+		}
 
+		while (true) {}
 
 		//generateForR(X, Y, Z, G, P, readGroup);
 

@@ -4,10 +4,6 @@
 // see http://create.stephan-brumme.com/disclaimer.html
 //
 
-
-#include "stdafx.h"
-
-
 #include "MemoryMapped.h"
 
 #include <stdexcept>

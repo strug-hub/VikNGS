@@ -1,5 +1,9 @@
 #pragma once
 #include "MemoryMapped/MemoryMapped.h"
+#include "../Log.h"
+#include "../RVS.h"
+
+
 #include <iostream>  
 #include <vector>
 #include <string>
@@ -59,8 +63,9 @@ struct InfoLine {
 inline bool lineCompare(VCFLine lhs, VCFLine rhs) { return lhs < rhs; }
 
 //InfoParser.cpp
-void parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
-	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup);
+bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
+	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup,
+	int highLowCutOff=30);
 
 //VCFParser.cpp
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);

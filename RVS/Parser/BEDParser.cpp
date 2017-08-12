@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "../RVS.h"
 #include "InputParser.h"
 

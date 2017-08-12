@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "InputParser.h"
 
 /*
@@ -223,6 +222,12 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 	return variants;
 }
 
+/*
+Reads every sample ID (columns after FORMAT) from a multisample VCF and stores it in a map.
+
+@param vcf Directory of multisample VCF file.
+@return A map from sample name to a unique integer.
+*/
 std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 
 	//open VCF file and find the line with column names
@@ -243,6 +248,9 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 		else if (ID[i] == "FORMAT")
 			flag = true;
 	}
+
+	if (!flag)
+		printError("Cannot find FORMAT column in VCF file!");
 
 	return IDmap;
 }

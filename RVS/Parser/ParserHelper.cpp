@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "InputParser.h"
 #include <regex>
 
