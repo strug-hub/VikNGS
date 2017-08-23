@@ -55,7 +55,7 @@ the sep character
 @param sep Character to split the string at.
 @return Split string.
 */
-inline std::vector<std::string> split(std::string s, char sep) {
+std::vector<std::string> split(std::string s, char sep) {
 	std::vector<std::string> split;
 	int start = 0;
 	for (int i = 0; i <= s.length(); i++) {

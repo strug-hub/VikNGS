@@ -24,7 +24,7 @@ using Eigen::DiagonalMatrix;
 bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval);
-std::vector<std::string> parseHeader(MemoryMapped &, int &);
+std::vector<std::string> extractHeader(MemoryMapped &, int &);
 
 //BEDParser.cpp
 //std::vector<Interval> getIntervals(std::string);

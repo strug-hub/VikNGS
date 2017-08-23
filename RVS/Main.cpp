@@ -106,7 +106,7 @@ int main() {
 	//TODO: take as input from command line
 	//---------------------------------------
 	bool simulation = false;
-	bool common = false;
+	bool common = true;
 	
 	//filtering paramaters
 	double mafCutoff = 0.05;
@@ -145,11 +145,9 @@ int main() {
 	else {
 		bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
 		if (!valid) {
-			while (true) {}
 			return 0;
 		}
 
-		while (true) {}
 
 		//generateForR(X, Y, Z, G, P, readGroup);
 

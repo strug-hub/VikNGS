@@ -140,14 +140,22 @@ bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, dou
 
 	std::map<std::string, int> IDmap = getSampleIDMap(vcfDir);
 
-	if (IDmap.size() <= 0)
+	if (IDmap.size() <= 0) {
+		printError("No samples could be found in the VCF file header! Exiting.");
 		return false;
+	}
 
 	bool valid = parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
 	if (!valid)
 		return false;
 
-	std::vector<VCFLine> variants = parseVCFLines(vcfDir);
+	try {
+		std::vector<VCFLine> variants = parseVCFLines(vcfDir);
+	}
+	catch (...) {
+		printError("Failed to parse VCF. Exiting.");
+		return false;
+	}
 
 	variants = filterVariants(variants, G, 0.2);
 	std::sort(variants.begin(), variants.end(), lineCompare);
