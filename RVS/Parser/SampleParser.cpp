@@ -1,6 +1,14 @@
 #include "InputParser.h"
 
-MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int columnNum) {
+/*
+Parses a data file containing tab-separated info for each sample.
+
+@param covariate Column of covariates read from sample data file.
+@param isNumeric True if covariate is a numeric value and not categorical.
+@param columnIndex Index of the covariate column.
+@return Matrix of covariate values
+*/
+MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int columnIndex) {
 
 	if (isNumeric) {
 		VectorXd z(covariate.size());
@@ -26,11 +34,9 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
 		}
 
 		if (covIDMap.size() > 5) {
-			std::string message = "Covariate in column ";
-			message.append(std::to_string(columnNum + 5));
-			message.append(" is being treated as a factor and has ");
-			message.append(std::to_string(covIDMap.size()));
-			message.append(" unique values.");
+			std::string message = "In sample data file: Covariate in column ";
+			message += std::to_string(columnIndex + 5) + " is being treated as categorical and has ";
+			message += std::to_string(covIDMap.size()) + " unique values.";
 			printWarning(message);
 		}
 
@@ -53,6 +59,12 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
 	}
 }
 
+/*
+Parses a data file containing tab-separated info for each sample.
+
+@param covariates Column(s) of covariates read from sample data file.
+@return Matrix of covariate values
+*/
 MatrixXd handleCovariates(std::vector<std::vector<std::string>> covariates) {
 	MatrixXd Z;
 
@@ -75,7 +87,6 @@ MatrixXd handleCovariates(std::vector<std::vector<std::string>> covariates) {
 			}
 		}
 		MatrixXd cov = handleCovariate(covariate, isNumeric, i);
-		std::cout << cov;
 
 		if (i == 0)
 			Z = cov;
@@ -100,14 +111,15 @@ Parses a data file containing tab-separated info for each sample.
 @param readGroup Map of group ID to high or low read group.
 
 @return Vector that indicates which sample data was read correctly.
-@effect Fills Y, Z, G and readGroup with values from input file
+@effect Fills Y, Z, G and readGroup with values from sample data file
 */
 //returns Y,G,H,Z sorted by 
 bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff) {
 	
-	MemoryMapped sampleInfo(sampleInfoDir);
-	int pos = 0;
+	File sampleInfo;
+	sampleInfo.open(sampleInfoDir);
+	
 	int nID = IDmap.size();
 
 	Y = VectorXd(nID);
@@ -115,34 +127,42 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 
 	std::vector<std::vector<std::string>> covariates;
 
-
-	//extract every sample from sampleInfo file, assumes one sample per line
+	std::string line;
 	std::vector<std::string> lineSplit;
 	int index;
 
+	std::map<std::string, int> ID;
 	std::map<std::string, int> groupIDMap;
 	int groupIndex = 0;
-	int lineNumber = 0;
 
-	while (true) {
+	while (sampleInfo.hasNext()) {
 
-		lineSplit = readLine(sampleInfo, pos);
+		line = sampleInfo.nextLine();
+		lineSplit = split(line, '\t');
 
 		if (lineSplit.size() < 2)
 			break;
 
-		int index = IDmap[lineSplit[0]];
+		std::string sampleID = lineSplit[0];
+
+		ID[sampleID] = 1;
+		if (IDmap.count(sampleID) < 1) {
+			std::string message = "Line " + std::to_string(sampleInfo.lineNumber);
+			message += " in sample data file: ID '" + sampleID;
+			message += "' does not correspond to an ID in VCF file.";
+			printError(message);
+			return false;
+		}
+
+		int index = IDmap[sampleID];
 		
 		try {
 			Y[index] = std::stod(lineSplit[1]);
 		}
 		catch (...) {
-			std::string message = "Unable to parse data file, sample ";
-			message.append(lineSplit[0]);
-			message.append(" (row ");
-			message.append(std::to_string(lineNumber));
-			message.append(") has unexpected value in second column: ");
-			message.append(lineSplit[1]);
+			std::string message = "Line " + std::to_string(sampleInfo.lineNumber);
+			message += " in sample data file: Unexpected value '" + lineSplit[1];
+			message += "' in second column. Should be a numeric value.";
 			printError(message);
 			return false;
 		}
@@ -169,12 +189,9 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 						readGroup[groupIndex] = 0;
 				}
 				catch (...) {
-					std::string message = "Unable to parse data file, sample ";
-					message.append(lineSplit[0]);
-					message.append(" (row ");
-					message.append(std::to_string(lineNumber));
-					message.append(") has unexpected value in fourth column: ");
-					message.append(depth);
+					std::string message = "Line " + std::to_string(sampleInfo.lineNumber);
+					message += " in sample data file: Unexpected value '" + depth;
+					message += "' in fourth column. Should be a numeric value or one of 'L', 'H'.";
 					printError(message);
 					return false;
 				}
@@ -190,20 +207,29 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 
 		covariates.push_back(cov);
 
-		lineNumber++;
 	}
 
 	Z = handleCovariates(covariates);
 
-
-	//TODO: dummyproofing parsing here before finalized product
-	/*
-	if (lineCounter != countCase)
-	std::cout << "Warning: " + std::to_string(lineCounter) + " lines were counted in case ID file but only " +
-	std::to_string(countCase) + " were found to correspond to columns in .vcf file.\n";
-	*/
-
-	
 	sampleInfo.close();
+
+	std::vector<std::string> missingSample;
+	for (auto it = IDmap.begin(); it != IDmap.end(); ++it) {
+		std::string id = it->first;
+		
+		if (ID[id] != 1)
+			missingSample.push_back(id);
+	}
+
+	if (missingSample.size() > 0) {
+
+		std::string message = "Samples were found in the provided VCF but are missing in the sample data file:";
+		for (int i = 0; i < missingSample.size(); i++)
+			message += " '" + missingSample[i] + "' ";
+
+		printError(message);
+		return false;
+	}
+	
 	return true;
 }

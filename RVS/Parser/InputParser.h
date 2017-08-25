@@ -64,9 +64,8 @@ struct InfoLine {
 inline bool lineCompare(VCFLine lhs, VCFLine rhs) { return lhs < rhs; }
 
 //ParserHelper.cpp
-inline std::string extractString(MemoryMapped &charArray, int start, int end);
-std::vector<std::string> readLine(MemoryMapped &charArray, int &pos);
-inline std::string trim(std::string str);
+std::string extractString(MemoryMapped &charArray, int start, int end);
+std::string trim(std::string str);
 std::vector<std::string> split(std::string s, char sep);
 
 //InfoParser.cpp

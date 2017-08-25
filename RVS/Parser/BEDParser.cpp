@@ -2,6 +2,8 @@
 #include "InputParser.h"
 
 struct Interval {
+	std::string id;
+
 	int start = 0;
 	int end = 0;
 	std::vector<int> indexes;
@@ -31,103 +33,58 @@ std::vector<std::vector<int>> collapseVariants(std::vector<Interval> &collapse, 
 		if (collapse[i].nIndex() > 0)
 			interval.push_back(collapse[i].getIndexes());
 
-	//todo: do we want to keep intervals that are not in the bed file???
-
 	return interval;
 }
 
+/*
+Parses intervals from a a BED file and collapses variants along intervals
+
+@param bedDir Directory to a bed file.
+@param variants Lines parsed from a VCF file.
+@return 
+*/
 std::vector<std::vector<int>> parseIntervals(std::string bedDir, std::vector<VCFLine> variants) {
-	MemoryMapped bed(bedDir);
-	int pos = 0;
+	
+	File bed;
+	bed.open(bedDir);
+
 	std::vector<Interval> collapse;
 
-	//loops once per line
-	while (true) {
-		std::string chr = "";
-		int start = 0;
-		int end = 0;
+	while (bed.hasNext()) {
 
-		int startPos = pos;
-		bool breakFlag = false;
+		std::vector<std::string> lineSplit = split(bed.nextLine(),  '\t');
 
-		//chr column
-		while (true) {
-			pos++;
-			if (pos >= bed.mappedSize()) {
-				breakFlag = true;
-				break;
-			}
-			if (bed[pos] == '\t') {
-				chr = extractString(bed, startPos, pos);
-				pos++;
-				break;
-			}
-		}
-
-		startPos = pos;
-		if (breakFlag)
-			break;
-
-		//start column
-		while (true) {
-			pos++;
-			if (pos >= bed.mappedSize()) {
-				breakFlag = true;
-				break;
-			}
-			if (bed[pos] == '\t') {
-				start = stoi(extractString(bed, startPos, pos));
-				pos++;
-				break;
-			}
-		}
-
-		startPos = pos;
-		if (breakFlag)
-			break;
-
-		//end column
-		while (true) {
-			pos++;
-			if (pos >= bed.mappedSize()) {
-				breakFlag = true;
-				break;
-			}
-			if (bed[pos] == '\t') {
-				end = stoi(extractString(bed, startPos, pos));
-				pos++;
-				break;
-			}
-		}
-
-		startPos = pos;
-		if (breakFlag)
-			break;
-
-		//loop till next line column
-		while (true) {
-			pos++;
-			if (pos >= bed.mappedSize()) {
-				breakFlag = true;
-				break;
-			}
-			if (bed[pos] == '\n') {
-				pos++;
-				if (pos >= bed.mappedSize())
-					breakFlag = true;
-				break;
-			}
-		}
+		if (lineSplit.size() < 4)
+			continue;
 
 		Interval inv;
-		inv.chr = chr;
-		inv.start = start;
-		inv.end = end;
+		
+		inv.chr = lineSplit[0];
+		inv.id = lineSplit[3];
+
+		try {
+			inv.start = stoi(lineSplit[1]);
+		}
+		catch (...) {
+			std::string message = "Line " + std::to_string(bed.lineNumber);
+			message += " in BED file: Unexpected value '" + lineSplit[1];
+			message += "' in second column. Should be a numeric value. Skipping line.";
+			printWarning(message);
+			continue;
+		}
+		try {
+			inv.end = stoi(lineSplit[2]);
+		}
+		catch (...) {
+			std::string message = "Line " + std::to_string(bed.lineNumber);
+			message += " in BED file: Unexpected value '" + lineSplit[2];
+			message += "' in third column. Should be a numeric value. Skipping line.";
+			printWarning(message);
+			continue;
+		}
 
 		collapse.push_back(inv);
-
-		if (breakFlag)
-			break;
 	}
+	
 	return collapseVariants(collapse, variants);
 }

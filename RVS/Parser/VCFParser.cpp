@@ -19,7 +19,7 @@ std::vector<std::string> extractHeader(File &vcf) {
 			else if (line.substr(0, 1) == "#")
 				break;
 			else {
-				printError("Problem identifying VCF header. Ensure header begins with '#'.");
+				printError("In VCF file: Problem identifying header. Ensure header begins with '#'.");
 				throw std::runtime_error("No VCF header");
 			}
 		}
@@ -95,9 +95,9 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 	int format = 8;
 
 	if (columns.size() < 8) {
-		std::string errorMessage = "In line " + std::to_string(lineNumber);
-		errorMessage += " expected at least 8 columns but found " + std::to_string(columns.size()) + ".";
-		printError(errorMessage);
+		std::string message = "Line " + std::to_string(lineNumber);
+		message += " in VCF file: Expected at least 8 columns but found " + std::to_string(columns.size()) + ".";
+		printError(message);
 
 		throw std::runtime_error("Columns missing");
 	}
@@ -133,10 +133,9 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 	}
 
 	if (indexPL == -1 && indexGL == -1) {
-		std::string warnString = "Phred-scaled likelihoods (PL or GL) not found in FORMAT column on line ";
-		warnString += std::to_string(lineNumber);
-		warnString += ". Skipping variant.";
-		printWarning(warnString);
+		std::string message = "Line " + std::to_string(lineNumber) + " in VCF file: ";
+		message += "Phred-scaled likelihoods (PL or GL) not found in FORMAT column. Skipping variant.";
+		printWarning(message);
 
 		variant.valid = false;
 		return variant;
@@ -149,10 +148,10 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 			variant.likelihood.push_back(gl);
 		}
 		catch (...) {
-			std::string warnString = "Problem while trying to parse PL or GL on line ";
-			warnString += std::to_string(lineNumber) + ", column " + std::to_string(i);
-			warnString += ". Column value read from file: \"" + columns[i] + "\". Skipping variant.";
-			printWarning(warnString);
+			std::string message = "Line " + std::to_string(lineNumber) + " in VCF file: ";
+			message += "Problem while trying to parse PL or GL on column " + std::to_string(i);
+			message += ". Column value read from file: \"" + columns[i] + "\". Skipping variant.";
+			printWarning(message);
 
 			variant.valid = false;
 			return variant;
@@ -240,7 +239,7 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 	}
 
 	if (!flag) {
-		printError("Cannot find FORMAT column in VCF file header!");
+		printError("In VCF file: Cannot find FORMAT column in header!");
 		throw std::runtime_error("Cannot find FORMAT column");
 	}
 

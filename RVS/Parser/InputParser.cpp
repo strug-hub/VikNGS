@@ -146,11 +146,13 @@ bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, dou
 	}
 
 	bool valid = parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
-	if (!valid)
+	if (!valid) {
+		printError("Failed to parse sample data file. Exiting.");
 		return false;
-
+	}
+	std::vector<VCFLine> variants;
 	try {
-		std::vector<VCFLine> variants = parseVCFLines(vcfDir);
+		variants = parseVCFLines(vcfDir);
 	}
 	catch (...) {
 		printError("Failed to parse VCF. Exiting.");
@@ -181,6 +183,18 @@ bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, dou
 	P = p;
 	
 	interval = parseIntervals(bedDir, variants);
+
+	for (int i = 0; i < interval.size(); i++) {
+		for (int j = 0; j < interval[i].size(); j++) {
+
+			std::cout << interval[i][j];
+			std::cout << "   ";
+
+		}
+
+		std::cout << "\n";
+
+	}
 
 	return true;
 }

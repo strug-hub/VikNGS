@@ -378,11 +378,11 @@
     <ClCompile Include="Parser\BEDParser.cpp" />
     <ClCompile Include="CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
-    <ClCompile Include="Parser\InfoParser.cpp" />
+    <ClCompile Include="Parser\SampleParser.cpp" />
     <ClCompile Include="Parser\MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Parser\InputParser.cpp" />
-    <ClCompile Include="Parser\ParserHelper.cpp" />
+    <ClCompile Include="Parser\ParserTools.cpp" />
     <ClCompile Include="RareTest.cpp" />
     <ClCompile Include="RareTestObject.cpp" />
     <ClCompile Include="Simulation\Simulation.cpp" />

@@ -1,26 +1,6 @@
 #include "InputParser.h"
 #include <regex>
 
-std::vector<std::string> readLine(MemoryMapped &charArray, int &pos) {
-	int startPos = pos;
-	std::vector<std::string> split;
-
-	while (pos < charArray.mappedSize() && charArray[pos] != '\n') {
-
-		if (charArray[pos] == '\t') {
-			split.push_back(trim(extractString(charArray, startPos, pos)));
-			startPos = pos;
-		}
-
-		pos++;
-	}
-
-	if (split.size() > 0)
-		split.push_back(trim(extractString(charArray, startPos, pos)));
-	pos++;
-	return split;
-}
-
 /**
 Extracts string from a MemoryMapped class
 
@@ -29,7 +9,7 @@ Extracts string from a MemoryMapped class
 @param end Index to stop extracting string from.
 @return Extracted string.
 */
-inline std::string extractString(MemoryMapped &charArray, int start, int end) {
+std::string extractString(MemoryMapped &charArray, int start, int end) {
 	std::string ret;
 	for (; start < end; start++) { ret += charArray[start]; }
 	return ret;
@@ -41,7 +21,7 @@ Removes whitespace from a string
 @param str String to remove whitespace from.
 @return str without whitespace.
 */
-inline std::string trim(std::string str){
+std::string trim(std::string str){
 	str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
 	str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
 	return str;
