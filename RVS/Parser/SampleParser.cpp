@@ -109,12 +109,12 @@ Parses a data file containing tab-separated info for each sample.
 @param Z Matrix for covariates (4th column onward).
 @param G Vector identifing sample ID (2nd column).
 @param readGroup Map of group ID to high or low read group.
+@param highLowCutOff Cut-off for read depth. Anything >= value is considered high read depth.
 
-@return Vector that indicates which sample data was read correctly.
 @effect Fills Y, Z, G and readGroup with values from sample data file
 */
 //returns Y,G,H,Z sorted by 
-bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
+void parseSampleLines(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff) {
 	
 	File sampleInfo;
@@ -151,7 +151,7 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 			message += " in sample data file: ID '" + sampleID;
 			message += "' does not correspond to an ID in VCF file.";
 			printError(message);
-			return false;
+			throw std::runtime_error("Sample data error");
 		}
 
 		int index = IDmap[sampleID];
@@ -164,7 +164,7 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 			message += " in sample data file: Unexpected value '" + lineSplit[1];
 			message += "' in second column. Should be a numeric value.";
 			printError(message);
-			return false;
+			throw std::runtime_error("Sample data error");
 		}
 
 		std::string groupID = lineSplit[2];
@@ -193,7 +193,7 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 					message += " in sample data file: Unexpected value '" + depth;
 					message += "' in fourth column. Should be a numeric value or one of 'L', 'H'.";
 					printError(message);
-					return false;
+					throw std::runtime_error("Sample data error");
 				}
 			}
 			groupIndex++;
@@ -228,8 +228,6 @@ bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
 			message += " '" + missingSample[i] + "' ";
 
 		printError(message);
-		return false;
+		throw std::runtime_error("Sample data error");
 	}
-	
-	return true;
 }

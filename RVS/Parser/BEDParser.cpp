@@ -21,6 +21,13 @@ struct Interval {
 	inline int nIndex() { return indexes.size(); }
 };
 
+/*
+Parses intervals from a a BED file and collapses variants along intervals
+
+@param collapse Vector of intervals on which to collapse variants.
+@param variants Lines parsed from a VCF file.
+@return the indexes of variants within each interval
+*/
 std::vector<std::vector<int>> collapseVariants(std::vector<Interval> &collapse, std::vector<VCFLine> variants) {
 
 	for (int i = 0; i < variants.size(); i++)
@@ -41,9 +48,9 @@ Parses intervals from a a BED file and collapses variants along intervals
 
 @param bedDir Directory to a bed file.
 @param variants Lines parsed from a VCF file.
-@return 
+@return The indexes of variants within each interval.
 */
-std::vector<std::vector<int>> parseIntervals(std::string bedDir, std::vector<VCFLine> variants) {
+std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFLine> variants) {
 	
 	File bed;
 	bed.open(bedDir);

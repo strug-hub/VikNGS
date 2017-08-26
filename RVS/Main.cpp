@@ -112,15 +112,18 @@ int main() {
 	double mafCutoff = 0.05;
 	double missingThreshold;
 	int highLowCutOff = 30;
+	double missingThreshold = 0.2;
+	bool onlySNPs = true;
+	bool mustPASS = true;
 
-
-
+	bool rvs = true;
 
 
 
 	///input files
 	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
 	std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+	//std::string bedDir = "";
 	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 	//---------------------------------------
 
@@ -143,7 +146,9 @@ int main() {
 		}
 	}
 	else {
-		bool valid = parseInput(vcfDir, infoDir, bedDir, mafCutoff, true, X, Y, Z, G, readGroup, P, interval);
+		bool valid = parseAndFilter(vcfDir, infoDir, bedDir, highLowCutOff,
+			missingThreshold, onlySNPs, mustPASS, mafCutoff, common,
+			X, Y, Z, G, readGroup, P, interval);
 		if (!valid) {
 			return 0;
 		}

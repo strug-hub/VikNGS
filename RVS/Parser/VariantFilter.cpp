@@ -1,13 +1,28 @@
 #include "InputParser.h"
 
+/*
+Verifies whether or not a string is a single nucleotide base (A, T, C or G).
+
+@param base String to verify.
+@return True if base is valid.
+*/
 inline bool validBase(std::string base) {
 	return base == "T" ||  base == "A" || base == "C" || base == "G";
 }
 
+/*
+Counts the number of missing sample data for a variant and returns true if any group is missing more than missingThreshold.
 
-//TODO: calculate percent missing by group?
+@param variant Line read from VCF file.
+@param G Vector of group ID.
+@param ngroup Number of unique groups in G.
+@param missingThreshold Proportion of sample data missing for variant to be filtered.
+@return True if base is missing data above the threshold.
+*/
 inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missingThreshold) {
 	
+	//TODO: calculate percent missing by group?
+
 	std::vector<double> counter(ngroup, 0);
 	std::vector<double> n(ngroup, 0);
 
@@ -25,11 +40,24 @@ inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missi
 	return true;
 }
 
-std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, double missingThreshold) {
-	int filterCounter = 0;
+/*
+Filters variants read from VCF file based on missing sample data, failing to have 'PASS' in FILTER column
+and whether the variant is an insertion or deletion (indel).
+
+@param variants Lines read from VCF file.
+@param G Vector of group ID.
+@param missingThreshold Proportion of sample data missing for variant to be filtered.
+@param onlySNPs If true, indels will be filtered based on REF and ALT columns.
+@param mustPASS If true, variants where FILTER is not 'PASS' will be filtered.
+@return Filtered vector of VCFLines.
+*/
+std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
+	double missingThreshold, bool onlySNPs, bool mustPass) {
+	int failCounter = 0;
 	int missingCounter = 0;
 	int indelCounter = 0;
 
+	//assumes number of groups = highest group ID
 	int ngroup = G.maxCoeff() + 1;
 
 	std::vector<VCFLine> filteredVariants;
@@ -38,12 +66,12 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, 
 	for (int i = 0; i < variants.size(); i++) {
 		variant = variants[i];
 
-		if (variant.filter != "PASS") {
-			filterCounter++;
+		if (mustPass && variant.filter != "PASS") {
+			failCounter++;
 			continue;
 		}
 
-		if (!validBase(variant.alt) || !validBase(variant.ref)) {
+		if (onlySNPs && !validBase(variant.alt) || !validBase(variant.ref)) {
 			indelCounter++;
 			continue;
 		}
@@ -56,16 +84,32 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, 
 		filteredVariants.push_back(variant);
 	}
 
-	std::cout << filterCounter;
-	std::cout << " Variant(s) were filtered by FILTER column.\n";
-	std::cout << indelCounter;
-	std::cout << " Variant(s) were filtered by ALT and REF column.\n";
-	std::cout << missingCounter;
-	std::cout << " Variant(s) were filtered by missing threshold.\n";
+	if (mustPass && failCounter > 0) {
+		std::string s = failCounter > 1 ? "s" : "";
+		printInfo(std::to_string(failCounter) = " variant" + s + 
+			" were filtered by FILTER column (do not PASS).");
+	}
+	if (onlySNPs && indelCounter > 0) {
+		std::string s = indelCounter > 1 ? "s" : "";
+		printInfo(std::to_string(indelCounter) = " variant" + s + 
+			" were filtered by ALT and REF column (indel variant" + s + " removed).");
+	}
+	if (missingCounter > 0) {
+		std::string s = missingCounter > 1 ? "s" : "";
+		printInfo(std::to_string(missingCounter) = " variant" + s + 
+			" filtered by due to missing information (threshold = " + std::to_string(missingThreshold) + ").");
+	}
 
 	return filteredVariants;
 }
 
+/*
+Filters duplicated variants (same position and chromosome).
+
+@param variants Lines read from VCF file.
+@requires variants to be sorted in order of chr, loc.
+@return Filtered vector of VCFLines (duplicates removed).
+*/
 std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants) {
 
 	std::vector<VCFLine> filteredVariants;
@@ -84,13 +128,23 @@ std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants) {
 		filteredVariants.push_back(lastVariant);
 	}
 
-	std::cout << variants.size() - filteredVariants.size();
-	std::cout << " Variant(s) were filtered by duplication.\n";
+	int nremoved =  variants.size() - filteredVariants.size();
+
+	if (nremoved > 0) {
+		std::string s = nremoved > 1 ? "s" : "";
+		printInfo(std::to_string(nremoved) = " variant" + s +
+			" filtered by due to duplication (multiple variants at same genomic position).");
+	}
 
 	return filteredVariants;
 }
 
-std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants) {
+/*
+Filters homozygous variants (no variability across samples).
+
+@param variants Lines read from VCF file.
+@return Filtered vector of VCFLines (homozygous calls removed).
+*/std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants) {
 
 	int i, j;
 
@@ -120,20 +174,24 @@ std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants) {
 			filteredVariants.push_back(variants[i]);
 	}
 	
-	std::cout << variants.size() - filteredVariants.size();
-	std::cout << " Variant(s) were removed because of homozygous call in all samples.\n";
+	int nremoved = variants.size() - filteredVariants.size();
+	
+	if (nremoved > 0) {
+		std::string s = nremoved > 1 ? "s" : "";
+		printInfo(std::to_string(nremoved) = " variant" + s +
+			" filtered due to homozygous call in all samples.");
+	}
 
 	return filteredVariants;
 }
 
 /*
-Calculates the minor allele frequency (MAF) from conditional expected genotype probability.
+Filters variants based on minor allele frequency. Removes rare or common variants depending on the value of common.
 
-@param snps A vector of SNPs.
+@param variants Lines read from VCF file.
 @param mafCut The minor allele frequency cut-off for common or rare variants.
-@param common Indicates common or rare variants, (common = true, rare = false).
-@return None.
-@effect Sets maf for each SNP in snps.
+@param common Indicates whether to keep common or rare variants, (common = true, rare = false).
+@return Filtered vector of VCFLines (either common or rare variants removed).
 */
 std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, double mafCutoff, bool common) {
 	double maf;
@@ -144,12 +202,25 @@ std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, 
 		if (maf > 0.5)
 			maf = 1 - maf;
 
-		if (common && maf >= mafCutoff || !common && (maf < mafCutoff))
+		if (common && maf > mafCutoff || !common && (maf < mafCutoff))
 			filteredVariants.push_back(variants[i]);
 	}
 		
-	std::cout << variants.size() - filteredVariants.size();
-	std::cout << " Variant(s) filtered by minor allele frequency.\n";
+
+	int nremoved = variants.size() - filteredVariants.size();
+
+	if (nremoved > 0) {
+		std::string s = nremoved > 1 ? "s" : "";
+
+		if (common) {
+			printInfo(std::to_string(nremoved) = " rare variant" + s +
+				" filtered (minor allele frequency < " + std::to_string(mafCutoff) + ").");
+		}
+		else {
+			printInfo(std::to_string(nremoved) = " common variant" + s +
+				" filtered (minor allele frequency > " + std::to_string(mafCutoff) + ").");
+		}
+	}
 
 	return filteredVariants;
 }

@@ -21,14 +21,12 @@ using Eigen::DiagonalMatrix;
 //========================================================
 
 //VCFParser.cpp
-bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
+bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, int highLowCutOff,
+	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval);
 std::vector<std::string> extractHeader(MemoryMapped &, int &);
 
-//BEDParser.cpp
-//std::vector<Interval> getIntervals(std::string);
-//void collapseVariants(std::vector<SNP> &, std::vector<Interval> &);
 
 //VectorHelper.cpp
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);

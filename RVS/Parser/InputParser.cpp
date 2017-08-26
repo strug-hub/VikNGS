@@ -1,200 +1,185 @@
 #pragma once
 #include "InputParser.h"
-#include <fstream>
 
 /*
-Uses EM algorithm to estimate the genotype frequencies in the sample
+Parses a VCF file.
 
-@param likelihood A vector with genotype likelihoods.
-@return A vector with three doubles to stand for probability of 0, 1 or 2 minor alleles.
+@param vcfDir Directory of VCF file.
+@return Vector with information about each line of VCF file.
 */
-VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood) {
-	double p = 0.15;
-	double q = 0.15;
-	double qn = 1;
-	double pn = 0;
-	double dn = 0;
-	double d = 0;
-
-	int glCounter = 0;
-
-	double Ep;
-	double Eq;
-	double pD;
-
-	int k = 0;
-
-	while (pow((pn - p), 2) + pow((qn - q), 2) > 0.000001) {
-
-		d = 1 - p - q;
-		glCounter = 0;
-		Ep = 0;
-		Eq = 0;
-
-		for (int i = 0; i < likelihood.size(); i++) {
-			if (likelihood[i].missing)
-				continue;
-
-			glCounter++;
-
-			pD = 1 / (p * likelihood[i].L00 + q * likelihood[i].L01 + d * likelihood[i].L11);
-			Ep += p * likelihood[i].L00 * pD;
-			Eq += q * likelihood[i].L01 * pD;
-		}
-
-		pn = p;
-		qn = q;
-		dn = 1 - q - p;
-		p = Ep / glCounter;
-		q = Eq / glCounter;
-
-		k++;
-		if (k == 1000)
-			break;
+std::vector<VCFLine> parseVCF(std::string vcfDir) {
+	std::vector<VCFLine> variants;
+	
+	if (!fileExists(vcfDir)) {
+		printError("Could not find VCF file at given directory: " + vcfDir);
+		throw std::runtime_error("File not found");
 	}
 
-	VectorXd freq(3);
-	freq[0] = p;
-	freq[1] = q;
-	freq[2] = 1 - p - q;
-
-	return freq;
-}
-
-/*
-Calculates the conditional expected genotype probability E( P(G_ij | D_ij) )
-given the genotype likelihoods P(D_ij | G_ij = g) and frequencies.
-
-E( P(G_ij | D_ij) ) = sum from g=0 to 2 P(G_ij = g | D_ij),
-where P(G_ij = g | D_ij) = P(D_ij | G_ij = g) * P(G_ij = g)/P(D_ij).
-
-@param snp SNP with genotype likelihoods P(D_ij | G=AA, Aa or aa)} for one locus.
-@return A vector containing conditional expectation probability E( P(G_ij | D_ij) ).
-*/
-VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p) {
-
-	double m0;
-	double m1;
-	double m2;
-	double m;
-
-	VectorXd EG(likelihood.size());
-
-	for (int i = 0; i < likelihood.size(); i++) {
-
-		if (!likelihood[i].missing) {
-			m0 = likelihood[i].L00 * p[0];
-			m1 = likelihood[i].L01 * p[1];
-			m2 = likelihood[i].L11 * p[2];
-			m = 1 / (m0 + m1 + m2);
-
-			EG[i] = m1*m + 2 * m2*m;
-		}
-		else
-			EG[i] = NAN;
+	try {
+		variants = parseVCFLines(vcfDir);
 	}
-
-	return EG;
-}
-
-/*
-Generates the expected probabilities of the genotypes E(G_ij | D_ij).
-Using the genotype likelihood for case and controls from VCF file to generates the population frequency by calling function calcEM
-and then use it to calculate the expected genotype probabilities E(G_ij | D_ij) by calling function calcEG.
-Variants with homozygous call in the whole sample (standard deviation of their E(G_ij | D_ij) < 10^4) are removed.
-
-@param snps A vector of SNPs.
-@return None.
-@effect Sets p for each SNP in snps and removes SNPs from snps with homozygous calls.
-*/
-std::vector<VCFLine> calculatedExpectedGenotypes(std::vector<VCFLine> &variants) {
-
-	for (size_t i = 0; i < variants.size(); i++) {
-		variants[i].P = calcEM(variants[i].likelihood);
-		variants[i].expectedGenotype = calcEG(variants[i].likelihood, variants[i].P);
+	catch (...) {
+		throw;
 	}
 
 	return variants;
 }
 
-inline bool fileExists(const std::string& name) {
+/*
+Parses a sample data file.
 
-	std::ifstream f(name.c_str());
-	if (f.good())
-		return true;
-	
-	std::string message = "File does not exist or cannot be opened: ";
-	message.append(name);
-	printError(message);
-	return false;
+@param sampleDir Directory of sample directory file.
+@param vcfDir Directory of VCF file.
+@param Y Vector of response variable.
+@param Z Matrix of covariates.
+@param G Vector of group ID.
+@param readGroup Mapping of group ID to high or low read group.
+@param highLowCutOff Cut-off for read depth. Anything >= value is considered high read depth.
+
+@return None.
+@effect Fills Y, Z, G and readGroup with information from sample file.
+*/
+void parseSample(std::string sampleDir, std::string vcfDir,
+	 VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff) {
+
+	if (!fileExists(sampleDir)) {
+		printError("Could not find sample data file at given directory: " + sampleDir);
+		throw std::runtime_error("File not found");
+	}
+
+	std::map<std::string, int> IDmap;
+
+	try {
+		IDmap = getSampleIDMap(vcfDir);
+		if (IDmap.size() <= 0) {
+			printError("No samples could be found in the VCF file header! Exiting.");
+			throw std::runtime_error("VCF header error");
+		}
+
+		parseSampleLines(sampleDir, IDmap, Y, Z, G, readGroup, highLowCutOff);
+	}
+	catch (...) {
+		throw;
+	}
 }
 
-bool parseInput(std::string vcfDir, std::string infoDir, std::string bedDir, double mafCutoff, bool common,
+/*
+Filters out variants based on given criteria.
+
+@param variants Lines read from VCF file.
+@param G Vector of group ID.
+@param missingThreshold Proportion of sample data missing for variant to be filtered.
+@param onlySNPs If true, indels will be filtered based on REF and ALT columns.
+@param mustPASS If true, variants where FILTER is not 'PASS' will be filtered.
+@param mafCut The minor allele frequency cut-off for common or rare variants.
+@param common Indicates whether to keep common or rare variants, (common = true, rare = false).
+
+@return Filtered vector of VCFLines.
+*/
+std::vector<VCFLine> filterVariants(std::vector<VCFLine> & variants, VectorXd & G, 
+	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common) {
+	
+	variants = filterVariants(variants, G, missingThreshold, onlySNPs, mustPASS);
+
+	std::sort(variants.begin(), variants.end(), lineCompare);
+	variants = removeDuplicates(variants);
+
+	variants = calculateExpectedGenotypes(variants);
+	variants = filterHomozygousVariants(variants);
+	variants = filterMinorAlleleFrequency(variants, mafCutoff, common);
+
+	int variantsLeft = variants.size();
+	if (variantsLeft > 0) {
+		std::string s = variantsLeft > 1 ? "s" : "";
+		printInfo(std::to_string(variantsLeft) = " variant" + s + " left after filtering.");
+	}
+
+	return variants;
+}
+
+/*
+Parses a BED file to collapse variants.
+
+@param bedDir Directory of BED file.
+@param variants Lines read from VCF file.
+@param interval The indexes of variants within each interval.
+
+@return None.
+@effect Fills interval using information from BED file and variants.
+*/
+void parseBED(std::string bedDir, std::vector<VCFLine> & variants, std::vector<std::vector<int>> & interval) {
+	try {
+		if (!fileExists(bedDir))
+			printWarning("Could not find BED file, will not be used to collapse variants. Given directory: " + bedDir);
+		else
+			interval = parseBEDLines(bedDir, variants);
+	}
+	catch (...) {
+		printWarning("Failed to parse BED file, will not be used to collapse variants.");
+	}
+}
+
+/*
+Parses all input files and filters variants based on given criteria
+
+Parsing params:
+@param vcfDir Directory of VCF file.
+@param sampleDir Directory of sample directory file.
+@param bedDir Directory of BED file.
+@param highLowCutOff Cut-off for read depth. Anything >= value is considered high read depth.
+
+Filtering params:
+@param missingThreshold Proportion of sample data missing for variant to be filtered.
+@param onlySNPs If true, indels will be filtered based on REF and ALT columns.
+@param mustPASS If true, variants where FILTER is not 'PASS' will be filtered.
+@param mafCut The minor allele frequency cut-off for common or rare variants.
+@param common Indicates whether to keep common or rare variants, (common = true, rare = false).
+
+Output params:
+@param X Matrix of explanatory variable.
+@param Y Vector of response variable.
+@param Z Matrix of covariates.
+@param G Vector of group ID.
+@param P Vector with probability of 0, 1 or 2 minor alleles.
+@param interval The indexes of variants within each interval.
+
+@return True if no errors detected during parsing or filtering.
+@effect Modifies output params using information from input files.
+*/
+bool parseAndFilter(std::string vcfDir, std::string sampleDir, std::string bedDir, int highLowCutOff,
+	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval) {
 
-	if (!fileExists(vcfDir))
-		return false;
-	if (!fileExists(infoDir))
-		return false;
-
-	std::map<std::string, int> IDmap = getSampleIDMap(vcfDir);
-
-	if (IDmap.size() <= 0) {
-		printError("No samples could be found in the VCF file header! Exiting.");
-		return false;
-	}
-
-	bool valid = parseInfo(infoDir, IDmap, Y, Z, G, readGroup);
-	if (!valid) {
-		printError("Failed to parse sample data file. Exiting.");
-		return false;
-	}
-	std::vector<VCFLine> variants;
 	try {
-		variants = parseVCFLines(vcfDir);
-	}
-	catch (...) {
-		printError("Failed to parse VCF. Exiting.");
-		return false;
-	}
+		std::vector<VCFLine> variants = parseVCF(vcfDir);
+		parseSample(sampleDir, vcfDir, Y, Z, G, readGroup, highLowCutOff);
 
-	variants = filterVariants(variants, G, 0.2);
-	std::sort(variants.begin(), variants.end(), lineCompare);
-	variants = removeDuplicates(variants);
-	variants = calculatedExpectedGenotypes(variants);
-	variants = filterHomozygousVariants(variants);
-	variants = filterMinorAlleleFrequency(variants, mafCutoff, common);
-	std::cout << variants.size();
-	std::cout << " SNPs remain after filtering\n";
+		if (bedDir != "")
+			parseBED(bedDir, variants, interval);
 
-	if (variants.size() <= 0)
-		return false;
+		variants = filterVariants(variants, G, missingThreshold, onlySNPs, mustPASS, mafCutoff, common);
 
-	MatrixXd x(variants[0].likelihood.size(), variants.size());
-	for (int i = 0; i < variants.size(); i++) 
-		x.col(i) = variants[i].expectedGenotype;
-	
-	MatrixXd p(variants.size(), 3);
-	for (int i = 0; i < variants.size(); i++)
-		p.row(i) = variants[i].P;
-	
-	X = x;
-	P = p;
-	
-	interval = parseIntervals(bedDir, variants);
-
-	for (int i = 0; i < interval.size(); i++) {
-		for (int j = 0; j < interval[i].size(); j++) {
-
-			std::cout << interval[i][j];
-			std::cout << "   ";
-
+		if (variants.size() <= 0) {
+			printWarning("No variants left after filtering!");
+			return false;
 		}
 
-		std::cout << "\n";
+		MatrixXd x(variants[0].likelihood.size(), variants.size());
+		for (int i = 0; i < variants.size(); i++)
+			x.col(i) = variants[i].expectedGenotype;
+
+		MatrixXd p(variants.size(), 3);
+		for (int i = 0; i < variants.size(); i++)
+			p.row(i) = variants[i].P;
+
+		X = x;
+		P = p;
 
 	}
-
+	catch (...) {
+		return false;
+	}
+	
 	return true;
 }

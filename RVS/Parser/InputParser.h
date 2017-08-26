@@ -54,37 +54,34 @@ struct VCFLine {
 	}
 };
 
-struct InfoLine {
-	std::string id;
-	double Y;
-	double G;
-	std::vector <double> Z;
-};
-
 inline bool lineCompare(VCFLine lhs, VCFLine rhs) { return lhs < rhs; }
 
-//ParserHelper.cpp
+//ParserTools.cpp
 std::string extractString(MemoryMapped &charArray, int start, int end);
 std::string trim(std::string str);
 std::vector<std::string> split(std::string s, char sep);
-
-//InfoParser.cpp
-bool parseInfo(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
-	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup,
-	int highLowCutOff=30);
+std::vector<VCFLine> calculateExpectedGenotypes(std::vector<VCFLine> &variants);
+VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p);
+VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
+bool fileExists(const std::string& name);
 
 //VCFParser.cpp
-std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 std::vector<VCFLine> parseVCFLines(std::string vcfDir);
+std::map<std::string, int> getSampleIDMap(std::string vcfDir);
+
+//SampleParser.cpp
+void parseSampleLines(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
+	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff);
+
+//BEDParser.cpp
+std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFLine> variants);
 
 //VariantFilter.cpp
-std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G, double missingThreshold);
+std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
+	double missingThreshold, bool onlySNPs, bool mustPass);
 std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants);
 std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants);
 std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, double mafCutoff, bool common);
-
-//BEDParser.cpp
-std::vector<std::vector<int>> parseIntervals(std::string bedDir, std::vector<VCFLine> variants);
 
 struct File {
 	MemoryMapped mmap;
