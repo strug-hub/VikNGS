@@ -108,13 +108,16 @@ int main() {
 	bool simulation = false;
 	bool common = true;
 	
+	int highLowCutOff = 30;
+	bool collapseCoding = false;
+	bool collapseExon = true;
+
 	//filtering paramaters
 	double mafCutoff = 0.05;
-	double missingThreshold;
-	int highLowCutOff = 30;
 	double missingThreshold = 0.2;
 	bool onlySNPs = true;
 	bool mustPASS = true;
+
 
 	bool rvs = true;
 
@@ -146,7 +149,8 @@ int main() {
 		}
 	}
 	else {
-		bool valid = parseAndFilter(vcfDir, infoDir, bedDir, highLowCutOff,
+		bool valid = parseAndFilter(vcfDir, infoDir, bedDir, 
+			highLowCutOff, collapseCoding, collapseExon,
 			missingThreshold, onlySNPs, mustPASS, mafCutoff, common,
 			X, Y, Z, G, readGroup, P, interval);
 		if (!valid) {

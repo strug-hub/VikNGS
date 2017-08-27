@@ -86,17 +86,17 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
 
 	if (mustPass && failCounter > 0) {
 		std::string s = failCounter > 1 ? "s" : "";
-		printInfo(std::to_string(failCounter) = " variant" + s + 
+		printInfo(std::to_string(failCounter) + " variant" + s + 
 			" were filtered by FILTER column (do not PASS).");
 	}
 	if (onlySNPs && indelCounter > 0) {
 		std::string s = indelCounter > 1 ? "s" : "";
-		printInfo(std::to_string(indelCounter) = " variant" + s + 
+		printInfo(std::to_string(indelCounter) + " variant" + s + 
 			" were filtered by ALT and REF column (indel variant" + s + " removed).");
 	}
 	if (missingCounter > 0) {
 		std::string s = missingCounter > 1 ? "s" : "";
-		printInfo(std::to_string(missingCounter) = " variant" + s + 
+		printInfo(std::to_string(missingCounter) + " variant" + s + 
 			" filtered by due to missing information (threshold = " + std::to_string(missingThreshold) + ").");
 	}
 
@@ -132,7 +132,7 @@ std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants) {
 
 	if (nremoved > 0) {
 		std::string s = nremoved > 1 ? "s" : "";
-		printInfo(std::to_string(nremoved) = " variant" + s +
+		printInfo(std::to_string(nremoved) + " variant" + s +
 			" filtered by due to duplication (multiple variants at same genomic position).");
 	}
 
@@ -178,7 +178,7 @@ Filters homozygous variants (no variability across samples).
 	
 	if (nremoved > 0) {
 		std::string s = nremoved > 1 ? "s" : "";
-		printInfo(std::to_string(nremoved) = " variant" + s +
+		printInfo(std::to_string(nremoved) + " variant" + s +
 			" filtered due to homozygous call in all samples.");
 	}
 
@@ -213,11 +213,11 @@ std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, 
 		std::string s = nremoved > 1 ? "s" : "";
 
 		if (common) {
-			printInfo(std::to_string(nremoved) = " rare variant" + s +
+			printInfo(std::to_string(nremoved) + " rare variant" + s +
 				" filtered (minor allele frequency < " + std::to_string(mafCutoff) + ").");
 		}
 		else {
-			printInfo(std::to_string(nremoved) = " common variant" + s +
+			printInfo(std::to_string(nremoved) + " common variant" + s +
 				" filtered (minor allele frequency > " + std::to_string(mafCutoff) + ").");
 		}
 	}

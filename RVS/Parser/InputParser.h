@@ -74,7 +74,8 @@ void parseSampleLines(std::string sampleInfoDir, std::map<std::string, int> &IDm
 	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff);
 
 //BEDParser.cpp
-std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFLine> variants);
+std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFLine> variants, 
+	bool collapseCoding, bool collapseExon);
 
 //VariantFilter.cpp
 std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,

@@ -21,11 +21,11 @@ using Eigen::DiagonalMatrix;
 //========================================================
 
 //VCFParser.cpp
-bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, int highLowCutOff,
+bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, 
+	int highLowCutOff, bool collapseCoding, bool collapseExon,
 	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval);
-std::vector<std::string> extractHeader(MemoryMapped &, int &);
 
 
 //VectorHelper.cpp

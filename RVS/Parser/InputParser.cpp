@@ -91,7 +91,7 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> & variants, VectorXd & 
 	int variantsLeft = variants.size();
 	if (variantsLeft > 0) {
 		std::string s = variantsLeft > 1 ? "s" : "";
-		printInfo(std::to_string(variantsLeft) = " variant" + s + " left after filtering.");
+		printInfo(std::to_string(variantsLeft) + " variant" + s + " left after filtering.");
 	}
 
 	return variants;
@@ -107,12 +107,12 @@ Parses a BED file to collapse variants.
 @return None.
 @effect Fills interval using information from BED file and variants.
 */
-void parseBED(std::string bedDir, std::vector<VCFLine> & variants, std::vector<std::vector<int>> & interval) {
+void parseBED(std::string bedDir, std::vector<VCFLine> & variants, std::vector<std::vector<int>> & interval, bool collapseCoding, bool collapseExon) {
 	try {
 		if (!fileExists(bedDir))
 			printWarning("Could not find BED file, will not be used to collapse variants. Given directory: " + bedDir);
 		else
-			interval = parseBEDLines(bedDir, variants);
+			interval = parseBEDLines(bedDir, variants, collapseCoding, collapseExon );
 	}
 	catch (...) {
 		printWarning("Failed to parse BED file, will not be used to collapse variants.");
@@ -146,7 +146,8 @@ Output params:
 @return True if no errors detected during parsing or filtering.
 @effect Modifies output params using information from input files.
 */
-bool parseAndFilter(std::string vcfDir, std::string sampleDir, std::string bedDir, int highLowCutOff,
+bool parseAndFilter(std::string vcfDir, std::string sampleDir, std::string bedDir,
+	int highLowCutOff, bool collapseCoding, bool collapseExon,
 	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval) {
@@ -156,7 +157,7 @@ bool parseAndFilter(std::string vcfDir, std::string sampleDir, std::string bedDi
 		parseSample(sampleDir, vcfDir, Y, Z, G, readGroup, highLowCutOff);
 
 		if (bedDir != "")
-			parseBED(bedDir, variants, interval);
+			parseBED(bedDir, variants, interval, collapseCoding, collapseExon);
 
 		variants = filterVariants(variants, G, missingThreshold, onlySNPs, mustPASS, mafCutoff, common);
 
