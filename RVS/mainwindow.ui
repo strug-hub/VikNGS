@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>801</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>vikNGS GUI interface</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="mainTab">
+       <attribute name="title">
+        <string>Association Test</string>
+       </attribute>
+       <widget class="QGroupBox" name="inputGroup">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>0</y>
+          <width>261</width>
+          <height>147</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Input</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="1" column="0">
+          <widget class="QLabel" name="vcfLabel">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Multisample VCF file</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLineEdit" name="vcfDir">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QPushButton" name="vcfBrowse">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="sampleLabel">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Sample data file</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLineEdit" name="sampleDir">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QPushButton" name="sampleBrowse">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLineEdit" name="bedDir">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QPushButton" name="sampleBrowse_2">
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="bedLabel">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>BED file (optional)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="filterGroup">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>160</y>
+          <width>179</width>
+          <height>125</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Filters</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="mafCutOff">
+           <property name="text">
+            <string>0.05</string>
+           </property>
+           <property name="placeholderText">
+            <string>0.05</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="mafLabel">
+           <property name="text">
+            <string>MAF Cutoff</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLineEdit" name="missingThreshold">
+           <property name="text">
+            <string>0.2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="2">
+          <widget class="QLabel" name="missingLabel">
+           <property name="text">
+            <string>Missing Threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QLineEdit" name="highLowCutOff">
+           <property name="text">
+            <string>30</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="depthLabel">
+           <property name="text">
+            <string>Read Depth Threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="checkBox">
+           <property name="text">
+            <string>Must PASS</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QPushButton" name="runButton">
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>160</y>
+          <width>80</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>RUN</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="simulatinTab">
+       <attribute name="title">
+        <string>Power Simulation</string>
+       </attribute>
+       <widget class="QGroupBox" name="populationGroup">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>10</y>
+          <width>135</width>
+          <height>111</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Population</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="0">
+          <widget class="QLineEdit" name="prevelencePopulation">
+           <property name="text">
+            <string>0.2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="prevalenceLabel">
+           <property name="text">
+            <string>Prevalence</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="NLabel">
+           <property name="text">
+            <string>N</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="nPopulation">
+           <property name="text">
+            <string>10000</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLineEdit" name="oddsRatio">
+           <property name="text">
+            <string>1.0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="oddsRatioLabel">
+           <property name="text">
+            <string>Odds Ratio</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="sequencingGroup">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>10</y>
+          <width>135</width>
+          <height>79</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Sequencing Parameters</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="meanErrorRate">
+           <property name="text">
+            <string>0.01</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="meanErrorLabel">
+           <property name="text">
+            <string>Error Rate</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLineEdit" name="errorSD">
+           <property name="text">
+            <string>0.025</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="errorSDLabel">
+           <property name="text">
+            <string>Error SD</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="mafGroup">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>130</y>
+          <width>135</width>
+          <height>131</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Variants</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="1" column="1">
+          <widget class="QLabel" name="lowerBoundLabel">
+           <property name="text">
+            <string>MAF Lower Bound</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLineEdit" name="mafLower">
+           <property name="text">
+            <string>0.1</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLineEdit" name="mafUpper">
+           <property name="text">
+            <string>0.5</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="upperBoundLabel">
+           <property name="text">
+            <string>MAF Upper Bound</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="nSNP">
+           <property name="text">
+            <string>101</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="nsnpLabel_2">
+           <property name="text">
+            <string># of Variants</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QTableWidget" name="groupTable">
+        <property name="geometry">
+         <rect>
+          <x>350</x>
+          <y>30</y>
+          <width>411</width>
+          <height>192</height>
+         </rect>
+        </property>
+        <row>
+         <property name="text">
+          <string>Group 1</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string># Individuals</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>New Column</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Read Group</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Mean Depth</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>SD Depth</string>
+         </property>
+        </column>
+        <item row="0" column="2">
+         <property name="text">
+          <string>low</string>
+         </property>
+        </item>
+        <item row="0" column="3">
+         <property name="text">
+          <string>100</string>
+         </property>
+        </item>
+        <item row="0" column="4">
+         <property name="text">
+          <string>10</string>
+         </property>
+        </item>
+       </widget>
+       <widget class="QPushButton" name="runSimulationButton">
+        <property name="geometry">
+         <rect>
+          <x>70</x>
+          <y>340</y>
+          <width>80</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Run Simulation</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="default">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="groupGroup">
+        <property name="geometry">
+         <rect>
+          <x>360</x>
+          <y>230</y>
+          <width>321</width>
+          <height>151</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Group</string>
+        </property>
+        <widget class="QGroupBox" name="readGroup">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>20</y>
+           <width>54</width>
+           <height>67</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Read Depth</string>
+         </property>
+         <widget class="QRadioButton" name="highRdoButton">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>22</y>
+            <width>36</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>High</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="lowRdoButton">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>42</y>
+            <width>34</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Low</string>
+          </property>
+         </widget>
+         <zorder>highRdoButton</zorder>
+         <zorder>highRdoButton</zorder>
+         <zorder>lowRdoButton</zorder>
+        </widget>
+        <widget class="QGroupBox" name="caseControlGroup">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>20</y>
+           <width>63</width>
+           <height>67</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Cohort</string>
+         </property>
+         <widget class="QRadioButton" name="caseRdoButton">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>22</y>
+            <width>36</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Case</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QRadioButton" name="controlRdoButton">
+          <property name="geometry">
+           <rect>
+            <x>9</x>
+            <y>42</y>
+            <width>45</width>
+            <height>16</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Control</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QPushButton" name="addGroupButton">
+         <property name="geometry">
+          <rect>
+           <x>220</x>
+           <y>120</y>
+           <width>80</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Add Group</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="nSampleLabel">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>110</y>
+           <width>39</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>n</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="nSample">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>110</y>
+           <width>74</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>200</string>
+         </property>
+        </widget>
+        <widget class="QGroupBox" name="sequencingDepthGroup">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>20</y>
+           <width>135</width>
+           <height>79</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Sequencing Depth</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="0" column="0">
+           <widget class="QLineEdit" name="groupMean">
+            <property name="text">
+             <string>0.01</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="groupMeanLabel">
+            <property name="text">
+             <string>Mean</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="groupSD">
+            <property name="text">
+             <string>0.025</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="groupSDLabel">
+            <property name="text">
+             <string>SD</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

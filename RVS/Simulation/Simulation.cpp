@@ -48,26 +48,37 @@ std::vector<VectorXd> generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::m
 	return{ EG, p };
 }
 
-void simulate(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
+void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
 
 	std::cout << "Simulating population data\n";
 
-	int npop = 10000; //The number of population
-	double prevalence = 0.2; //A decimal between[0, 1], prevalence rate of the disease.
+    //int npop = 10000; //The number of population
+    //double prevalence = 0.2; //A decimal between[0, 1], prevalence rate of the disease.
+    //int nsnp = 101;  //Integer.The number of variants or bases.
+    //double me = 0.01; //The mean error rate of sequencing.
+    //double sde = 0.025;  //The standard deviation for the error rate.
+    //double oddsRatio = 1.0;  //Under H0
+
+
+    int npop = req.npop;
+    double prevalence = req.prevalence;
+
 	int ncase_pop = floor(npop * prevalence);
 	int ncont_pop = npop - ncase_pop;
 
+    int nsnp = req.npop;
 
-	int nsnp = 101;  //Integer.The number of variants or bases.
-
-	double me = 0.01; //The mean error rate of sequencing.
-	double sde = 0.025;  //The standard deviation for the error rate.
+    double me = req.me;
+    double sde = req.sde;
 
 	int nsamp = 2000;
 	int ncase = 500;
 	int ncont = nsamp - ncase;
 
-	double oddsRatio = 1.0;  //Under H0
+    double oddsRatio = req.oddsRatio;
+    double upperMAF = req.upperMAF;
+    double lowerMAF = req.lowerMAF;
+
 
 	//todo: function to create groups
 	//take in # groups, high/low status vector and number per group (must sum to nsamp) and mean, sd
@@ -90,7 +101,7 @@ void simulate(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGro
 	}
 	//--------------------------------------------------------
 
-	VectorXd maf = simulateMinorAlleleFrequency(nsnp, 0.1, 0.5);
+    VectorXd maf = simulateMinorAlleleFrequency(nsnp, lowerMAF, upperMAF);
 	//todo:?
 	/* or we can determine the minor allele frequency fixed for each collapeed SNPs(5 SNPs in the current setting)
 		njoint = 5

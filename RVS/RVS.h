@@ -16,9 +16,49 @@ using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
 
+struct SimulationRequest {
+	int npop; //The number of population
+	double prevalence; //A decimal between[0, 1], prevalence rate of the disease.
+
+	int nsnp;  //Integer.The number of variants or bases.
+
+	double me; //The mean error rate of sequencing.
+	double sde;  //The standard deviation for the error rate.
+
+	double oddsRatio;  //Under H0
+
+	double upperMAF;
+	double lowerMAF;
+
+	//for debugging
+	void print() {
+		std::cout << "npop = " + std::to_string(npop) + "\n";
+		std::cout << "prevalence = " + std::to_string(prevalence) + "\n";
+		std::cout << "nsnp = " + std::to_string(nsnp) + "\n";
+		std::cout << "me = " + std::to_string(me) + "\n";
+		std::cout << "sde = " + std::to_string(sde) + "\n";
+		std::cout << "oddsRatio = " + std::to_string(npop) + "\n";
+		std::cout << "upperMAF = " + std::to_string(npop) + "\n";
+		std::cout << "lowerMAF = " + std::to_string(npop) + "\n";
+
+
+	}
+};
+
+
+
+
+
 //========================================================
 // functions
 //========================================================
+
+SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
+	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
+	 std::string lowerMAF, std::string upperMAF);
+
+void startSimulation (SimulationRequest req);
+
 
 //VCFParser.cpp
 bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, 
@@ -68,7 +108,7 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd 
 double qfc(std::vector<double>, double, int);
 
 //Simulation.cpp
-void simulate(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
+void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 
 
 
@@ -96,6 +136,3 @@ inline double endTime(clock_t t) {
 	t = clock() - t;
 	return (double)t / CLOCKS_PER_SEC;
 }
-
-
-

@@ -3,6 +3,7 @@
 
 VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max) {
 	VectorXd maf(nsnp);
+
 	for (int i = 0; i < nsnp; i++) 
 		maf[i] = randomDouble(min, max);
 

@@ -98,7 +98,8 @@ std::vector<std::vector<int>> collapseVariants(std::vector<Interval> &collapse, 
 	std::vector<std::vector<int>> interval;
 
 	for (int i = 0; i < collapse.size(); i++) {
-		collapse[i].print();
+		//for debugging:
+		//collapse[i].print();
 		if (collapse[i].nIndex() > 0)
 			interval.push_back(collapse[i].getIndexes());
 	}

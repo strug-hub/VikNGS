@@ -71,15 +71,21 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\Scott\Desktop\nana\include\nana;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\Scott\Desktop\nana\include\nana;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\Scott\Desktop\nana\include\nana;$(IncludePath)</IncludePath>
+    <LibraryPath>$(WXWIN)/lib/vc_x64_lib;$(WXWIN)/lib/vc_x64_dll;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\Scott\Desktop\nana\include\nana;$(IncludePath)</IncludePath>
+    <LibraryPath>$(WXWIN)/lib/vc_x64_lib;$(WXWIN)/lib/vc_x64_dll;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -380,7 +386,7 @@
     <ClCompile Include="CompQuadForm.cpp" />
     <ClCompile Include="Parser\SampleParser.cpp" />
     <ClCompile Include="Parser\MemoryMapped\MemoryMapped.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RVS.cpp" />
     <ClCompile Include="Parser\InputParser.cpp" />
     <ClCompile Include="Parser\ParserTools.cpp" />
     <ClCompile Include="RareTest.cpp" />
@@ -389,14 +395,9 @@
     <ClCompile Include="Simulation\SimulationHelper.cpp" />
     <ClCompile Include="Parser\VariantFilter.cpp" />
     <ClCompile Include="Parser\VCFParser.cpp" />
+    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="VectorHelper.cpp" />
     <ClCompile Include="StatisticsHelper.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Eigen\Cholesky" />
