@@ -15,6 +15,25 @@ using Eigen::VectorXi;
 using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
+struct SimulationRequestGroup {
+	int n; //The number of samples in this group
+	bool isHrg;
+	bool isCase;
+	double meanDepth;
+	double sdDepth;
+
+	//for debugging
+	void print() {
+		std::cout << "\tn = " + std::to_string(n) + "\n";
+		std::cout << "\tread depth = ";
+		std::cout << (isHrg ? "high\n" : "low\n");
+		std::cout << "\tgroup = ";
+		std::cout << (isCase ? "case\n" : "control\n");
+
+		std::cout << "\tmean depth = " + std::to_string(meanDepth) + "\n";
+		std::cout << "\tdepth sd = " + std::to_string(sdDepth) + "\n";
+	}
+};
 
 struct SimulationRequest {
 	int npop; //The number of population
@@ -26,9 +45,10 @@ struct SimulationRequest {
 	double sde;  //The standard deviation for the error rate.
 
 	double oddsRatio;  //Under H0
-
 	double upperMAF;
 	double lowerMAF;
+
+	std::vector<SimulationRequestGroup> groups;
 
 	//for debugging
 	void print() {
@@ -41,11 +61,12 @@ struct SimulationRequest {
 		std::cout << "upperMAF = " + std::to_string(npop) + "\n";
 		std::cout << "lowerMAF = " + std::to_string(npop) + "\n";
 
-
+		for (int i = 0; i < groups.size(); i++) {
+			std::cout << "group " + std::to_string(i) + ":\n";
+			groups[i].print();
+		}
 	}
 };
-
-
 
 
 
@@ -55,7 +76,10 @@ struct SimulationRequest {
 
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
-	 std::string lowerMAF, std::string upperMAF);
+	 std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups);
+
+SimulationRequestGroup newSimulationRequestGroup(int groupID, std::string n, std::string isCase,
+	std::string isHrg, std::string meanDepth, std::string sdDepth);
 
 void startSimulation (SimulationRequest req);
 

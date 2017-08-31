@@ -23,6 +23,8 @@ private slots:
 
     void on_addGroupButton_clicked();
 
+    void on_removeGroupButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

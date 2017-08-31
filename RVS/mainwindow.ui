@@ -394,15 +394,13 @@
          <rect>
           <x>350</x>
           <y>30</y>
-          <width>411</width>
+          <width>381</width>
           <height>192</height>
          </rect>
         </property>
-        <row>
-         <property name="text">
-          <string>Group 1</string>
-         </property>
-        </row>
+        <attribute name="verticalHeaderStretchLastSection">
+         <bool>false</bool>
+        </attribute>
         <column>
          <property name="text">
           <string># Individuals</string>
@@ -410,12 +408,12 @@
         </column>
         <column>
          <property name="text">
-          <string>New Column</string>
+          <string>Cohort</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Read Group</string>
+          <string>Read Depth</string>
          </property>
         </column>
         <column>
@@ -428,21 +426,6 @@
           <string>SD Depth</string>
          </property>
         </column>
-        <item row="0" column="2">
-         <property name="text">
-          <string>low</string>
-         </property>
-        </item>
-        <item row="0" column="3">
-         <property name="text">
-          <string>100</string>
-         </property>
-        </item>
-        <item row="0" column="4">
-         <property name="text">
-          <string>10</string>
-         </property>
-        </item>
        </widget>
        <widget class="QPushButton" name="runSimulationButton">
         <property name="geometry">
@@ -568,7 +551,7 @@
         <widget class="QPushButton" name="addGroupButton">
          <property name="geometry">
           <rect>
-           <x>220</x>
+           <x>130</x>
            <y>120</y>
            <width>80</width>
            <height>16</height>
@@ -646,6 +629,19 @@
            </widget>
           </item>
          </layout>
+        </widget>
+        <widget class="QPushButton" name="removeGroupButton">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>120</y>
+           <width>80</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Remove Selected</string>
+         </property>
         </widget>
        </widget>
       </widget>
