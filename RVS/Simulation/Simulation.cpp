@@ -48,17 +48,22 @@ std::vector<VectorXd> generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::m
 	return{ EG, p };
 }
 
+/*
+Simulates a dataset which can be used for an association test.
+
+@param req Parameters required to set up dataset.
+@param X Matrix of explanatory variable.
+@param Y Vector of response variable.
+@param G Vector of group ID.
+@param readGroup Mapping of group ID to high or low read group.
+@param P Vector with probability of 0, 1 or 2 minor alleles.
+
+@return None.
+@effect Fills Y, Z, G, P and readGroup with information calculated using SimulationRequest.
+*/
 void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
 
-	std::cout << "Simulating population data\n";
-
-    //int npop = 10000; //The number of population
-    //double prevalence = 0.2; //A decimal between[0, 1], prevalence rate of the disease.
-    //int nsnp = 101;  //Integer.The number of variants or bases.
-    //double me = 0.01; //The mean error rate of sequencing.
-    //double sde = 0.025;  //The standard deviation for the error rate.
-    //double oddsRatio = 1.0;  //Under H0
-
+	printInfo("Setting up simulation paramters.");
 
     int npop = req.npop;
     double prevalence = req.prevalence;
@@ -66,39 +71,63 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 	int ncase_pop = floor(npop * prevalence);
 	int ncont_pop = npop - ncase_pop;
 
-    int nsnp = req.npop;
+    int nsnp = req.nsnp;
 
     double me = req.me;
     double sde = req.sde;
-
-	int nsamp = 2000;
-	int ncase = 500;
-	int ncont = nsamp - ncase;
 
     double oddsRatio = req.oddsRatio;
     double upperMAF = req.upperMAF;
     double lowerMAF = req.lowerMAF;
 
 
-	//todo: function to create groups
 	//take in # groups, high/low status vector and number per group (must sum to nsamp) and mean, sd
 	//--------------------------------------------------------
+	
+	int nsamp;
+	int ncase = 0;
+	int ncont = 0;
+
+	for (SimulationRequestGroup srg : req.groups) {
+		if (srg.isCase)
+			ncase += srg.n;
+		else
+			ncont += srg.n;
+	}
+
+	nsamp = ncase + ncont;
+
+	std::map<int, SimulationGroup> group;
+	VectorXd g(nsamp);
+
+	int groupIndex = 0;
+	int gIndex = 0;
 
 	//note: put cases first!!
-	std::map<int, SimulationGroup> group;
-	group[0] = makeSimulationGroup(200, true, 100, 10);
-	group[1] = makeSimulationGroup(300, true, 80, 5);
-	group[2] = makeSimulationGroup(1500, false, 4, 1);
+	for (SimulationRequestGroup srg : req.groups) {
+		if (srg.isCase) {
+			group[groupIndex] = makeSimulationGroup(srg.n, srg.isHrg, srg.meanDepth, srg.sdDepth);
 
-	VectorXd g(nsamp);
-	for (int i = 0; i < nsamp; i++) {
-		if (i < 200)
-			g[i] = 0;
-		else if (i >= 200 && i < 500)
-			g[i] = 1;
-		else
-			g[i] = 2;
+			for (int i = gIndex; i < srg.n + gIndex; i++)
+				g[i] = groupIndex;
+
+			gIndex += srg.n;
+			groupIndex++;
+		}
 	}
+	for (SimulationRequestGroup srg : req.groups) {
+		if (!srg.isCase) {
+			group[groupIndex] = makeSimulationGroup(srg.n, srg.isHrg, srg.meanDepth, srg.sdDepth);
+
+			for (int i = gIndex; i < srg.n + gIndex; i++)
+				g[i] = groupIndex;
+
+			gIndex += srg.n;
+			groupIndex++;
+		}
+	}
+
+
 	//--------------------------------------------------------
 
     VectorXd maf = simulateMinorAlleleFrequency(nsnp, lowerMAF, upperMAF);
@@ -111,10 +140,13 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 		mafco = rep(mafco_5, loopno)
 	*/
 
-	std::cout << "Simulating sample data\n";
+	printInfo("Simulating population data.");
 
 	MatrixXd Xpop = simulatePopulationX(npop, ncase_pop, oddsRatio, maf);
 	VectorXd Ypop = simulatePopulationY(npop, ncase_pop);
+
+	printInfo("Simulating sample data.");
+
 	MatrixXd x = sampleX(Xpop, nsamp, ncase, ncase_pop);
 	VectorXd y = sampleY(Ypop, nsamp, ncase, ncase_pop);
 
@@ -123,18 +155,12 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 
 	for (int i = 0; i < EG.cols(); i++) {
 
-		if (i % 100 == 0) {
-			std::cout << "Simulating SNP ";
-			std::cout << i;
-			std::cout << "/";
-			std::cout << EG.cols();
-			std::cout << "\n";
-		}
+		if (i % 100 == 0)
+			printInfo("Simulating SNP " + std::to_string(i) + "/" + std::to_string(EG.cols()) + ".");
 
-		std::vector<VectorXd> tmp = generateSeqData(x.col(i), y, g, group, me, sde);
-		EG.col(i) = tmp[0];
-		p.row(i) = tmp[1];
-
+		std::vector<VectorXd> results = generateSeqData(x.col(i), y, g, group, me, sde);
+		EG.col(i) = results[0];
+		p.row(i) = results[1];
 	}
 	
 	X = EG;

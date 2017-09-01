@@ -145,14 +145,14 @@ void validateSimulationRequest(SimulationRequest request) {
 			std::to_string(request.prevalence) +
 			") should be a value between 0 and 1.");
 
-	if (request.lowerMAF > 1)
+	if (request.lowerMAF > 0.5)
 		throw std::domain_error("MAF lower bound (value given: " +
 			std::to_string(request.lowerMAF) +
-			") should be a value between 0 and 1.");
-	if (request.upperMAF > 1)
+			") should be a value between 0 and 0.5.");
+	if (request.upperMAF > 0.5)
 		throw std::domain_error("MAF upper bound (value given: " +
 			std::to_string(request.upperMAF) +
-			") should be a value between 0 and 1.");
+			") should be a value between 0 and 0.5.");
 
 	if (request.lowerMAF > request.upperMAF)
 		throw std::domain_error("MAF lower bound (value given: " +
@@ -233,12 +233,20 @@ void startSimulation(SimulationRequest req) {
 }
 
 
+SimulationRequest testSimulationRequest() {
+	std::vector<SimulationRequestGroup> groups;
+	groups.push_back(newSimulationRequestGroup(0, "300", "control", "low", "10", "5"));
+	groups.push_back(newSimulationRequestGroup(0, "200", "case", "high", "40", "7"));
+	groups.push_back(newSimulationRequestGroup(0, "100", "control", "high", "50", "6"));
 
-int startTest() {
+	return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", "0.5", groups);
+}
+
+int main() {
 
 	//TODO: take as input from command line
 	//---------------------------------------
-	bool simulation = false;
+	bool simulation = true;
 	bool common = true;
 	
 	int highLowCutOff = 30;
@@ -268,7 +276,7 @@ int startTest() {
 	std::vector<std::vector<int>> interval;
 
 	if (simulation) {
-
+		simulate(testSimulationRequest(), X, Y, G, readGroup, P);
 	}
 	else {
 		bool valid = parseAndFilter(vcfDir, infoDir, bedDir, 

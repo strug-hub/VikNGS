@@ -1,6 +1,15 @@
 #include "../RVS.h"
 #include "Simulation.h"
 
+/*
+Produces a vector of simulated minor allele frequencies (uniformly random between min and max).
+
+@param nsnp Number of MAF to produce.
+@param min Minimum value for MAF.
+@param max Maximum value for MAF.
+
+@return Vector of minor allele frequencies.
+*/
 VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max) {
 	VectorXd maf(nsnp);
 
@@ -23,6 +32,16 @@ double inline generateGenotype(double prob_y, double prob_x0, double prob_x1) {
 		return 0;
 }
 
+/*
+Produces a matrix of expected genotypes for the population using minor allele frequency and odds ratio.
+
+@param npop Number of individuals in the population.
+@param ncase Number of affected individuals in the population.
+@param oddsRatio Odds ratio of being affected given harmful variant.
+@param Vector of minor allele frequencies for each variant.
+
+@return Matrix of population expected genotypes.
+*/
 MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf) {
 	int nsnp = maf.size();
 	MatrixXd X(npop, nsnp);
@@ -53,6 +72,14 @@ MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf
 	return X;
 }
 
+/*
+Produces a vector of case/control status for the population.
+
+@param npop Number of individuals in the population.
+@param ncase Number of affected individuals in the population.
+
+@return Vector of population case/control status.
+*/
 VectorXd simulatePopulationY(int npop, int ncase) {
 	VectorXd Y(npop);
 
@@ -66,15 +93,25 @@ VectorXd simulatePopulationY(int npop, int ncase) {
 	return Y;
 }
 
-
 VectorXd sampleY(VectorXd Y, int nsamp, int ncase, int ncase_pop) {
 	return simulatePopulationY(nsamp, ncase);
 }
 
+/*
+Produces a matrix of expected genotypes for samples.
+
+@param X Matrix of expected genotypes from the population.
+@param nsamp Number of individuals in the sample.
+@param ncase Number of affected individuals in the sample.
+@param ncase_pop Number of affected individuals in the population.
+
+@return Matrix of sample expected genotypes.
+*/
 MatrixXd sampleX(MatrixXd X, int nsamp, int ncase, int ncase_pop) {
 	VectorXi indices;
 	int rows = X.rows();
 	int cols = X.cols();
+
 	//randomize cases
 	MatrixXd Xcase = X.block(0, 0, ncase_pop, cols);
 	indices = VectorXi::LinSpaced(ncase_pop, 0, ncase_pop);
@@ -97,8 +134,16 @@ MatrixXd sampleX(MatrixXd X, int nsamp, int ncase, int ncase_pop) {
 	return x;
 }
 
+/*
+Produces a vector of characters representing the called bases given a
+true genotype, read depth and sequencing platform error rate.
 
+@param trueGenotype The base corresponding to the true genotype.
+@param error Vector holding probability of error for each read.
+@param readDepth Number of reads.
 
+@return Vector of called bases.
+*/
 std::vector<char> baseCall(std::vector<char> trueGenotype, VectorXd error, int readDepth) {
 	
 	if (error.size() != readDepth) {
@@ -142,7 +187,17 @@ std::vector<char> baseCall(std::vector<char> trueGenotype, VectorXd error, int r
 	return bases;
 }
 
+/*
+Produces a vector of 3 probabilities as follows:
+0: probability of calling every base in bases in a homozygote individual (2 major alleles).
+1: probability of calling every base in bases in a heterzygote individual (1 minor allele).
+2: probability of calling every base in bases in a homozygote individual (2 minor alleles).
 
+@param bases Vector of called bases.
+@param error Vector holding probability of error for each read.
+
+@return Vector of 3 probabilities.
+*/
 VectorXd calculateLikelihood(std::vector<char> &bases, VectorXd &error) {
 	
 	VectorXd ll(3);
@@ -158,7 +213,19 @@ VectorXd calculateLikelihood(std::vector<char> &bases, VectorXd &error) {
 	return ll;
 }
 
+/*
+Produces a matrix where each column has 3 probabilities as follows:
+0: probability of calling base in a homozygote individual (2 major alleles).
+1: probability of calling base in a heterzygote individual (1 minor allele).
+2: probability of calling base in a homozygote individual (2 minor alleles).
 
+Each row of the vector is a base call cooresponding to a different read.
+
+@param bases Vector of called bases.
+@param error Vector holding probability of error for each read.
+
+@return nx3 matrix of probabilities (n = read depth).
+*/
 MatrixXd calculateLikelihood2(std::vector<char> &bases, VectorXd &error) {
 	MatrixXd ll(bases.size(), 3);
 
@@ -171,6 +238,16 @@ MatrixXd calculateLikelihood2(std::vector<char> &bases, VectorXd &error) {
 	return ll;
 }
 
+/*
+Calculates the probability of calling a base given the true genotype and base call error rate.
+
+@param base Called base.
+@param true1 True base 1.
+@param true2 True base 2 (same as true1 = homozygote, different = heterozygote).
+@param error Probability of a base call error.
+
+@return Probability of calling base.
+*/
 double pSingle(char base, char true1, char true2, double error) {
 	
 	double p1, p2;
@@ -188,6 +265,12 @@ double pSingle(char base, char true1, char true2, double error) {
 	return 0.5 * p1 + 0.5 * p2;
 }
 
+/*
+Uses EM algorithm to estimate the genotype frequencies in the sample.
+
+@param  M A vector with genotype likelihoods (calculated by function calculateLikelihood).
+@return A vector with probability of 0, 1 or 2 minor alleles.
+*/
 VectorXd calcEM(MatrixXd M) {
 
 	double p = 0.15;
@@ -225,6 +308,14 @@ VectorXd calcEM(MatrixXd M) {
 	return freq;
 }
 
+/*
+Generates the expected probabilities of the genotypes E(G_ij | D_ij).
+
+@param  M A vector with genotype likelihoods (calculated by function calculateLikelihood2).
+@param  p Population frequency (calculated by function calcEM).
+
+@return Vector of expected genotypes.
+*/
 VectorXd calculateExpectedGenotypes(std::vector<MatrixXd> M, VectorXd p){
 		
 	VectorXd m(3);
