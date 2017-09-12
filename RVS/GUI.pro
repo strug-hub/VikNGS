@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
+QT += core gui
+QT += printsupport
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = GUI
@@ -51,7 +51,9 @@ SOURCES += \
     RVS.cpp \
     StatisticsHelper.cpp \
     stdafx.cpp \
-    VectorHelper.cpp
+    VectorHelper.cpp \
+    Output/OutputHandler.cpp \
+    Output/qcustomplot.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -265,7 +267,8 @@ HEADERS += \
     resource.h \
     RVS.h \
     stdafx.h \
-    targetver.h
+    targetver.h \
+    Output/qcustomplot.h
 
 FORMS += \
         mainwindow.ui

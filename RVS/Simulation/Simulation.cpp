@@ -63,7 +63,7 @@ Simulates a dataset which can be used for an association test.
 */
 void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P) {
 
-	printInfo("Setting up simulation paramters.");
+	printInfo("Setting up simulation parameters.");
 
     int npop = req.npop;
     double prevalence = req.prevalence;
@@ -153,9 +153,11 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 	MatrixXd EG(nsamp, nsnp);
 	MatrixXd p(nsnp, 3);
 
+	int tenth = std::max(nsnp / 10, 1);
+
 	for (int i = 0; i < EG.cols(); i++) {
 
-		if (i % 100 == 0)
+		if (i % tenth == 0)
 			printInfo("Simulating SNP " + std::to_string(i) + "/" + std::to_string(EG.cols()) + ".");
 
 		std::vector<VectorXd> results = generateSeqData(x.col(i), y, g, group, me, sde);

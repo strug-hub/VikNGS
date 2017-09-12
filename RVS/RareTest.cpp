@@ -94,9 +94,9 @@ std::vector<double> rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs
 //0.667967        0.940141
 //next 5
 std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs) {
+	int nboot, int collapseNumber, bool rvs) {
 
-	int i, j, l;
+	int i, j, h;
 	std::vector<std::vector<double>> pvals;
 
 	std::vector<MatrixXd> x;
@@ -115,25 +115,28 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd 
 
 	std::vector<RareTestObject> t;
 
-	for (i = 0; i < 5; i++) {
-		std::vector<VectorXd> x_i;
-		for (j = 0; j < ngroups; j++) 
-			x_i.push_back(x[j].col(i));
+	for (h = 0; h < X.cols(); h+=collapseNumber) {
+		for (i = 0; i < collapseNumber; i++) {
+			std::vector<VectorXd> x_i;
+			for (j = 0; j < ngroups; j++)
+				x_i.push_back(x[j].col(i));
 
-		VectorXd X_i = X.col(i);
-		VectorXd P_i = P.row(i);
-		RareTestObject t_i(X_i, Y, Z, x_i, y, z, rd, P_i);
-		t.push_back(t_i);
+			VectorXd X_i = X.col(i);
+			VectorXd P_i = P.row(i);
+			RareTestObject t_i(X_i, Y, Z, x_i, y, z, rd, P_i);
+			t.push_back(t_i);
+		}
+
+		pvals.push_back(rareTest(t, nboot, rvs));
 	}
-	
-	pvals.push_back(rareTest(t, nboot, rvs));
+
 	return pvals;
 }
 
-std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs) {
+std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P, 
+	int nboot, int collapseNumber, bool rvs) {
 
-	int i, j, l;
+	int i, j, h;
 	std::vector<std::vector<double>> pvals;
 
 	std::vector<MatrixXd> x;
@@ -150,18 +153,21 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd 
 
 	std::vector<RareTestObject> t;
 
-	for (i = 0; i < 5; i++) {
-		std::vector<VectorXd> x_i;
-		for (j = 0; j < ngroups; j++)
-			x_i.push_back(x[j].col(i));
+	for (h = 0; h < X.cols(); h += collapseNumber) {
 
-		VectorXd X_i = X.col(i);
-		VectorXd P_i = P.row(i);
-		RareTestObject t_i(x_i, y, rd, P_i);
-		t.push_back(t_i);
+		for (i = 0; i < collapseNumber; i++) {
+			std::vector<VectorXd> x_i;
+			for (j = 0; j < ngroups; j++)
+				x_i.push_back(x[j].col(i));
+
+			VectorXd X_i = X.col(i);
+			VectorXd P_i = P.row(i);
+			RareTestObject t_i(x_i, y, rd, P_i);
+			t.push_back(t_i);
+		}
+
+		pvals.push_back(rareTest(t, nboot, rvs));
+
 	}
-
-	pvals.push_back(rareTest(t, nboot, rvs));
 	return pvals;
 }
-

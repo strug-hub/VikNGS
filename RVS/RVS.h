@@ -40,7 +40,6 @@ struct SimulationRequest {
 	double prevalence; //A decimal between[0, 1], prevalence rate of the disease.
 
 	int nsnp;  //Integer.The number of variants or bases.
-
 	double me; //The mean error rate of sequencing.
 	double sde;  //The standard deviation for the error rate.
 
@@ -50,6 +49,10 @@ struct SimulationRequest {
 
 	std::vector<SimulationRequestGroup> groups;
 
+	bool useCommonTest;
+	bool useBootstrap;
+	int nboot;
+
 	//for debugging
 	void print() {
 		std::cout << "npop = " + std::to_string(npop) + "\n";
@@ -57,9 +60,9 @@ struct SimulationRequest {
 		std::cout << "nsnp = " + std::to_string(nsnp) + "\n";
 		std::cout << "me = " + std::to_string(me) + "\n";
 		std::cout << "sde = " + std::to_string(sde) + "\n";
-		std::cout << "oddsRatio = " + std::to_string(npop) + "\n";
-		std::cout << "upperMAF = " + std::to_string(npop) + "\n";
-		std::cout << "lowerMAF = " + std::to_string(npop) + "\n";
+		std::cout << "oddsRatio = " + std::to_string(oddsRatio) + "\n";
+		std::cout << "upperMAF = " + std::to_string(upperMAF) + "\n";
+		std::cout << "lowerMAF = " + std::to_string(lowerMAF) + "\n";
 
 		for (int i = 0; i < groups.size(); i++) {
 			std::cout << "group " + std::to_string(i) + ":\n";
@@ -68,21 +71,51 @@ struct SimulationRequest {
 	}
 };
 
+struct Request {
+
+	///input files
+	std::string vcfDir;
+	std::string sampleDir;
+	std::string bedDir = "";
+
+	int highLowCutOff;
+	bool collapseCoding;
+	bool collapseExon;
+
+	//filtering paramaters
+	double mafCutoff;
+	double missingThreshold;
+	bool onlySNPs;
+	bool mustPASS;
+
+	std::string outputDir;
+
+	bool useCommonTest;
+	bool useBootstrap;
+	int nboot;
+
+};
 
 
 //========================================================
 // functions
 //========================================================
 
+Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,
+	std::string highLowCutOff, bool collapseCoding, bool collapseExon,
+	std::string mafCutoff, std::string missingThreshold, bool onlySNPs, bool mustPASS,
+	bool useCommonTest, bool useBootstrap, std::string nboot);
+
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
-	 std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups);
+	 std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups,
+	bool useCommonTest, bool useBootstrap, std::string nboot);
 
 SimulationRequestGroup newSimulationRequestGroup(int groupID, std::string n, std::string isCase,
 	std::string isHrg, std::string meanDepth, std::string sdDepth);
 
-void startSimulation (SimulationRequest req);
-
+std::vector<std::vector<double>> startSimulation (SimulationRequest req);
+std::vector<std::vector<double>> startVikNGS(Request req);
 
 //VCFParser.cpp
 bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, 
@@ -90,7 +123,6 @@ bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir,
 	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
 	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval);
-
 
 //VectorHelper.cpp
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);
@@ -124,9 +156,9 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::ma
 
 //RareTest.cpp
 std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs = true);
+	int nboot, int collapseNumber = 5, bool rvs = true);
 std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs = true);
+	int nboot, int collapseNumber = 5, bool rvs = true);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
@@ -134,8 +166,8 @@ double qfc(std::vector<double>, double, int);
 //Simulation.cpp
 void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 
-
-
+//OutputHandler.cpp
+void outputPvals(std::vector<std::vector<double>> pvalues, std::string outputDir);
 
 //========================================================
 // timing functions

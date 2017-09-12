@@ -21,6 +21,7 @@ VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max) {
 
 double inline generateGenotype(double prob_y, double prob_x0, double prob_x1) {
 
+	//rob(x=0, y=1) + prob(x=1, y=1) + prob(x=2, y=1) = prob(y=1)
 	double rand = randomDouble(0, prob_y);
 
 	if (rand > prob_x0)
@@ -33,7 +34,7 @@ double inline generateGenotype(double prob_y, double prob_x0, double prob_x1) {
 }
 
 /*
-Produces a matrix of expected genotypes for the population using minor allele frequency and odds ratio.
+Produces a matrix of genotypes for the population using minor allele frequency and odds ratio.
 
 @param npop Number of individuals in the population.
 @param ncase Number of affected individuals in the population.
@@ -65,8 +66,12 @@ MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf
 		double p_x0_y1 = odds_y1_x0 * p_x0_y0;
 		double p_x1_y1 = odds_y1_x0 * oddsRatio * p_x1_y0;
 
+
 		for (int j = 0; j < npop; j++) 
-			X(j, i) = generateGenotype(p_y1, p_x0_y1, p_x1_y1);
+			if(j <= ncase )
+				X(j, i) = generateGenotype(p_y1, p_x0_y1, p_x1_y1);
+			else
+				X(j, i) = generateGenotype(p_y0, p_x0_y0, p_x1_y0);
 	}
 
 	return X;

@@ -164,6 +164,14 @@ void validateSimulationRequest(SimulationRequest request) {
 		throw std::domain_error("Simulation requires at least two groups (" +
 			std::to_string(request.groups.size()) + " given).");
 
+	if (!request.useCommonTest && request.nsnp < 5)
+		throw std::domain_error("Rare test requires number of variants to be at least 5 (value given: " +
+			std::to_string(request.nsnp) + ").");
+
+	if (request.useBootstrap && request.nboot < 1)
+		throw std::domain_error("Nuber of bootstrap iterations should be at least 1 (value given: " +
+			std::to_string(request.nboot) + ").");
+
 	int ncase = 0;
 	int ncontrol = 0;
 	for (SimulationRequestGroup g : request.groups) {
@@ -183,10 +191,50 @@ void validateSimulationRequest(SimulationRequest request) {
 
 }
 
+void validateRequest(Request request) {
+	//TODO
+}
+
+Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,
+	std::string highLowCutOff, bool collapseCoding, bool collapseExon,
+	std::string mafCutoff, std::string missingThreshold, bool onlySNPs, bool mustPASS,
+	bool useCommonTest, bool useBootstrap, std::string nboot) {
+
+	Request request;
+
+	request.vcfDir = vcfDir;
+	request.sampleDir = sampleDir;
+	request.bedDir = bedDir;
+	request.collapseCoding = collapseCoding;
+	request.collapseExon = collapseExon;
+	request.onlySNPs = onlySNPs;
+	request.mustPASS = mustPASS;
+	request.useCommonTest = useCommonTest;
+	request.useBootstrap = useBootstrap;
+
+
+	try { request.highLowCutOff = std::abs(std::stoi(highLowCutOff)); }
+	catch (...) { throw std::invalid_argument("read depth threshold,integer"); }
+	try { request.mafCutoff = std::abs(std::stod(mafCutoff)); }
+	catch (...) { throw std::invalid_argument("MAF cutoff,decimal"); }
+	try { request.missingThreshold = std::abs(std::stod(missingThreshold)); }
+	catch (...) { throw std::invalid_argument("missing threshold,decimal"); }
+
+	if (useBootstrap) {
+		try { request.nboot = std::abs(std::stoi(nboot)); }
+		catch (...) { throw std::invalid_argument("# bootstrap iterations,integer"); }
+	}
+
+	try { validateRequest(request); }
+	catch (...) { throw; }
+
+	return request;
+}
 
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
-	std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups) {
+	std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups,
+	bool useCommonTest, bool useBootstrap, std::string nboot) {
 
 	SimulationRequest request;
 
@@ -207,6 +255,14 @@ SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	try { request.lowerMAF = std::abs(std::stod(lowerMAF)); }
 	catch (...) { throw std::invalid_argument("MAF lower bound,decimal"); }
 
+	request.useCommonTest = useCommonTest;
+	request.useBootstrap = useBootstrap;
+
+	if (useBootstrap) {
+		try { request.nboot = std::abs(std::stoi(nboot)); }
+		catch (...) { throw std::invalid_argument("# bootstrap iterations,integer"); }
+	}
+
 	request.groups = groups;
 
 	try { validateSimulationRequest(request); }
@@ -215,23 +271,91 @@ SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	return request;
 }
 
-
-void startSimulation(SimulationRequest req) {
+std::vector<std::vector<double>> startVikNGS(Request req) {
 
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
-	
-    simulate(req, X, Y, G, readGroup, P);
+	std::vector<std::vector<int>> interval;
 
-    //std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
-    //std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000, true);
+	bool valid = parseAndFilter(req.vcfDir, req.sampleDir, req.bedDir,
+		req.highLowCutOff, req.collapseCoding, req.collapseExon,
+		req.missingThreshold, req.onlySNPs, req.mustPASS, req.mafCutoff, req.useCommonTest,
+		X, Y, Z, G, readGroup, P, interval);
 
-   // std::cout << "Common Test p-values\n";
-   // for (size_t i = 0; i < pvals.size(); i++) {
-   //     std::cout << pvals[i];
-    //    std::cout << '\n';
+	bool useCovariates = Z.rows() > 0;
+
+	std::vector<std::vector<double>> pvals;
+
+
+	if (!valid) {
+		//TODO 
+		return pvals;
+	}
+
+	if (req.useCommonTest) {
+
+		std::vector<double> pval;
+
+		if (req.useBootstrap && useCovariates)
+			pval = runCommonTest(X, Y, Z, G, readGroup, P, req.nboot);
+		else if(req.useBootstrap && !useCovariates)
+			pval = runCommonTest(X, Y, G, readGroup, P, req.nboot);
+		else if (!req.useBootstrap && useCovariates)
+			pval = runCommonTest(X, Y, Z, G, readGroup, P);
+		else
+			pval = runCommonTest(X, Y, G, readGroup, P);
+
+		for (int i = 0; i < pval.size(); i++) {
+			std::vector<double> p;
+			p.push_back(pval[i]);
+			pvals.push_back(p);
+		}
+	}
+	else {
+		if (useCovariates)
+			pvals = runRareTest(X, Y, Z, G, readGroup, P, req.nboot);
+		else
+			pvals = runRareTest(X, Y, G, readGroup, P, req.nboot);
+	}
+
+	std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
+	outputPvals(pvals, outputDir);
+
+	return pvals;
 }
 
+std::vector<std::vector<double>> startSimulation(SimulationRequest req) {
+
+	VectorXd Y, G; MatrixXd X, P;
+	std::map<int, int> readGroup;
+
+	simulate(req, X, Y, G, readGroup, P);
+
+	std::vector<std::vector<double>> pvals;
+
+	if (req.useCommonTest){
+		
+		std::vector<double> pval;
+
+		if(req.useBootstrap)
+			pval = runCommonTest(X, Y, G, readGroup, P, req.nboot);
+		else
+			pval = runCommonTest(X, Y, G, readGroup, P);
+
+		for (int i = 0; i < pval.size(); i++) {
+			std::vector<double> p;
+			p.push_back(pval[i]);
+			pvals.push_back(p);
+		}
+	}
+	else
+		pvals = runRareTest(X, Y, G, readGroup, P, req.nboot);
+
+    std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
+    outputPvals(pvals, outputDir);
+
+    return pvals;
+}
 
 SimulationRequest testSimulationRequest() {
 	std::vector<SimulationRequestGroup> groups;
@@ -239,89 +363,102 @@ SimulationRequest testSimulationRequest() {
 	groups.push_back(newSimulationRequestGroup(0, "200", "case", "high", "40", "7"));
 	groups.push_back(newSimulationRequestGroup(0, "100", "control", "high", "50", "6"));
 
-	return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", "0.5", groups);
+	return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", "0.5", groups, true, false, 0);
 }
 
+/*
 int main() {
 
-	//TODO: take as input from command line
-	//---------------------------------------
-	bool simulation = true;
-	bool common = true;
-	
-	int highLowCutOff = 30;
-	bool collapseCoding = false;
-	bool collapseExon = true;
+    //TODO: take as input from command line
+    //---------------------------------------
+    bool simulation = true;
+    bool common = true;
 
-	//filtering paramaters
-	double mafCutoff = 0.05;
-	double missingThreshold = 0.2;
-	bool onlySNPs = true;
-	bool mustPASS = true;
+    int highLowCutOff = 30;
+    bool collapseCoding = false;
+    bool collapseExon = true;
 
-	bool rvs = true;
+    //filtering paramaters
+    double mafCutoff = 0.05;
+    double missingThreshold = 0.2;
+    bool onlySNPs = true;
+    bool mustPASS = true;
 
-	///input files
-	std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
-	std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
-	//std::string bedDir = "";
-	std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
-	//---------------------------------------
+    bool rvs = true;
 
-	//TODO: check to see if file can be opened when another application is using it (excel)
-	//TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
+    ///input files
+    std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
+    std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+    //std::string bedDir = "";
+    std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 
-	VectorXd Y, G; MatrixXd X, Z, P;
-	std::map<int, int> readGroup;
-	std::vector<std::vector<int>> interval;
+    std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
 
-	if (simulation) {
-		simulate(testSimulationRequest(), X, Y, G, readGroup, P);
-	}
-	else {
-		bool valid = parseAndFilter(vcfDir, infoDir, bedDir, 
-			highLowCutOff, collapseCoding, collapseExon,
-			missingThreshold, onlySNPs, mustPASS, mafCutoff, common,
-			X, Y, Z, G, readGroup, P, interval);
-		if (!valid) {
-			return 0;
-		}
+    //---------------------------------------
 
+    //TODO: check to see if file can be opened when another application is using it (excel)
+    //TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
-		//generateForR(X, Y, Z, G, P, readGroup);
+    VectorXd Y, G; MatrixXd X, Z, P;
+    std::map<int, int> readGroup;
+    std::vector<std::vector<int>> interval;
 
-		if (common) {
-			//std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
-			std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
-			//std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
+    if (simulation) {
+        simulate(testSimulationRequest(), X, Y, G, readGroup, P);
+        std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
 
+        std::cout << "Common Test p-values\n";
+        for (size_t i = 0; i < pvals.size(); i++) {
+            std::cout << pvals[i];
+            std::cout << '\n';
+        }
 
-			std::cout << "Common Test p-values\n";
-			for (size_t i = 0; i < pvals.size(); i++) {
-				std::cout << pvals[i];
-				std::cout << '\n';
-			}
-		}
-		else {
-
-			std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
-			//std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
-
-			std::cout << "Rare Test p-values\n";
-			std::cout << pval[0][0];
-			std::cout << '\t';
-			std::cout << pval[0][1];
-
-		}
-	}
+        outputPvals(pvals, outputDir);
+    }
+    else {
+        bool valid = parseAndFilter(vcfDir, infoDir, bedDir,
+            highLowCutOff, collapseCoding, collapseExon,
+            missingThreshold, onlySNPs, mustPASS, mafCutoff, common,
+            X, Y, Z, G, readGroup, P, interval);
+        if (!valid) {
+            return 0;
+        }
 
 
-	//keep console open while debugging
-	//TODO: be sure to remove eventually!
-	std::cout << "\ndone...>";
+        //generateForR(X, Y, Z, G, P, readGroup);
 
-	while (true) {}
-	return 0;
+        if (common) {
+            //std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
+            std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+            //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
+
+
+            std::cout << "Common Test p-values\n";
+            for (size_t i = 0; i < pvals.size(); i++) {
+                std::cout << pvals[i];
+                std::cout << '\n';
+            }
+        }
+        else {
+
+            std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
+            //std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
+
+            std::cout << "Rare Test p-values\n";
+            std::cout << pval[0][0];
+            std::cout << '\t';
+            std::cout << pval[0][1];
+
+        }
+    }
+
+
+    //keep console open while debugging
+    //TODO: be sure to remove eventually!
+    std::cout << "\ndone...>";
+
+    while (true) {}
+    return 0;
 }
 
-
+*/

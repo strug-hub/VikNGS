@@ -95,7 +95,10 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorX
 	for (i = 0; i < ngroups; i++) {
 		x.push_back(extractRows(X, G, i));
 		y.push_back(extractRows(Y, G, i));
-		z.push_back(extractRows(Z, G, i));
+
+		if(Z.rows() > 0 && Z.cols() > 0)
+			z.push_back(extractRows(Z, G, i));
+
 		rd.push_back(readGroup[i]);
 	}
 

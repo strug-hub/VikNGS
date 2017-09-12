@@ -371,6 +371,7 @@
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
     <ClInclude Include="CommonTestObject.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="Output\qcustomplot.h" />
     <ClInclude Include="Parser\InputParser.h" />
     <ClInclude Include="RareTestObject.h" />
     <ClInclude Include="resource.h" />
@@ -381,6 +382,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Output\OutputHandler.cpp" />
+    <ClCompile Include="Output\qcustomplot.cpp" />
     <ClCompile Include="Parser\BEDParser.cpp" />
     <ClCompile Include="CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
