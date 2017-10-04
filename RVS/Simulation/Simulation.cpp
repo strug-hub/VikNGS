@@ -77,8 +77,7 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
     double sde = req.sde;
 
     double oddsRatio = req.oddsRatio;
-    double upperMAF = req.upperMAF;
-    double lowerMAF = req.lowerMAF;
+    double maf = req.maf;
 
 
 	//take in # groups, high/low status vector and number per group (must sum to nsamp) and mean, sd
@@ -130,7 +129,8 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 
 	//--------------------------------------------------------
 
-    VectorXd maf = simulateMinorAlleleFrequency(nsnp, lowerMAF, upperMAF);
+
+    VectorXd mafs = simulateMinorAlleleFrequency(nsnp, maf, maf);
 	//todo:?
 	/* or we can determine the minor allele frequency fixed for each collapeed SNPs(5 SNPs in the current setting)
 		njoint = 5
@@ -142,7 +142,7 @@ void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std:
 
 	printInfo("Simulating population data.");
 
-	MatrixXd Xpop = simulatePopulationX(npop, ncase_pop, oddsRatio, maf);
+	MatrixXd Xpop = simulatePopulationX(npop, ncase_pop, oddsRatio, mafs);
 	VectorXd Ypop = simulatePopulationY(npop, ncase_pop);
 
 	printInfo("Simulating sample data.");

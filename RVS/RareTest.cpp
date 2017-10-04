@@ -2,7 +2,7 @@
 #include "RVS.h"
 #include "RareTestObject.h"
 
-std::vector<double> getTestStatistics(std::vector<RareTestObject> &t, bool rvs) {
+double getTestStatistic(std::vector<RareTestObject> &t, bool rvs, std::string test) {
 	int nsnp = t.size();
 	int i, j;
 
@@ -49,55 +49,54 @@ std::vector<double> getTestStatistics(std::vector<RareTestObject> &t, bool rvs) 
 	VectorXd e = diagS.eigenvalues().real();
 	std::vector<double> eigenvals(e.data(), e.data() + e.size());
 
-	//CAST -> linear test
-	double cast = pnorm(score.sum() / sqrt(diagS.sum()));
-	//C-alpha -> quadratic test
-	double calpha = qfc(eigenvals, score.array().pow(2).sum(), score.rows());
+	double tstat = 0;
 
-	return{ cast, calpha };
+	//CAST -> linear test
+	if(test == "cast")
+		tstat = pnorm(score.sum() / sqrt(diagS.sum()));
+	//C-alpha -> quadratic test
+	else if(test == "calpha")
+		tstat = qfc(eigenvals, score.array().pow(2).sum(), score.rows());
+
+	return tstat;
 }
 
-std::vector<double> rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs) {
+double rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs, std::string test) {
 	int i, j, h;
 	int nsnp = t.size();
 
-	std::vector<double> tobs = getTestStatistics(t, rvs);
-	double linearObs = tobs[0];
-	double quadObs = tobs[1];
+	double tobs = getTestStatistic(t, rvs, test);
 
 	//start bootstrapping!
 
 	double bootCount = 0;
-	double linearCount = 0;
-	double quadCount = 0;
-	std::vector<double> tsamp;
+	double count = 0;
+	double tsamp;
 
 	for (h = 0; h < nboot; h++) {
 		for (i = 0; i < nsnp; i++)
 			t[i].bootstrap();
 
-		tsamp = getTestStatistics(t, false);
+		tsamp = getTestStatistic(t, false, test);
 
-		if (tsamp[0] <= linearObs)
-			linearCount++;
-		if (tsamp[1] <= quadObs)
-			quadCount++;
+		if (tsamp <= tobs)
+			count++;
 
 		bootCount++;
 	}
 
-	return{ (linearCount + 1) / (bootCount + 1), (quadCount + 1) / (bootCount + 1) };
+	return{ (count + 1) / (bootCount + 1)};
 }
 
 //0.00153997      0.0362593
 //first 5
 //0.667967        0.940141
 //next 5
-std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, int collapseNumber, bool rvs) {
+std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
+	int nboot, std::string test, int collapseNumber, bool rvs) {
 
 	int i, j, h;
-	std::vector<std::vector<double>> pvals;
+	std::vector<double> pvals;
 
 	std::vector<MatrixXd> x;
 	std::vector<VectorXd> y;
@@ -127,17 +126,17 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd 
 			t.push_back(t_i);
 		}
 
-		pvals.push_back(rareTest(t, nboot, rvs));
+        pvals.push_back(rareTest(t, nboot, rvs, test));
 	}
 
 	return pvals;
 }
 
-std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P, 
-	int nboot, int collapseNumber, bool rvs) {
+std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P, 
+	int nboot, std::string test, int collapseNumber, bool rvs) {
 
 	int i, j, h;
-	std::vector<std::vector<double>> pvals;
+	std::vector<double> pvals;
 
 	std::vector<MatrixXd> x;
 	std::vector<VectorXd> y;
@@ -166,7 +165,7 @@ std::vector<std::vector<double>> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd 
 			t.push_back(t_i);
 		}
 
-		pvals.push_back(rareTest(t, nboot, rvs));
+        pvals.push_back(rareTest(t, nboot, rvs, test));
 
 	}
 	return pvals;

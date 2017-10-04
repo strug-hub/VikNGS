@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>919</width>
-    <height>507</height>
+    <height>531</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,201 +27,143 @@
        <attribute name="title">
         <string>Association Test</string>
        </attribute>
-       <widget class="QGroupBox" name="inputGroup">
+       <widget class="QGroupBox" name="main_vcfGrp">
         <property name="geometry">
          <rect>
           <x>10</x>
           <y>0</y>
-          <width>261</width>
-          <height>147</height>
+          <width>351</width>
+          <height>131</height>
          </rect>
         </property>
         <property name="title">
-         <string>Input</string>
+         <string>Multisample VCF File</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="1" column="0">
-          <widget class="QLabel" name="vcfLabel">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Multisample VCF file</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLineEdit" name="vcfDir">
-           <property name="text">
-            <string>C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf</string>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPushButton" name="vcfBrowse">
-           <property name="maximumSize">
-            <size>
-             <width>20</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="sampleLabel">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Sample data file</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLineEdit" name="sampleDir">
-           <property name="text">
-            <string>C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt</string>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QPushButton" name="sampleBrowse">
-           <property name="maximumSize">
-            <size>
-             <width>20</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QLineEdit" name="bedDir">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QPushButton" name="sampleBrowse_2">
-           <property name="maximumSize">
-            <size>
-             <width>20</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="bedLabel">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>BED file (optional)</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QLineEdit" name="main_vcfDirTxt">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>281</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="main_vcfDirBtn">
+         <property name="geometry">
+          <rect>
+           <x>310</x>
+           <y>30</y>
+           <width>20</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="main_vcfPassChk">
+         <property name="geometry">
+          <rect>
+           <x>230</x>
+           <y>80</y>
+           <width>93</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Must PASS</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="main_vcfMafTxt">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>60</y>
+           <width>93</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>0.05</string>
+         </property>
+         <property name="placeholderText">
+          <string>0.05</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="main_vcfMafLbl">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>60</y>
+           <width>40</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>MAF Cutoff</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="main_vcfMissingLbl">
+         <property name="geometry">
+          <rect>
+           <x>120</x>
+           <y>90</y>
+           <width>64</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Missing Threshold</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="main_vcfMissingTxt">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>90</y>
+           <width>93</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>0.2</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="main_vcfChrLbl">
+         <property name="geometry">
+          <rect>
+           <x>240</x>
+           <y>100</y>
+           <width>64</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Chrom filter</string>
+         </property>
+        </widget>
        </widget>
-       <widget class="QGroupBox" name="filterGroup">
+       <widget class="QPushButton" name="main_runBtn">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>160</y>
-          <width>179</width>
-          <height>125</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>Filters</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="0" column="0">
-          <widget class="QLineEdit" name="mafCutOff">
-           <property name="text">
-            <string>0.05</string>
-           </property>
-           <property name="placeholderText">
-            <string>0.05</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="mafLabel">
-           <property name="text">
-            <string>MAF Cutoff</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="missingThreshold">
-           <property name="text">
-            <string>0.2</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1" colspan="2">
-          <widget class="QLabel" name="missingLabel">
-           <property name="text">
-            <string>Missing Threshold</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QLineEdit" name="highLowCutOff">
-           <property name="text">
-            <string>30</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="depthLabel">
-           <property name="text">
-            <string>Read Depth Threshold</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QCheckBox" name="mustPassChkBox">
-           <property name="text">
-            <string>Must PASS</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QPushButton" name="runButton">
-        <property name="geometry">
-         <rect>
-          <x>70</x>
-          <y>400</y>
+          <x>540</x>
+          <y>430</y>
           <width>80</width>
           <height>16</height>
          </rect>
@@ -230,24 +172,192 @@
          <string>RUN</string>
         </property>
        </widget>
-       <widget class="QGroupBox" name="mainTestGroup">
+       <widget class="QCustomPlot" name="main_plotBox" native="true">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>310</y>
-          <width>161</width>
-          <height>71</height>
+          <x>470</x>
+          <y>50</y>
+          <width>371</width>
+          <height>281</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="main_sampleGrp">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>130</y>
+          <width>351</width>
+          <height>101</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Sample Data File</string>
+        </property>
+        <widget class="QPushButton" name="main_sampleDirBtn">
+         <property name="geometry">
+          <rect>
+           <x>330</x>
+           <y>40</y>
+           <width>20</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="main_sampleDirTxt">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>34</y>
+           <width>311</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="main_sampleDepthTxt">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>70</y>
+           <width>51</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>30</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="main_sampleDepthLbl">
+         <property name="geometry">
+          <rect>
+           <x>70</x>
+           <y>70</y>
+           <width>141</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Read Depth High/Low Cutoff</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="main_bedGrp">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>240</y>
+          <width>341</width>
+          <height>131</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>BED file (optional)</string>
+        </property>
+        <widget class="QPushButton" name="main_bedDirBtn">
+         <property name="geometry">
+          <rect>
+           <x>240</x>
+           <y>30</y>
+           <width>20</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>20</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="main_bedDirTxt">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>30</y>
+           <width>219</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QGroupBox" name="main_bedCollapseGrp">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>60</y>
+           <width>201</width>
+           <height>47</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Collapse By</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QRadioButton" name="main_bedCollapseCodingBtn">
+            <property name="text">
+             <string>Coding only</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
+            <property name="text">
+             <string>Entire gene</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="main_bedCollapseExonBtn">
+            <property name="text">
+             <string>Exon only</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QGroupBox" name="main_testGrp">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>370</y>
+          <width>211</width>
+          <height>87</height>
          </rect>
         </property>
         <property name="title">
          <string>Test</string>
         </property>
-        <widget class="QRadioButton" name="mainCommonRdoButton">
+        <widget class="QRadioButton" name="main_testCommonBtn">
          <property name="geometry">
           <rect>
-           <x>9</x>
-           <y>22</y>
-           <width>51</width>
+           <x>10</x>
+           <y>20</y>
+           <width>70</width>
            <height>16</height>
           </rect>
          </property>
@@ -258,41 +368,28 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="mainRareRdoButton">
+        <widget class="QRadioButton" name="main_testRareCastBtn">
          <property name="geometry">
           <rect>
-           <x>9</x>
-           <y>46</y>
-           <width>36</width>
+           <x>10</x>
+           <y>40</y>
+           <width>70</width>
            <height>16</height>
           </rect>
          </property>
          <property name="text">
-          <string>Rare</string>
+          <string>Rare (CAST)</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="mainBootstrapChkBox">
-         <property name="geometry">
-          <rect>
-           <x>70</x>
-           <y>50</y>
-           <width>53</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Bootstrap</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="mainNBoot">
+        <widget class="QLineEdit" name="main_testBootTxt">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="geometry">
           <rect>
-           <x>70</x>
-           <y>20</y>
-           <width>31</width>
+           <x>84</x>
+           <y>43</y>
+           <width>74</width>
            <height>22</height>
           </rect>
          </property>
@@ -300,11 +397,24 @@
           <string>100</string>
          </property>
         </widget>
-        <widget class="QLabel" name="mainNBootLabel">
+        <widget class="QRadioButton" name="main_testRareCalphaBtn">
          <property name="geometry">
           <rect>
-           <x>110</x>
-           <y>20</y>
+           <x>10</x>
+           <y>60</y>
+           <width>70</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Rare (c-alpha)</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="main_testBootLbl">
+         <property name="geometry">
+          <rect>
+           <x>162</x>
+           <y>43</y>
            <width>41</width>
            <height>16</height>
           </rect>
@@ -313,185 +423,116 @@
           <string># iterations</string>
          </property>
         </widget>
-       </widget>
-       <widget class="QCustomPlot" name="mainPlotBox" native="true">
-        <property name="geometry">
-         <rect>
-          <x>360</x>
-          <y>20</y>
-          <width>481</width>
-          <height>381</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="exonCollapseRdoButton">
-        <property name="geometry">
-         <rect>
-          <x>290</x>
-          <y>110</y>
-          <width>63</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Exon only</string>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="codingCollapseRdoButton">
-        <property name="geometry">
-         <rect>
-          <x>290</x>
-          <y>130</y>
-          <width>63</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Coding only</string>
-        </property>
-       </widget>
-       <widget class="QRadioButton" name="geneCollapseRdoButton">
-        <property name="geometry">
-         <rect>
-          <x>290</x>
-          <y>90</y>
-          <width>63</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Entire gene</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="QSlider" name="mainBinSlider">
-        <property name="geometry">
-         <rect>
-          <x>370</x>
-          <y>420</y>
-          <width>160</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="value">
-         <number>10</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::NoTicks</enum>
-        </property>
-        <property name="tickInterval">
-         <number>0</number>
-        </property>
+        <widget class="QCheckBox" name="main_testBootChk">
+         <property name="geometry">
+          <rect>
+           <x>84</x>
+           <y>23</y>
+           <width>53</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Bootstrap</string>
+         </property>
+        </widget>
        </widget>
       </widget>
       <widget class="QWidget" name="simulatinTab">
        <attribute name="title">
-        <string>Power Simulation</string>
+        <string>Power Simulation (case/control)</string>
        </attribute>
-       <widget class="QGroupBox" name="populationGroup">
+       <widget class="QGroupBox" name="sim_populationGrp">
         <property name="geometry">
          <rect>
           <x>20</x>
           <y>10</y>
-          <width>135</width>
-          <height>111</height>
+          <width>121</width>
+          <height>79</height>
          </rect>
         </property>
         <property name="title">
-         <string>Population</string>
+         <string>Population Simulation</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_3">
+        <layout class="QGridLayout" name="gridLayout_7">
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="sim_populationSizeTxt">
+           <property name="text">
+            <string>1000</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="sim_populationSizeLbl">
+           <property name="toolTip">
+            <string>Size of population to simulate</string>
+           </property>
+           <property name="text">
+            <string>Size</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
-          <widget class="QLineEdit" name="prevelencePopulation">
+          <widget class="QLineEdit" name="sim_populationPrevalenceTxt">
            <property name="text">
             <string>0.2</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="prevalenceLabel">
+          <widget class="QLabel" name="sim_pouulationPrevalenceLbl">
+           <property name="toolTip">
+            <string>Prevalence of the disease in the simulated population</string>
+           </property>
            <property name="text">
             <string>Prevalence</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="NLabel">
-           <property name="text">
-            <string>N</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLineEdit" name="nPopulation">
-           <property name="text">
-            <string>100</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLineEdit" name="oddsRatio">
-           <property name="text">
-            <string>1.0</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLabel" name="oddsRatioLabel">
-           <property name="text">
-            <string>Odds Ratio</string>
-           </property>
-          </widget>
-         </item>
         </layout>
        </widget>
-       <widget class="QGroupBox" name="sequencingGroup">
+       <widget class="QGroupBox" name="sim_sequencingGrp">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>280</y>
-          <width>135</width>
+          <x>160</x>
+          <y>10</y>
+          <width>111</width>
           <height>79</height>
          </rect>
         </property>
         <property name="title">
          <string>Sequencing Parameters</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_5">
+        <layout class="QGridLayout" name="gridLayout_8">
          <item row="0" column="0">
-          <widget class="QLineEdit" name="meanErrorRate">
+          <widget class="QLineEdit" name="sim_sequencingErrorRateTxt">
            <property name="text">
             <string>0.01</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QLabel" name="meanErrorLabel">
+          <widget class="QLabel" name="sim_sequencingErrorRateLbl">
+           <property name="toolTip">
+            <string>Base calling error rate of sequencer</string>
+           </property>
            <property name="text">
             <string>Error Rate</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QLineEdit" name="errorSD">
+          <widget class="QLineEdit" name="sim_sequencingErrorSdTxt">
            <property name="text">
             <string>0.025</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="errorSDLabel">
+          <widget class="QLabel" name="sim_sequencingErrorSdLbl">
+           <property name="toolTip">
+            <string>Standard deviation of base calling error rate of sequencer</string>
+           </property>
            <property name="text">
             <string>Error SD</string>
            </property>
@@ -499,72 +540,92 @@
          </item>
         </layout>
        </widget>
-       <widget class="QGroupBox" name="mafGroup">
+       <widget class="QGroupBox" name="sim_variantGrp">
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>130</y>
-          <width>135</width>
-          <height>131</height>
+          <x>10</x>
+          <y>380</y>
+          <width>141</width>
+          <height>79</height>
          </rect>
         </property>
         <property name="title">
-         <string>Variants</string>
+         <string>Variant Parameters</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="1" column="1">
-          <widget class="QLabel" name="lowerBoundLabel">
-           <property name="text">
-            <string>MAF Lower Bound</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="mafLower">
-           <property name="text">
-            <string>0.1</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLineEdit" name="mafUpper">
-           <property name="text">
-            <string>0.5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLabel" name="upperBoundLabel">
-           <property name="text">
-            <string>MAF Upper Bound</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLineEdit" name="nSNP">
-           <property name="text">
-            <string>5</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="nsnpLabel_2">
-           <property name="text">
-            <string># of Variants</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QLineEdit" name="sim_variantSizeTxt">
+         <property name="geometry">
+          <rect>
+           <x>9</x>
+           <y>22</y>
+           <width>74</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>100</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="sim_variantMafLbl">
+         <property name="geometry">
+          <rect>
+           <x>87</x>
+           <y>48</y>
+           <width>16</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>Minor allele frequency</string>
+         </property>
+         <property name="text">
+          <string>MAF</string>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="sim_variantMafTxt">
+         <property name="geometry">
+          <rect>
+           <x>9</x>
+           <y>48</y>
+           <width>74</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>0.1</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="sim_variantSizeLbl">
+         <property name="geometry">
+          <rect>
+           <x>87</x>
+           <y>22</y>
+           <width>47</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="toolTip">
+          <string>Number of variants to test</string>
+         </property>
+         <property name="text">
+          <string># of Variants</string>
+         </property>
+        </widget>
        </widget>
-       <widget class="QTableWidget" name="groupTable">
+       <widget class="QTableWidget" name="sim_groupTbl">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="geometry">
          <rect>
-          <x>510</x>
-          <y>10</y>
-          <width>381</width>
-          <height>201</height>
+          <x>10</x>
+          <y>240</y>
+          <width>331</width>
+          <height>141</height>
          </rect>
         </property>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
         <attribute name="verticalHeaderStretchLastSection">
          <bool>false</bool>
         </attribute>
@@ -580,25 +641,20 @@
         </column>
         <column>
          <property name="text">
-          <string>Read Depth</string>
+          <string>Mean Read Depth</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>Mean Depth</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>SD Depth</string>
+          <string>Read Depth SD</string>
          </property>
         </column>
        </widget>
-       <widget class="QPushButton" name="runSimulationButton">
+       <widget class="QPushButton" name="sim_runBtn">
         <property name="geometry">
          <rect>
-          <x>360</x>
-          <y>270</y>
+          <x>420</x>
+          <y>440</y>
           <width>80</width>
           <height>16</height>
          </rect>
@@ -616,325 +672,192 @@
          <bool>false</bool>
         </property>
        </widget>
-       <widget class="QGroupBox" name="groupGroup">
+       <widget class="QGroupBox" name="sim_groupGrp">
         <property name="geometry">
          <rect>
-          <x>170</x>
-          <y>20</y>
-          <width>321</width>
-          <height>191</height>
+          <x>10</x>
+          <y>100</y>
+          <width>315</width>
+          <height>110</height>
          </rect>
         </property>
         <property name="title">
          <string>Group</string>
         </property>
-        <widget class="QGroupBox" name="readGroup">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>20</y>
-           <width>54</width>
-           <height>67</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Read Depth</string>
-         </property>
-         <widget class="QRadioButton" name="highRdoButton">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>22</y>
-            <width>36</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>High</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="lowRdoButton">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>42</y>
-            <width>34</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Low</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QGroupBox" name="caseControlGroup">
-         <property name="geometry">
-          <rect>
-           <x>80</x>
-           <y>20</y>
-           <width>231</width>
-           <height>71</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Cohort</string>
-         </property>
-         <widget class="QRadioButton" name="caseRdoButton">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>22</y>
-            <width>36</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Case</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="controlRdoButton">
-          <property name="geometry">
-           <rect>
-            <x>9</x>
-            <y>42</y>
-            <width>45</width>
-            <height>16</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Control</string>
-          </property>
-         </widget>
-         <widget class="QRadioButton" name="quantRdoButton">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>70</x>
-            <y>20</y>
-            <width>81</width>
-            <height>20</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Quantative Trait</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="quantMeanLabel">
-          <property name="geometry">
-           <rect>
-            <x>200</x>
-            <y>20</y>
-            <width>19</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>Mean</string>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="quantMean">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>150</x>
-            <y>20</y>
-            <width>41</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QLineEdit" name="quantSD">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="geometry">
-           <rect>
-            <x>150</x>
-            <y>40</y>
-            <width>41</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-         <widget class="QLabel" name="quantSDLabel">
-          <property name="geometry">
-           <rect>
-            <x>200</x>
-            <y>40</y>
-            <width>19</width>
-            <height>22</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>SD</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QPushButton" name="addGroupButton">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>140</y>
-           <width>80</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Add Group</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="nSampleLabel">
-         <property name="geometry">
-          <rect>
-           <x>210</x>
-           <y>110</y>
-           <width>39</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Size</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="nSample">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>110</y>
-           <width>74</width>
-           <height>22</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>20</string>
-         </property>
-        </widget>
-        <widget class="QGroupBox" name="sequencingDepthGroup">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>100</y>
-           <width>91</width>
-           <height>79</height>
-          </rect>
-         </property>
-         <property name="title">
-          <string>Sequencing Depth</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="0" column="0">
-           <widget class="QLineEdit" name="groupMean">
+        <layout class="QGridLayout" name="gridLayout_11">
+         <item row="0" column="0">
+          <widget class="QGroupBox" name="sim_groupDepthGrp">
+           <property name="title">
+            <string>Sequencing Depth</string>
+           </property>
+           <widget class="QLineEdit" name="sim_groupDepthMeanTxt">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>22</y>
+              <width>31</width>
+              <height>22</height>
+             </rect>
+            </property>
             <property name="text">
              <string>30</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="groupMeanLabel">
+           <widget class="QLabel" name="sim_groupDepthMeanLbl">
+            <property name="geometry">
+             <rect>
+              <x>60</x>
+              <y>30</y>
+              <width>19</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>Mean read depth of sequencing group</string>
+            </property>
             <property name="text">
              <string>Mean</string>
             </property>
            </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLineEdit" name="groupSD">
+           <widget class="QLineEdit" name="sim_groupDepthSdTxt">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>48</y>
+              <width>31</width>
+              <height>22</height>
+             </rect>
+            </property>
             <property name="text">
              <string>5</string>
             </property>
            </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="groupSDLabel">
+           <widget class="QLabel" name="sim_groupDepthSdLbl">
+            <property name="geometry">
+             <rect>
+              <x>60</x>
+              <y>50</y>
+              <width>16</width>
+              <height>16</height>
+             </rect>
+            </property>
+            <property name="toolTip">
+             <string>Read depth standard deviation of sequencing group</string>
+            </property>
             <property name="text">
              <string>SD</string>
             </property>
            </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QPushButton" name="removeGroupButton">
-         <property name="geometry">
-          <rect>
-           <x>230</x>
-           <y>160</y>
-           <width>80</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Remove Selected</string>
-         </property>
-        </widget>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QGroupBox" name="sim_groupCohortGrp">
+           <property name="title">
+            <string>Cohort</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="0" column="0">
+             <widget class="QRadioButton" name="sim_groupCaseBtn">
+              <property name="toolTip">
+               <string>Group contains affected individuals</string>
+              </property>
+              <property name="text">
+               <string>Case</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QRadioButton" name="sim_groupControlBtn">
+              <property name="toolTip">
+               <string>Group contains unaffected individuals</string>
+              </property>
+              <property name="text">
+               <string>Control</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QGroupBox" name="sim_groupSizeGrp">
+           <property name="title">
+            <string>Size</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_10">
+            <item row="1" column="0">
+             <widget class="QLineEdit" name="sim_groupSizeMaxTxt">
+              <property name="text">
+               <string>40</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLineEdit" name="sim_groupSizeMinTxt">
+              <property name="text">
+               <string>20</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="sim_groupDepthMeanLbl_4">
+              <property name="toolTip">
+               <string>Mean read depth of sequencing group</string>
+              </property>
+              <property name="text">
+               <string>Min</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="sim_groupDepthMeanLbl_5">
+              <property name="toolTip">
+               <string>Mean read depth of sequencing group</string>
+              </property>
+              <property name="text">
+               <string>Max</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+        <zorder>sim_groupCohortGrp</zorder>
+        <zorder>sim_groupDepthGrp</zorder>
+        <zorder>sim_groupSizeGrp</zorder>
        </widget>
-       <widget class="QCustomPlot" name="plotBox" native="true">
+       <widget class="QCustomPlot" name="sim_plotbox" native="true">
         <property name="geometry">
          <rect>
-          <x>520</x>
-          <y>220</y>
-          <width>331</width>
-          <height>221</height>
+          <x>490</x>
+          <y>140</y>
+          <width>351</width>
+          <height>291</height>
          </rect>
         </property>
        </widget>
-       <widget class="QSlider" name="binSlider">
+       <widget class="QGroupBox" name="sim_testGrp">
         <property name="geometry">
          <rect>
-          <x>340</x>
-          <y>430</y>
-          <width>160</width>
-          <height>16</height>
-         </rect>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="tickPosition">
-         <enum>QSlider::NoTicks</enum>
-        </property>
-        <property name="tickInterval">
-         <number>0</number>
-        </property>
-       </widget>
-       <widget class="QGroupBox" name="testGroup">
-        <property name="geometry">
-         <rect>
-          <x>180</x>
-          <y>220</y>
-          <width>161</width>
-          <height>71</height>
+          <x>170</x>
+          <y>380</y>
+          <width>211</width>
+          <height>87</height>
          </rect>
         </property>
         <property name="title">
          <string>Test</string>
         </property>
-        <widget class="QRadioButton" name="commonRdoButton">
+        <widget class="QRadioButton" name="sim_testCommonBtn">
          <property name="geometry">
           <rect>
-           <x>9</x>
-           <y>22</y>
-           <width>51</width>
+           <x>10</x>
+           <y>20</y>
+           <width>70</width>
            <height>16</height>
           </rect>
          </property>
@@ -945,41 +868,28 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="rareRdoButton">
+        <widget class="QRadioButton" name="sim_testRareCastBtn">
          <property name="geometry">
           <rect>
-           <x>9</x>
-           <y>46</y>
-           <width>36</width>
+           <x>10</x>
+           <y>40</y>
+           <width>70</width>
            <height>16</height>
           </rect>
          </property>
          <property name="text">
-          <string>Rare</string>
+          <string>Rare (CAST)</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="bootstrapChkBox">
-         <property name="geometry">
-          <rect>
-           <x>70</x>
-           <y>50</y>
-           <width>53</width>
-           <height>16</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Bootstrap</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="nBoot">
+        <widget class="QLineEdit" name="sim_testBootTxt">
          <property name="enabled">
           <bool>false</bool>
          </property>
          <property name="geometry">
           <rect>
-           <x>70</x>
-           <y>20</y>
-           <width>31</width>
+           <x>84</x>
+           <y>43</y>
+           <width>74</width>
            <height>22</height>
           </rect>
          </property>
@@ -987,11 +897,24 @@
           <string>100</string>
          </property>
         </widget>
-        <widget class="QLabel" name="nBootLabel">
+        <widget class="QRadioButton" name="sim_testRareCalphaBtn">
          <property name="geometry">
           <rect>
-           <x>110</x>
-           <y>20</y>
+           <x>10</x>
+           <y>60</y>
+           <width>70</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Rare (c-alpha)</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="sim_testBootLbl">
+         <property name="geometry">
+          <rect>
+           <x>162</x>
+           <y>43</y>
            <width>41</width>
            <height>16</height>
           </rect>
@@ -1000,6 +923,231 @@
           <string># iterations</string>
          </property>
         </widget>
+        <widget class="QCheckBox" name="sim_testBootChk">
+         <property name="geometry">
+          <rect>
+           <x>84</x>
+           <y>23</y>
+           <width>53</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Bootstrap</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QLabel" name="sim_oddsRatioLbl">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>420</y>
+          <width>39</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Odds ratio of disease</string>
+        </property>
+        <property name="text">
+         <string>Odds Ratio</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="sim_oddsRatioTxt">
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>370</y>
+          <width>74</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>1.5</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="sim_groupAddBtn">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>220</y>
+          <width>80</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Add Group</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="sim_groupRemoveBtn">
+        <property name="geometry">
+         <rect>
+          <x>100</x>
+          <y>220</y>
+          <width>80</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Remove Selected</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="sim_groupHighLowLbl">
+        <property name="geometry">
+         <rect>
+          <x>280</x>
+          <y>210</y>
+          <width>91</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="toolTip">
+         <string>Any mean read depth less than this will be considered a low read group</string>
+        </property>
+        <property name="text">
+         <string>High/low cutoff</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="sim_groupHighLowTxt">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>210</y>
+          <width>74</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>30</string>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="sim_powerGrp">
+        <property name="geometry">
+         <rect>
+          <x>360</x>
+          <y>210</y>
+          <width>111</width>
+          <height>79</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>Power</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_12">
+         <item row="0" column="1">
+          <widget class="QLabel" name="sim_powerStepLbl">
+           <property name="toolTip">
+            <string>Mean read depth of sequencing group</string>
+           </property>
+           <property name="text">
+            <string>Steps</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="sim_powerStepTxt">
+           <property name="text">
+            <string>20</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLineEdit" name="sim_powerAlphaTxt">
+           <property name="text">
+            <string>0.05</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="sim_powerAlphaLbl">
+           <property name="toolTip">
+            <string>Odds ratio of disease</string>
+           </property>
+           <property name="text">
+            <string>alpha</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Power Simulation (quantitative)</string>
+       </attribute>
+       <widget class="QRadioButton" name="quantRdoButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>160</y>
+          <width>81</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Quantative Trait</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="quantSD">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>180</y>
+          <width>41</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+       <widget class="QLabel" name="quantMeanLabel">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>160</y>
+          <width>19</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Mean</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="quantSDLabel">
+        <property name="geometry">
+         <rect>
+          <x>420</x>
+          <y>180</y>
+          <width>19</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>SD</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="quantMean">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>370</x>
+          <y>160</y>
+          <width>41</width>
+          <height>22</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
        </widget>
       </widget>
      </widget>

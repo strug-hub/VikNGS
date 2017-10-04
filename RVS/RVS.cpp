@@ -145,28 +145,19 @@ void validateSimulationRequest(SimulationRequest request) {
 			std::to_string(request.prevalence) +
 			") should be a value between 0 and 1.");
 
-	if (request.lowerMAF > 0.5)
-		throw std::domain_error("MAF lower bound (value given: " +
-			std::to_string(request.lowerMAF) +
+	if (request.maf > 0.5)
+		throw std::domain_error("Minor allele frequency (value given: " +
+			std::to_string(request.maf) +
 			") should be a value between 0 and 0.5.");
-	if (request.upperMAF > 0.5)
-		throw std::domain_error("MAF upper bound (value given: " +
-			std::to_string(request.upperMAF) +
-			") should be a value between 0 and 0.5.");
-
-	if (request.lowerMAF > request.upperMAF)
-		throw std::domain_error("MAF lower bound (value given: " +
-			std::to_string(request.lowerMAF) +
-			") should be less than upper bound (value given: " +
-			std::to_string(request.upperMAF) + ")");
 
 	if (request.groups.size() < 2)
 		throw std::domain_error("Simulation requires at least two groups (" +
 			std::to_string(request.groups.size()) + " given).");
 
-	if (!request.useCommonTest && request.nsnp < 5)
-		throw std::domain_error("Rare test requires number of variants to be at least 5 (value given: " +
-			std::to_string(request.nsnp) + ").");
+
+	//if (!request.useCommonTest && request.nsnp < 5)
+		//throw std::domain_error("Rare test requires number of variants to be at least 5 (value given: " +
+			//std::to_string(request.nsnp) + ").");
 
 	if (request.useBootstrap && request.nboot < 1)
 		throw std::domain_error("Nuber of bootstrap iterations should be at least 1 (value given: " +
@@ -198,7 +189,7 @@ void validateRequest(Request request) {
 Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,
 	std::string highLowCutOff, bool collapseCoding, bool collapseExon,
 	std::string mafCutoff, std::string missingThreshold, bool onlySNPs, bool mustPASS,
-	bool useCommonTest, bool useBootstrap, std::string nboot) {
+	std::string test, bool useBootstrap, std::string nboot) {
 
 	Request request;
 
@@ -209,7 +200,7 @@ Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir
 	request.collapseExon = collapseExon;
 	request.onlySNPs = onlySNPs;
 	request.mustPASS = mustPASS;
-	request.useCommonTest = useCommonTest;
+	request.test = test;
 	request.useBootstrap = useBootstrap;
 
 
@@ -233,8 +224,8 @@ Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir
 
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
-	std::string lowerMAF, std::string upperMAF, std::vector<SimulationRequestGroup> groups,
-	bool useCommonTest, bool useBootstrap, std::string nboot) {
+	std::string maf, std::vector<SimulationRequestGroup> groups,
+	std::string test, bool useBootstrap, std::string nboot) {
 
 	SimulationRequest request;
 
@@ -250,12 +241,10 @@ SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	catch (...) { throw std::invalid_argument("sequencing error standard deviation,integer"); }	
 	try { request.oddsRatio = std::abs(std::stod(oddsRatio)); }
 	catch (...) { throw std::invalid_argument("odds ratio,decimal"); }
-	try { request.upperMAF = std::abs(std::stod(upperMAF)); }
-	catch (...) { throw std::invalid_argument("MAF upper bound,decimal"); }
-	try { request.lowerMAF = std::abs(std::stod(lowerMAF)); }
-	catch (...) { throw std::invalid_argument("MAF lower bound,decimal"); }
+	try { request.maf = std::abs(std::stod(maf)); }
+	catch (...) { throw std::invalid_argument("Minor allele frequency,decimal"); }
 
-	request.useCommonTest = useCommonTest;
+	request.test = test;
 	request.useBootstrap = useBootstrap;
 
 	if (useBootstrap) {
@@ -271,7 +260,7 @@ SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	return request;
 }
 
-std::vector<std::vector<double>> startVikNGS(Request req) {
+std::vector<double> startVikNGS(Request req) {
 
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
@@ -279,22 +268,20 @@ std::vector<std::vector<double>> startVikNGS(Request req) {
 
 	bool valid = parseAndFilter(req.vcfDir, req.sampleDir, req.bedDir,
 		req.highLowCutOff, req.collapseCoding, req.collapseExon,
-		req.missingThreshold, req.onlySNPs, req.mustPASS, req.mafCutoff, req.useCommonTest,
+		req.missingThreshold, req.onlySNPs, req.mustPASS, req.mafCutoff, req.useCommon(),
 		X, Y, Z, G, readGroup, P, interval);
 
 	bool useCovariates = Z.rows() > 0;
 
-	std::vector<std::vector<double>> pvals;
+	std::vector<double> pval;
 
 
 	if (!valid) {
 		//TODO 
-		return pvals;
+		return pval;
 	}
 
-	if (req.useCommonTest) {
-
-		std::vector<double> pval;
+    if (req.useCommon()) {
 
 		if (req.useBootstrap && useCovariates)
 			pval = runCommonTest(X, Y, Z, G, readGroup, P, req.nboot);
@@ -305,56 +292,44 @@ std::vector<std::vector<double>> startVikNGS(Request req) {
 		else
 			pval = runCommonTest(X, Y, G, readGroup, P);
 
-		for (int i = 0; i < pval.size(); i++) {
-			std::vector<double> p;
-			p.push_back(pval[i]);
-			pvals.push_back(p);
-		}
 	}
 	else {
 		if (useCovariates)
-			pvals = runRareTest(X, Y, Z, G, readGroup, P, req.nboot);
+			pval = runRareTest(X, Y, Z, G, readGroup, P, req.nboot, req.test);
 		else
-			pvals = runRareTest(X, Y, G, readGroup, P, req.nboot);
+			pval = runRareTest(X, Y, G, readGroup, P, req.nboot, req.test);
 	}
 
 	std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
-	outputPvals(pvals, outputDir);
+	outputPvals(pval, outputDir);
 
-	return pvals;
+	return pval;
 }
 
-std::vector<std::vector<double>> startSimulation(SimulationRequest req) {
+std::vector<double> startSimulation(SimulationRequest req) {
 
 	VectorXd Y, G; MatrixXd X, P;
 	std::map<int, int> readGroup;
 
 	simulate(req, X, Y, G, readGroup, P);
 
-	std::vector<std::vector<double>> pvals;
+	std::vector<double> pval;
 
-	if (req.useCommonTest){
+	if (req.test == "common"){
 		
-		std::vector<double> pval;
-
 		if(req.useBootstrap)
 			pval = runCommonTest(X, Y, G, readGroup, P, req.nboot);
 		else
 			pval = runCommonTest(X, Y, G, readGroup, P);
 
-		for (int i = 0; i < pval.size(); i++) {
-			std::vector<double> p;
-			p.push_back(pval[i]);
-			pvals.push_back(p);
-		}
 	}
 	else
-		pvals = runRareTest(X, Y, G, readGroup, P, req.nboot);
+		pval = runRareTest(X, Y, G, readGroup, P, req.nboot, req.test);
 
     std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
-    outputPvals(pvals, outputDir);
+    outputPvals(pval, outputDir);
 
-    return pvals;
+    return pval;
 }
 
 SimulationRequest testSimulationRequest() {
@@ -363,7 +338,7 @@ SimulationRequest testSimulationRequest() {
 	groups.push_back(newSimulationRequestGroup(0, "200", "case", "high", "40", "7"));
 	groups.push_back(newSimulationRequestGroup(0, "100", "control", "high", "50", "6"));
 
-	return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", "0.5", groups, true, false, 0);
+    return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", groups, "common", false, 0);
 }
 
 /*

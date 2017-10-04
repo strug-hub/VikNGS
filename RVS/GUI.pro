@@ -25,7 +25,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp \
     CommonTest.cpp \
     CompQuadForm.cpp \
     RareTest.cpp \
@@ -45,7 +44,6 @@ SOURCES += \
     CommonTest.cpp \
     CompQuadForm.cpp \
     main.cpp \
-    mainwindow.cpp \
     RareTest.cpp \
     RareTestObject.cpp \
     RVS.cpp \
@@ -53,7 +51,9 @@ SOURCES += \
     stdafx.cpp \
     VectorHelper.cpp \
     Output/OutputHandler.cpp \
-    Output/qcustomplot.cpp
+    Output/qcustomplot.cpp \
+    CaseControlSimulation.cpp \
+    MainTab.cpp
 
 HEADERS += \
         mainwindow.h \
