@@ -346,7 +346,7 @@ int main() {
 
     //TODO: take as input from command line
     //---------------------------------------
-    bool simulation = true;
+    bool simulation = false;
     bool common = true;
 
     int highLowCutOff = 30;
@@ -362,8 +362,8 @@ int main() {
     bool rvs = true;
 
     ///input files
-    std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
-    std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+    std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
+    std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
     //std::string bedDir = "";
     std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 
@@ -416,13 +416,13 @@ int main() {
         }
         else {
 
-            std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
+//            std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
             //std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
 
-            std::cout << "Rare Test p-values\n";
-            std::cout << pval[0][0];
-            std::cout << '\t';
-            std::cout << pval[0][1];
+     //       std::cout << "Rare Test p-values\n";
+        //    std::cout << pval[0][0];
+         //   std::cout << '\t';
+        //    std::cout << pval[0][1];
 
         }
     }
@@ -431,9 +431,9 @@ int main() {
     //keep console open while debugging
     //TODO: be sure to remove eventually!
     std::cout << "\ndone...>";
-
     while (true) {}
     return 0;
 }
+
 
 */

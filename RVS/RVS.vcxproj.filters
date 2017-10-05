@@ -708,9 +708,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Output\qcustomplot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CompQuadForm.cpp">
@@ -765,9 +762,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Output\OutputHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Output\qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

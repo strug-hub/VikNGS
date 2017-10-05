@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="tabBarAutoHide">
        <bool>false</bool>
@@ -49,7 +49,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf</string>
+          <string>C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf</string>
          </property>
          <property name="readOnly">
           <bool>true</bool>
@@ -223,7 +223,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt</string>
+          <string>C:/Users/Scott/Desktop/vcf/sampleInfo.txt</string>
          </property>
          <property name="readOnly">
           <bool>true</bool>

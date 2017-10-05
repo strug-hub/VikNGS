@@ -40,18 +40,18 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 
 	GenotypeLikelihood gl;
 
-	if (column[0] == '.') {
-		gl.L00 = NAN;
-		gl.L01 = NAN;
-		gl.L11 = NAN;
-		gl.missing = true;
-		return gl;
-	}
-
 	std::vector<std::string> parts = split(column, ':');
 
 	if (indexGL > -1) {
 		std::vector<std::string> l = split(parts[indexGL], ',');
+
+		if (l[0][0] == '.') {
+			gl.L00 = NAN;
+			gl.L01 = NAN;
+			gl.L11 = NAN;
+			gl.missing = true;
+			return gl;
+		}
 
 		if (l.size() < 3)
 			throw std::runtime_error("Failed parsing GL");
@@ -64,8 +64,17 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 	else if (indexPL > -1) {
 		std::vector<std::string> l = split(parts[indexPL], ',');
 
+		if (l[0][0] == '.') {
+			gl.L00 = NAN;
+			gl.L01 = NAN;
+			gl.L11 = NAN;
+			gl.missing = true;
+			return gl;
+		}
+
+
 		if (l.size() < 3)
-			throw std::runtime_error("Failed parsing GL");
+			throw std::runtime_error("Failed parsing PL");
 
 		gl.L00 = pow(10, -std::stod(l[0])*0.1);
 		gl.L01 = pow(10, -std::stod(l[1])*0.1);
@@ -186,6 +195,9 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 			std::vector<std::string> columns = split(line, '\t');
 
 			VCFLine variant = extractLine(columns, vcf.getLineNumber());
+			
+			std::cout << vcf.getLineNumber();
+			std::cout << '\n';
 
 			if(variant.isValid())
 				variants.push_back(variant);
