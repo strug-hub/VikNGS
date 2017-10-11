@@ -34,22 +34,55 @@ Calculates genotype likelihood from PL or GL for a single sample.
 @param column VCF field that contains PL or GL value for one sample.
 @param indexPL Index of PL values after column is split by ':'.
 @param indexPL Index of GL values after column is split by ':'.
+@param indexGT Index of GT values after column is split by ':'.
 @return A GenotypeLikelihood object.
 */
-GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int indexGL) {
+GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int indexGL, int indexGT) {
 
 	GenotypeLikelihood gl;
+	gl.L00 = NAN;
+	gl.L01 = NAN;
+	gl.L11 = NAN;
+	gl.missing = true;
 
 	std::vector<std::string> parts = split(column, ':');
+
+	if (indexGT > -1) {
+		std::string gt = parts[indexGT];
+
+		if (gt.size() > 1) {
+
+			if (gt[0] == '0' && gt[2] == '0') {
+				gl.L00 = 1;
+				gl.L01 = 0;
+				gl.L11 = 0;
+				gl.missing = false;
+			}
+			else if (gt[0] == '0' && gt[2] == '1') {
+				gl.L00 = 0;
+				gl.L01 = 1;
+				gl.L11 = 0;
+				gl.missing = false;
+			}
+			else if (gt[0] == '1' && gt[2] == '0') {
+				gl.L00 = 0;
+				gl.L01 = 1;
+				gl.L11 = 0;
+				gl.missing = false;
+			}
+			else if (gt[0] == '1' && gt[2] == '1') {
+				gl.L00 = 0;
+				gl.L01 = 0;
+				gl.L11 = 1;
+				gl.missing = false;
+			}
+		}
+	}
 
 	if (indexGL > -1) {
 		std::vector<std::string> l = split(parts[indexGL], ',');
 
 		if (l[0][0] == '.') {
-			gl.L00 = NAN;
-			gl.L01 = NAN;
-			gl.L11 = NAN;
-			gl.missing = true;
 			return gl;
 		}
 
@@ -59,19 +92,15 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 		gl.L00 = pow(10, std::stod(l[0]));
 		gl.L01 = pow(10, std::stod(l[1]));
 		gl.L11 = pow(10, std::stod(l[2]));
+		gl.missing = false;
 	}
 
 	else if (indexPL > -1) {
 		std::vector<std::string> l = split(parts[indexPL], ',');
 
 		if (l[0][0] == '.') {
-			gl.L00 = NAN;
-			gl.L01 = NAN;
-			gl.L11 = NAN;
-			gl.missing = true;
 			return gl;
 		}
-
 
 		if (l.size() < 3)
 			throw std::runtime_error("Failed parsing PL");
@@ -79,6 +108,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 		gl.L00 = pow(10, -std::stod(l[0])*0.1);
 		gl.L01 = pow(10, -std::stod(l[1])*0.1);
 		gl.L11 = pow(10, -std::stod(l[2])*0.1);
+		gl.missing = false;
 	}
 
 	return gl;
@@ -125,6 +155,7 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 	int index = 0;
 	int indexPL = -1;
 	int indexGL = -1;
+	int indexGT = -1;
 
 	int pos = 0;
 	while (pos < fmt.size()) {
@@ -134,6 +165,8 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 			indexPL = index;
 		else if (fmt[pos] == 'G' && fmt[pos + 1] == 'L')
 			indexGL = index;
+		else if (fmt[pos] == 'G' && fmt[pos + 1] == 'T')
+			indexGT = index;
 
 		else if (fmt[pos] == '\t') {
 			break;
@@ -141,9 +174,9 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 		pos++;
 	}
 
-	if (indexPL == -1 && indexGL == -1) {
+	if (indexPL == -1 && indexGL == -1 && indexGT) {
 		std::string message = "Line " + std::to_string(lineNumber) + " in VCF file: ";
-		message += "Phred-scaled likelihoods (PL or GL) not found in FORMAT column. Skipping variant.";
+		message += "Phred-scaled likelihoods (PL or GL) and genotype calls (GT) not found in FORMAT column. Skipping variant.";
 		printWarning(message);
 
 		variant.valid = false;
@@ -153,7 +186,7 @@ VCFLine extractLine(std::vector<std::string> columns, int lineNumber) {
 	//get genotype likelihood for every sample
 	for (int i = format + 1; i < columns.size(); i++) {
 		try {
-			GenotypeLikelihood gl = getGenotypeLikelihood(columns[i], indexPL, indexGL);
+			GenotypeLikelihood gl = getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT);
 			variant.likelihood.push_back(gl);
 		}
 		catch (...) {
@@ -196,11 +229,16 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 
 			VCFLine variant = extractLine(columns, vcf.getLineNumber());
 			
-			std::cout << vcf.getLineNumber();
-			std::cout << '\n';
+			if (vcf.getLineNumber() % 1000 == 0) {
+				std::cout << vcf.getLineNumber();
+				std::cout << '\n';
+			}
 
 			if(variant.isValid())
 				variants.push_back(variant);
+
+			if (vcf.getLineNumber() > 20000)
+				break;
 		}
 
 		vcf.close();

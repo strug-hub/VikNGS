@@ -154,6 +154,12 @@ std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<
 
 	for (h = 0; h < X.cols(); h += collapseNumber) {
 
+		std::cout << "Collapsing variants ";
+		std::cout << h;
+		std::cout << " through ";
+		std::cout << h + collapseNumber;
+		std::cout << "\n";
+
 		for (i = 0; i < collapseNumber; i++) {
 			std::vector<VectorXd> x_i;
 			for (j = 0; j < ngroups; j++)

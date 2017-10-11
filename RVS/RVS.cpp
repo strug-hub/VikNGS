@@ -261,6 +261,56 @@ SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 }
 
 std::vector<double> startVikNGS(Request req) {
+	
+	std::vector<double> p;
+
+	for (int i = 0; i <= 200000; i++) {
+
+		if (randomInt(0, 80000) == 30) {
+			p.push_back(randomDouble(0, 1) / 10000);
+			p.push_back(randomDouble(0, 1) / 100000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);		
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 10000000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+			p.push_back(randomDouble(0, 1) / 10000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 10000000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+			p.push_back(randomDouble(0, 1) / 10000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 1000000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 100000000);
+			p.push_back(randomDouble(0, 1) / 10000000);
+			p.push_back(randomDouble(0, 1) / 1000000);
+		}
+
+		p.push_back(randomDouble(0, 1));
+	}
+
+	return p;
+
+
 
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
@@ -342,12 +392,13 @@ SimulationRequest testSimulationRequest() {
 }
 
 /*
+
 int main() {
 
     //TODO: take as input from command line
     //---------------------------------------
     bool simulation = false;
-    bool common = true;
+    bool common = false;
 
     int highLowCutOff = 30;
     bool collapseCoding = false;
@@ -355,7 +406,7 @@ int main() {
 
     //filtering paramaters
     double mafCutoff = 0.05;
-    double missingThreshold = 0.2;
+    double missingThreshold = 0.1;
     bool onlySNPs = true;
     bool mustPASS = true;
 
@@ -364,8 +415,8 @@ int main() {
     ///input files
     std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
     std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
-    //std::string bedDir = "";
-    std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
+    std::string bedDir = "";
+    //std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 
     std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
 
@@ -399,14 +450,12 @@ int main() {
             return 0;
         }
 
-
         //generateForR(X, Y, Z, G, P, readGroup);
 
         if (common) {
-            //std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
-            std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
+            std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
+            //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
             //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
-
 
             std::cout << "Common Test p-values\n";
             for (size_t i = 0; i < pvals.size(); i++) {
@@ -416,13 +465,14 @@ int main() {
         }
         else {
 
-//            std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, 20000, true);
-            //std::vector<std::vector<double>> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
+            std::vector<double> pval = runRareTest(X, Y, G, readGroup, P, 10);
+            //std::vector<double> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
 
-     //       std::cout << "Rare Test p-values\n";
-        //    std::cout << pval[0][0];
-         //   std::cout << '\t';
-        //    std::cout << pval[0][1];
+            std::cout << "Rare Test p-values\n";
+			for (size_t i = 0; i < pval.size(); i++) {
+				std::cout << pval[i];
+				std::cout << '\n';
+			}
 
         }
     }
@@ -435,5 +485,5 @@ int main() {
     return 0;
 }
 
-
 */
+

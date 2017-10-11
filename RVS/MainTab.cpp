@@ -129,6 +129,7 @@ void MainWindow::on_main_runBtn_clicked()
 
 }
 
+
 void MainWindow::main_replot(QVector<double> values){
 
     int n = values.size();
@@ -137,25 +138,78 @@ void MainWindow::main_replot(QVector<double> values){
         return;
 
     QVector<double> x(n), y(n);
+    QVector<double> x2(n), y2(n);
 
-    for (int i=0; i < n; ++i)
-    {
-      x[i] = i;
-      y[i] = values.at(i);
+    int count = 0;
+    std::vector<double> percent;
+    percent.push_back(24895.0/308828);
+    percent.push_back(24219.0/308828);
+    percent.push_back(19829.0/308828);
+    percent.push_back(19021.0/308828);
+    percent.push_back(18153.0/308828);
+    percent.push_back(17080.0/308828);
+    percent.push_back(15934.0/308828);
+    percent.push_back(14513.0/308828);
+    percent.push_back(13839.0/308828);
+    percent.push_back(13379.0/308828);
+    percent.push_back(13508.0/308828);
+    percent.push_back(13327.0/308828);
+    percent.push_back(11436.0/308828);
+    percent.push_back(10704.0/308828);
+    percent.push_back(10199.0/308828);
+    percent.push_back(9033.0/308828);
+    percent.push_back(8325.0/308828);
+    percent.push_back(8037.0/308828);
+    percent.push_back(5861.0/308828);
+    percent.push_back(6444.0/308828);
+    percent.push_back(4670.0/308828);
+    percent.push_back(5081.0/308828);
+    percent.push_back(15604.0/308828);
+
+    for(int j = 0; j < 23; j++){
+
+        int temp = 0;
+
+        for (int i=count; i < percent[j]*(1.0*n) + count; ++i)
+        {
+           if(j % 2 == 0){
+              x[i] = i;
+              y[i] = -log10(values.at(i));
+           }
+           else{
+               x2[i] = i;
+               y2[i] = -log10(values.at(i));
+           }
+           temp = i;
+        }
+        count = temp;
+
     }
 
     ui->main_plotBox->clearPlottables();
     ui->main_plotBox->addGraph();
 
     // give the axes some labels:
-    ui->main_plotBox->xAxis->setLabel("Variant");
-    ui->main_plotBox->yAxis->setLabel("P-value");
+    ui->main_plotBox->xAxis->setLabel("Position");
+    ui->main_plotBox->yAxis->setLabel("-log(p)");
 
     ui->main_plotBox->graph()->setData(x, y);
-    ui->main_plotBox->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
+    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
+    ui->main_plotBox->graph()->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                Qt::gray, Qt::white, 2));
+
+    ui->main_plotBox->addGraph();
+
+    ui->main_plotBox->graph()->setData(x2, y2);
+    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
+    ui->main_plotBox->graph()->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                Qt::darkGray, Qt::white, 2));
+
     // set axes ranges, so we see all data:
     ui->main_plotBox->xAxis->setRange(0, n);
-    ui->main_plotBox->yAxis->setRange(0, 1);
+    ui->main_plotBox->yAxis->setRange(0, 12);
     ui->main_plotBox->replot();
 }
 
