@@ -1,0 +1,5 @@
+# RVS
+Robust variant test
+The ‘RVS’ R package consists of three modules: (1) common and rare variant association analysis using RVS, (2) conventional association using variant calls, and (3) a simulation module. Module 1 takes a multi-sample variant call format file created from all samples to be analyzed (VCF, for example, from Genome Analysis Tool Kit (GATK, DePristo et al, Nat Genet, 2011)) as input, obtains the genotype probabilities for the reported variants, and uses them in the RVS statistic for association analysis. Module 2 uses a conventional score test to for association with variant calls rather than probabilities, for comparison; this module uses the plink (Purcell et al, AJHG, 2007) format file as input. Module 3 simulates sequence data for different read depths and error rates. Sample data with examples are provided for each module. 
+
+The RVS package has been tested using simulated data, data downloaded from 1000 genomes project website (http://www.1000genomes.org) and NGS data from our studies of childhood-onset epilepsy.

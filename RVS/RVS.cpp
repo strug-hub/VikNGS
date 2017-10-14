@@ -17,7 +17,7 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 	std::ofstream Mfile("C:/Users/Scott/Desktop/RVS-master/example/M.txt");
 	std::ofstream Zfile("C:/Users/Scott/Desktop/RVS-master/example/Z.txt");
 
-	int precise = 12;
+	int precise = 18;
 
 	if (Mfile.is_open())
 	{
@@ -264,54 +264,6 @@ std::vector<double> startVikNGS(Request req) {
 	
 	std::vector<double> p;
 
-	for (int i = 0; i <= 200000; i++) {
-
-		if (randomInt(0, 80000) == 30) {
-			p.push_back(randomDouble(0, 1) / 10000);
-			p.push_back(randomDouble(0, 1) / 100000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);		
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 10000000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-			p.push_back(randomDouble(0, 1) / 10000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 10000000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-			p.push_back(randomDouble(0, 1) / 10000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 1000000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 100000000);
-			p.push_back(randomDouble(0, 1) / 10000000);
-			p.push_back(randomDouble(0, 1) / 1000000);
-		}
-
-		p.push_back(randomDouble(0, 1));
-	}
-
-	return p;
-
-
-
 	VectorXd Y, G; MatrixXd X, Z, P;
 	std::map<int, int> readGroup;
 	std::vector<std::vector<int>> interval;
@@ -391,14 +343,14 @@ SimulationRequest testSimulationRequest() {
     return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", groups, "common", false, 0);
 }
 
-/*
 
+/*
 int main() {
 
     //TODO: take as input from command line
     //---------------------------------------
     bool simulation = false;
-    bool common = false;
+    bool common = true;
 
     int highLowCutOff = 30;
     bool collapseCoding = false;
@@ -450,10 +402,10 @@ int main() {
             return 0;
         }
 
-        //generateForR(X, Y, Z, G, P, readGroup);
+        generateForR(X, Y, Z, G, P, readGroup);
 
         if (common) {
-            std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P, 1000);
+            std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
             //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
             //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
 
@@ -462,6 +414,9 @@ int main() {
                 std::cout << pvals[i];
                 std::cout << '\n';
             }
+
+			outputPvals(pvals, outputDir);
+
         }
         else {
 
@@ -474,8 +429,11 @@ int main() {
 				std::cout << '\n';
 			}
 
+			outputPvals(pval, outputDir);
+
         }
     }
+
 
 
     //keep console open while debugging
@@ -485,5 +443,5 @@ int main() {
     return 0;
 }
 
-*/
 
+*/

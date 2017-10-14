@@ -50,33 +50,44 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 	if (indexGT > -1) {
 		std::string gt = parts[indexGT];
 
-		if (gt.size() > 1) {
+			double error1 = randomDouble(0.9995, 1.0);
+			double error2 = randomDouble(0, (1 - error1));
+			double p1 = error1;
+			double p0_1 = error2;
+			double p0_2 = 1 - (p1 + p0_1);
 
 			if (gt[0] == '0' && gt[2] == '0') {
-				gl.L00 = 1;
-				gl.L01 = 0;
-				gl.L11 = 0;
+				gl.L00 = p1;
+				gl.L01 = p0_1;
+				gl.L11 = p0_2;
 				gl.missing = false;
 			}
 			else if (gt[0] == '0' && gt[2] == '1') {
-				gl.L00 = 0;
-				gl.L01 = 1;
-				gl.L11 = 0;
+				gl.L00 = p0_1;
+				gl.L01 = p1;
+				gl.L11 = p0_2;
 				gl.missing = false;
 			}
 			else if (gt[0] == '1' && gt[2] == '0') {
-				gl.L00 = 0;
-				gl.L01 = 1;
-				gl.L11 = 0;
+				gl.L00 = p0_1;
+				gl.L01 = p1;
+				gl.L11 = p0_2;
 				gl.missing = false;
 			}
 			else if (gt[0] == '1' && gt[2] == '1') {
-				gl.L00 = 0;
-				gl.L01 = 0;
-				gl.L11 = 1;
+				gl.L00 = p0_1;
+				gl.L01 = p0_2;
+				gl.L11 = p1;
 				gl.missing = false;
 			}
-		}
+			
+			//todo : make optional
+			else if (gt[0] == '.') {
+				gl.L00 = p1;
+				gl.L01 = p0_1;
+				gl.L11 = p0_2;
+				gl.missing = false;
+			}
 	}
 
 	if (indexGL > -1) {
@@ -237,8 +248,8 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 			if(variant.isValid())
 				variants.push_back(variant);
 
-			if (vcf.getLineNumber() > 20000)
-				break;
+			//if (vcf.getLineNumber() > 250)
+		//		break;
 		}
 
 		vcf.close();

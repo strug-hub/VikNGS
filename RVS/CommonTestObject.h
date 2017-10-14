@@ -67,7 +67,7 @@ public:
 		robustVar = calcRobustVar(P);
 	}
 
-	inline double getScore(int i) { return (ycenter[i].array() * x[i].array()).sum(); }
+	inline double getScore(int i) {	return (ycenter[i].array() * x[i].array()).sum(); }
 
 	inline double getVariance(int i, bool rvs) {
 		double var = ycenter[i].array().pow(2).sum();

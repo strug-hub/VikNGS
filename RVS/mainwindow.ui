@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="tabBarAutoHide">
        <bool>false</bool>
@@ -83,6 +83,9 @@
            <height>16</height>
           </rect>
          </property>
+         <property name="toolTip">
+          <string>QUAL column in VCF must contain PASS</string>
+         </property>
          <property name="text">
           <string>Must PASS</string>
          </property>
@@ -145,7 +148,7 @@
           <string>0.2</string>
          </property>
         </widget>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
            <x>182</x>
