@@ -268,7 +268,8 @@ HEADERS += \
     RVS.h \
     stdafx.h \
     targetver.h \
-    Output/qcustomplot.h
+    Output/qcustomplot.h \
+    qdebugstream.h
 
 FORMS += \
         mainwindow.ui

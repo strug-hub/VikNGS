@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
 std::vector<SimulationRequestGroup> MainWindow::constructGroups(int test, int ntest){
 
     std::vector<SimulationRequestGroup> groups;

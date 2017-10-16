@@ -4,8 +4,6 @@
 #include <iostream>  
 #include <string>
 #include <vector>
-
-#include <iostream>
 #include <fstream>
 #include <iomanip>
 
@@ -183,7 +181,16 @@ void validateSimulationRequest(SimulationRequest request) {
 }
 
 void validateRequest(Request request) {
-	//TODO
+
+    if (request.mafCutoff > 0.5)
+        throw std::domain_error("Minor allele frequency cutoff (value given: " +
+            std::to_string(request.mafCutoff) +
+            ") should be a value between 0 and 0.5.");
+
+    if (request.missingThreshold > 0.5)
+        throw std::domain_error("Missing threshold (value given: " +
+            std::to_string(request.missingThreshold) +
+            ") should be a value between 0 and 0.5.");
 }
 
 Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,

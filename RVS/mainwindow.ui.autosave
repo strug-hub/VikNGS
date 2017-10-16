@@ -254,7 +254,7 @@
            </rect>
           </property>
           <property name="text">
-           <string/>
+           <string>C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt</string>
           </property>
           <property name="readOnly">
            <bool>true</bool>
