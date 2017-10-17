@@ -90,7 +90,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 			}
 	}
 
-	if (indexGL > -1) {
+	if (indexGL > -1 && parts.size() > indexGL) {
 		std::vector<std::string> l = split(parts[indexGL], ',');
 
 		if (l[0][0] == '.') {
@@ -106,7 +106,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 		gl.missing = false;
 	}
 
-	else if (indexPL > -1) {
+	else if (indexPL > -1 && parts.size() > indexPL) {
 		std::vector<std::string> l = split(parts[indexPL], ',');
 
 		if (l[0][0] == '.') {

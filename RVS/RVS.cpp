@@ -374,6 +374,10 @@ int main() {
     ///input files
     std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
     std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
+
+	//std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
+	//std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+
     std::string bedDir = "";
     //std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 

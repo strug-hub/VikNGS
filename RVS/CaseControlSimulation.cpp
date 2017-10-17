@@ -35,7 +35,6 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int test, int nt
                             n, caseControl, highLow, meanDepth, sdDepth)
                         );
 
-            groups[i].print();
         }
     }
     catch(...){
@@ -69,8 +68,6 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
                     ui->sim_testBootChk->isChecked(),
                     ui->sim_testBootTxt->text().toStdString()
                     );
-
-        request.print();
     }
     catch(...){
         throw;

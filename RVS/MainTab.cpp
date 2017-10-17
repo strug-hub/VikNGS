@@ -18,6 +18,62 @@ MainWindow::~MainWindow()
 }
 
 
+// --- CONSTRUCTOR ---
+Runner::Runner() {}
+// --- DECONSTRUCTOR ---
+Runner::~Runner() {}
+// --- PROCESS ---
+void Runner::process() {
+
+    std::vector<double> pval = startVikNGS(request);
+    replot(pval);
+
+    ui->main_runBtn->setEnabled(true);
+    emit complete();
+}
+
+void Runner::replot(std::vector<double> values){
+
+    int n = values.size();
+
+    if(n < 0)
+        return;
+
+    QVector<double> x(n), y(n);
+    //QVector<double> x2(n), y2(n);
+
+    for (int i=0; i < n; ++i)
+    {
+        x[i] = i;
+        y[i] = -log10(values.at(i));
+    }
+
+    // give the axes some labels:
+    ui->main_plotBox->xAxis->setLabel("Position");
+    ui->main_plotBox->yAxis->setLabel("-log(p)");
+
+    ui->main_plotBox->graph()->setData(x, y);
+    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
+    ui->main_plotBox->graph()->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                QColor(47, 164, 226, 255), Qt::white, 2));
+
+  /*  ui->main_plotBox->addGraph();
+
+    ui->main_plotBox->graph()->setData(x2, y2);
+    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
+    ui->main_plotBox->graph()->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                QColor(234, 175, 98, 255), Qt::white, 2));
+*/
+
+    // set axes ranges, so we see all data:
+    ui->main_plotBox->xAxis->setRange(0, n);
+    ui->main_plotBox->yAxis->setRange(0, 12);
+    ui->main_plotBox->replot();
+}
+
+
 void MainWindow::on_main_vcfDirBtn_clicked()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
@@ -50,9 +106,9 @@ void MainWindow::on_main_runBtn_clicked()
     if(!ui->main_runBtn->isEnabled())
         return;
 
-    std::cout<< "RUN BABY RUN\n\n------\n";
-
     ui->main_runBtn->setEnabled(false);
+    ui->main_plotBox->clearPlottables();
+    ui->main_plotBox->addGraph();
 
     std::string vcfDir = ui->main_vcfDirTxt->text().toStdString();
     std::string sampleDir = ui->main_sampleDirTxt->text().toStdString();
@@ -86,13 +142,16 @@ void MainWindow::on_main_runBtn_clicked()
                 test, boot, nboot
                 );
 
-    QFuture<std::vector<double>> future = QtConcurrent::run(startVikNGS, request);
 
-    while(future.isRunning()){  }
-
-    QVector<double> pval = QVector<double>::fromStdVector(future.result());
-
-    main_replot(pval);
+    QThread* thread = new QThread;
+    Runner* runner = new Runner();
+    runner->setUi(ui);
+    runner->setRequest(request);
+    runner->moveToThread(thread);
+    connect(thread, SIGNAL(started()), runner, SLOT(process()));
+    connect(runner, SIGNAL(complete()), thread, SLOT(quit()));
+    connect(runner, SIGNAL(complete()), runner, SLOT(deleteLater()));
+    thread->start();
 
     }catch(std::invalid_argument e){
         QMessageBox *dialog = new QMessageBox;
@@ -106,11 +165,8 @@ void MainWindow::on_main_runBtn_clicked()
                         " for following value: " +
                         error.split(",").at(0) + ".");
         dialog->show();
-
         ui->main_runBtn->setEnabled(true);
-
         return;
-
     }catch(std::domain_error e){
         QMessageBox *dialog = new QMessageBox;
         dialog->setWindowTitle("Invalid input");
@@ -120,59 +176,9 @@ void MainWindow::on_main_runBtn_clicked()
 
         dialog->setText("Invalid input. Please change the following input: \n\n" + error);
         dialog->show();
-
-        ui->sim_runBtn->setEnabled(true);
-
+        ui->main_runBtn->setEnabled(true);
         return;
     }
-
-    ui->main_runBtn->setEnabled(true);
-
-}
-
-
-void MainWindow::main_replot(QVector<double> values){
-
-    int n = values.size();
-
-    if(n < 0)
-        return;
-
-    QVector<double> x(n), y(n);
-    QVector<double> x2(n), y2(n);
-
-    for (int i=0; i < n; ++i)
-    {
-        x[i] = i;
-        y[i] = -log10(values.at(i));
-    }
-
-    ui->main_plotBox->clearPlottables();
-    ui->main_plotBox->addGraph();
-
-    // give the axes some labels:
-    ui->main_plotBox->xAxis->setLabel("Position");
-    ui->main_plotBox->yAxis->setLabel("-log(p)");
-
-    ui->main_plotBox->graph()->setData(x, y);
-    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
-    ui->main_plotBox->graph()->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                QColor(47, 164, 226, 255), Qt::white, 2));
-
-  /*  ui->main_plotBox->addGraph();
-
-    ui->main_plotBox->graph()->setData(x2, y2);
-    ui->main_plotBox->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
-    ui->main_plotBox->graph()->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                QColor(234, 175, 98, 255), Qt::white, 2));
-*/
-
-    // set axes ranges, so we see all data:
-    ui->main_plotBox->xAxis->setRange(0, n);
-    ui->main_plotBox->yAxis->setRange(0, 12);
-    ui->main_plotBox->replot();
 }
 
 void MainWindow::on_main_testRareCastBtn_toggled(bool checked){
