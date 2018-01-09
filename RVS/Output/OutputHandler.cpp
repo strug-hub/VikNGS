@@ -1,4 +1,6 @@
 #include "../RVS.h"
+#include "Output.h"
+
 #include <iostream>  
 #include <fstream>
 

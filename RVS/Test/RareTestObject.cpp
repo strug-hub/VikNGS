@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "RareTestObject.h"
 
 void RareTestObject::filterNAN() {

@@ -1,5 +1,9 @@
 #pragma once
 #include "InputParser.h"
+#include "../Request.h"
+
+static const std::string PARSER_ERROR = "input parser";
+
 
 /*
 Parses a VCF file.
@@ -39,24 +43,19 @@ Parses a sample data file.
 @return None.
 @effect Fills Y, Z, G and readGroup with information from sample file.
 */
-void parseSample(std::string sampleDir, std::string vcfDir,
-	 VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff) {
+void parseSample(Request req, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup) {
 
-	if (!fileExists(sampleDir)) {
-		printError("Could not find sample data file at given directory: " + sampleDir);
-		throw std::runtime_error("File not found");
-	}
+	if (!fileExists(req.sampleDir)) 
+		throwError(PARSER_ERROR, "Cannot find file at sample info directory.", req.sampleDir);
 
 	std::map<std::string, int> IDmap;
 
 	try {
-		IDmap = getSampleIDMap(vcfDir);
-		if (IDmap.size() <= 0) {
-			printError("No samples could be found in the VCF file header! Exiting.");
-			throw std::runtime_error("VCF header error");
-		}
+		IDmap = getSampleIDMap(req.vcfDir);
+		if (IDmap.size() <= 0)
+			throwError(PARSER_ERROR, "No sample IDs could be found in the VCF file header.");
 
-		parseSampleLines(sampleDir, IDmap, Y, Z, G, readGroup, highLowCutOff);
+		parseSampleLines(req.sampleDir, IDmap, Y, Z, G, readGroup, req.highLowCutOff);
 	}
 	catch (...) {
 		throw;
@@ -76,17 +75,16 @@ Filters out variants based on given criteria.
 
 @return Filtered vector of VCFLines.
 */
-std::vector<VCFLine> filterVariants(std::vector<VCFLine> & variants, VectorXd & G, 
-	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common) {
+std::vector<VCFLine> filter(Request req, std::vector<VCFLine> & variants, VectorXd & G) {
 	
-	variants = filterVariants(variants, G, missingThreshold, onlySNPs, mustPASS);
+	variants = filterVariants(req, variants, G);
 
 	std::sort(variants.begin(), variants.end(), lineCompare);
 	variants = removeDuplicates(variants);
 
 	variants = calculateExpectedGenotypes(variants);
 	variants = filterHomozygousVariants(variants);
-	variants = filterMinorAlleleFrequency(variants, mafCutoff, common);
+	variants = filterMinorAlleleFrequency(variants, req.mafCutoff, req.useCommon());
 
 	int variantsLeft = variants.size();
 	if (variantsLeft > 0) {
@@ -107,12 +105,12 @@ Parses a BED file to collapse variants.
 @return None.
 @effect Fills interval using information from BED file and variants.
 */
-void parseBED(std::string bedDir, std::vector<VCFLine> & variants, std::vector<std::vector<int>> & interval, bool collapseCoding, bool collapseExon) {
+void parseBED(Request req, std::vector<VCFLine> & variants, std::vector<std::vector<int>> & interval) {
 	try {
-		if (!fileExists(bedDir))
-			printWarning("Could not find BED file, will not be used to collapse variants. Given directory: " + bedDir);
+		if (!fileExists(req.bedDir))
+			throwError(PARSER_ERROR, "Cannot find file at BED directory.", req.bedDir);
 		else
-			interval = parseBEDLines(bedDir, variants, collapseCoding, collapseExon );
+			interval = parseBEDLines(req.bedDir, variants, req.shouldCollapseCoding(), req.shouldCollapseExon() );
 	}
 	catch (...) {
 		printWarning("Failed to parse BED file, will not be used to collapse variants.");
@@ -146,20 +144,17 @@ Output params:
 @return True if no errors detected during parsing or filtering.
 @effect Modifies output params using information from input files.
 */
-bool parseAndFilter(std::string vcfDir, std::string sampleDir, std::string bedDir,
-	int highLowCutOff, bool collapseCoding, bool collapseExon,
-	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
-	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
+bool parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval) {
 
 	try {
-		std::vector<VCFLine> variants = parseVCF(vcfDir);
-		parseSample(sampleDir, vcfDir, Y, Z, G, readGroup, highLowCutOff);
+		std::vector<VCFLine> variants = parseVCF(req.vcfDir);
+		parseSample(req, Y, Z, G, readGroup);
 
-		if (bedDir != "")
-			parseBED(bedDir, variants, interval, collapseCoding, collapseExon);
+		if (req.shouldCollapse())
+			parseBED(req, variants, interval);
 
-		variants = filterVariants(variants, G, missingThreshold, onlySNPs, mustPASS, mafCutoff, common);
+		variants = filter(req, variants, G);
 
 		if (variants.size() <= 0) {
 			printWarning("No variants left after filtering!");

@@ -20,3 +20,15 @@ inline void printError(std::string message) {
 	std::cout << message;
 	std::cout << "\n";
 }
+
+inline void throwError(std::string source, std::string message) {
+	printError(message);
+
+	throw std::runtime_error(message);
+}
+
+inline void throwError(std::string source, std::string message, std::string valueGiven) {
+	printError(message);
+
+	throw std::runtime_error(message);
+}

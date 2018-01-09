@@ -44,15 +44,12 @@ inline double missingTest(VCFLine variant, VectorXd &G, int ngroup, double missi
 Filters variants read from VCF file based on missing sample data, failing to have 'PASS' in FILTER column
 and whether the variant is an insertion or deletion (indel).
 
+@param req Request object containing filtering parameters
 @param variants Lines read from VCF file.
 @param G Vector of group ID.
-@param missingThreshold Proportion of sample data missing for variant to be filtered.
-@param onlySNPs If true, indels will be filtered based on REF and ALT columns.
-@param mustPASS If true, variants where FILTER is not 'PASS' will be filtered.
 @return Filtered vector of VCFLines.
 */
-std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
-	double missingThreshold, bool onlySNPs, bool mustPass) {
+std::vector<VCFLine> filterVariants(Request req, std::vector<VCFLine> variants, VectorXd &G) {
 	int failCounter = 0;
 	int missingCounter = 0;
 	int indelCounter = 0;
@@ -66,17 +63,17 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
 	for (int i = 0; i < variants.size(); i++) {
 		variant = variants[i];
 
-		if (mustPass && variant.filter != "PASS") {
+		if (req.mustPASS && variant.filter != "PASS") {
 			failCounter++;
 			continue;
 		}
 
-		if (onlySNPs && !validBase(variant.alt) || !validBase(variant.ref)) {
+		if (req.onlySNPs && !validBase(variant.alt) || !validBase(variant.ref)) {
 			indelCounter++;
 			continue;
 		}
 
-		if (!missingTest(variant, G, ngroup, missingThreshold)) {
+		if (!missingTest(variant, G, ngroup, req.missingThreshold)) {
 			missingCounter++;
 			continue;
 		}
@@ -84,12 +81,12 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
 		filteredVariants.push_back(variant);
 	}
 
-	if (mustPass && failCounter > 0) {
+	if (req.mustPASS && failCounter > 0) {
 		std::string s = failCounter > 1 ? "s" : "";
 		printInfo(std::to_string(failCounter) + " variant" + s + 
 			" were filtered by FILTER column (do not PASS).");
 	}
-	if (onlySNPs && indelCounter > 0) {
+	if (req.onlySNPs && indelCounter > 0) {
 		std::string s = indelCounter > 1 ? "s" : "";
 		printInfo(std::to_string(indelCounter) + " variant" + s + 
 			" were filtered by ALT and REF column (indel variant" + s + " removed).");
@@ -97,7 +94,7 @@ std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
 	if (missingCounter > 0) {
 		std::string s = missingCounter > 1 ? "s" : "";
 		printInfo(std::to_string(missingCounter) + " variant" + s + 
-			" filtered by due to missing information (threshold = " + std::to_string(missingThreshold) + ").");
+			" filtered by due to missing information (threshold = " + std::to_string(req.missingThreshold) + ").");
 	}
 
 	return filteredVariants;

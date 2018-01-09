@@ -1,6 +1,7 @@
 #pragma once
 #include "stdafx.h"
 #include "Parser/InputParser.h"
+#include "Request.h"
 
 #include <string>
 #include <vector>
@@ -69,43 +70,12 @@ struct SimulationRequest {
 	}
 };
 
-struct Request {
 
-	///input files
-	std::string vcfDir;
-	std::string sampleDir;
-	std::string bedDir = "";
-
-	int highLowCutOff;
-	bool collapseCoding;
-	bool collapseExon;
-
-	//filtering paramaters
-	double mafCutoff;
-	double missingThreshold;
-	bool onlySNPs;
-	bool mustPASS;
-
-	std::string outputDir;
-
-	std::string test;
-	bool useBootstrap;
-	int nboot;
-
-	inline bool useCommon() {
-		return test == "common";
-	}
-};
 
 
 //========================================================
 // functions
 //========================================================
-
-Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,
-	std::string highLowCutOff, bool collapseCoding, bool collapseExon,
-	std::string mafCutoff, std::string missingThreshold, bool onlySNPs, bool mustPASS,
-	std::string test, bool useBootstrap, std::string nboot);
 
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
@@ -119,10 +89,7 @@ std::vector<double> startSimulation (SimulationRequest req);
 std::vector<double> startVikNGS(Request req);
 
 //VCFParser.cpp
-bool parseAndFilter(std::string vcfDir, std::string infoDir, std::string bedDir, 
-	int highLowCutOff, bool collapseCoding, bool collapseExon,
-	double missingThreshold, bool onlySNPs, bool mustPASS, double mafCutoff, bool common,
-	MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
+bool parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval);
 
 //VectorHelper.cpp

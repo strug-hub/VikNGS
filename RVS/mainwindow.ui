@@ -64,7 +64,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf</string>
+           <string/>
           </property>
           <property name="readOnly">
            <bool>true</bool>
@@ -175,6 +175,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
             <widget class="QLineEdit" name="main_vcfChromFilterTxt">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string/>
              </property>
@@ -254,7 +257,7 @@
            </rect>
           </property>
           <property name="text">
-           <string>C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt</string>
+           <string/>
           </property>
           <property name="readOnly">
            <bool>true</bool>

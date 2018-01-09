@@ -369,10 +369,14 @@
     <ClInclude Include="Eigen\src\SVD\SVDBase.h" />
     <ClInclude Include="Eigen\src\SVD\UpperBidiagonalization.h" />
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
-    <ClInclude Include="CommonTestObject.h" />
+    <ClInclude Include="Output\Output.h" />
+    <ClInclude Include="Request.h" />
+    <ClInclude Include="Test\CommonTestObject.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="Parser\BED\BEDParserUtils.h" />
     <ClInclude Include="Parser\InputParser.h" />
-    <ClInclude Include="RareTestObject.h" />
+    <ClInclude Include="Parser\VCF\VCFParserUtils.h" />
+    <ClInclude Include="Test\RareTestObject.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RVS.h" />
     <ClInclude Include="Parser\MemoryMapped\MemoryMapped.h" />
@@ -382,20 +386,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Output\OutputHandler.cpp" />
-    <ClCompile Include="Parser\BEDParser.cpp" />
-    <ClCompile Include="CommonTest.cpp" />
+    <ClCompile Include="Parser\BED\BEDParser.cpp" />
+    <ClCompile Include="RequestBuilder.cpp" />
+    <ClCompile Include="Test\CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
+    <ClCompile Include="Parser\BED\BEDParserUtils.cpp" />
     <ClCompile Include="Parser\SampleParser.cpp" />
     <ClCompile Include="Parser\MemoryMapped\MemoryMapped.cpp" />
+    <ClCompile Include="Parser\VCF\VCFParserUtils.cpp" />
     <ClCompile Include="RVS.cpp" />
     <ClCompile Include="Parser\InputParser.cpp" />
     <ClCompile Include="Parser\ParserTools.cpp" />
-    <ClCompile Include="RareTest.cpp" />
-    <ClCompile Include="RareTestObject.cpp" />
+    <ClCompile Include="Test\RareTest.cpp" />
+    <ClCompile Include="Test\RareTestObject.cpp" />
     <ClCompile Include="Simulation\Simulation.cpp" />
     <ClCompile Include="Simulation\SimulationHelper.cpp" />
     <ClCompile Include="Parser\VariantFilter.cpp" />
-    <ClCompile Include="Parser\VCFParser.cpp" />
+    <ClCompile Include="Parser\VCF\VCFParser.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="VectorHelper.cpp" />
     <ClCompile Include="StatisticsHelper.cpp" />

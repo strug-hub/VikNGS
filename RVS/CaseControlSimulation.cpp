@@ -110,8 +110,6 @@ void MainWindow::on_sim_runBtn_clicked(){
         ntest = std::max(1, ui->sim_powerStepTxt->text().toInt());
 
 
-    std::cout<< "RUN BABY RUN\n\n------\n";
-
     QVector<double> power;
 
     try{

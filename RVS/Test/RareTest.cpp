@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "RVS.h"
+#include "../RVS.h"
 #include "RareTestObject.h"
 
 double getTestStatistic(std::vector<RareTestObject> &t, bool rvs, std::string test) {

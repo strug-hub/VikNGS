@@ -2,6 +2,7 @@
 #include "MemoryMapped/MemoryMapped.h"
 #include "../Log.h"
 #include "../RVS.h"
+#include "../Request.h"
 
 #include <iostream>  
 #include <vector>
@@ -31,7 +32,13 @@ struct VCFLine {
 	VectorXd expectedGenotype;
 
 	bool valid = true;
+	std::string errorMessage;
 	inline bool isValid(){ return valid; }
+	inline void setInvalid(std::string message) {
+		valid = false; 
+		errorMessage = message;
+	}
+	std::string getErrorMessage() { return errorMessage; }
 
 	inline bool operator<(VCFLine& line) {
 		if (this->chr == line.chr)
@@ -78,8 +85,7 @@ std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFL
 	bool collapseCoding, bool collapseExon);
 
 //VariantFilter.cpp
-std::vector<VCFLine> filterVariants(std::vector<VCFLine> variants, VectorXd &G,
-	double missingThreshold, bool onlySNPs, bool mustPass);
+std::vector<VCFLine> filterVariants(Request req, std::vector<VCFLine> variants, VectorXd &G);
 std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants);
 std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants);
 std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, double mafCutoff, bool common);

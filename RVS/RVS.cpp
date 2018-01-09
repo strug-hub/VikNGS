@@ -180,54 +180,6 @@ void validateSimulationRequest(SimulationRequest request) {
 
 }
 
-void validateRequest(Request request) {
-
-    if (request.mafCutoff > 0.5)
-        throw std::domain_error("Minor allele frequency cutoff (value given: " +
-            std::to_string(request.mafCutoff) +
-            ") should be a value between 0 and 0.5.");
-
-    if (request.missingThreshold > 0.5)
-        throw std::domain_error("Missing threshold (value given: " +
-            std::to_string(request.missingThreshold) +
-            ") should be a value between 0 and 0.5.");
-}
-
-Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,
-	std::string highLowCutOff, bool collapseCoding, bool collapseExon,
-	std::string mafCutoff, std::string missingThreshold, bool onlySNPs, bool mustPASS,
-	std::string test, bool useBootstrap, std::string nboot) {
-
-	Request request;
-
-	request.vcfDir = vcfDir;
-	request.sampleDir = sampleDir;
-	request.bedDir = bedDir;
-	request.collapseCoding = collapseCoding;
-	request.collapseExon = collapseExon;
-	request.onlySNPs = onlySNPs;
-	request.mustPASS = mustPASS;
-	request.test = test;
-	request.useBootstrap = useBootstrap;
-
-
-	try { request.highLowCutOff = std::abs(std::stoi(highLowCutOff)); }
-	catch (...) { throw std::invalid_argument("read depth threshold,integer"); }
-	try { request.mafCutoff = std::abs(std::stod(mafCutoff)); }
-	catch (...) { throw std::invalid_argument("MAF cutoff,decimal"); }
-	try { request.missingThreshold = std::abs(std::stod(missingThreshold)); }
-	catch (...) { throw std::invalid_argument("missing threshold,decimal"); }
-
-	if (useBootstrap) {
-		try { request.nboot = std::abs(std::stoi(nboot)); }
-		catch (...) { throw std::invalid_argument("# bootstrap iterations,integer"); }
-	}
-
-	try { validateRequest(request); }
-	catch (...) { throw; }
-
-	return request;
-}
 
 SimulationRequest newSimulationRequest(std::string npop, std::string prevalence,
 	std::string nsnp, std::string me, std::string sde, std::string oddsRatio,
@@ -275,10 +227,7 @@ std::vector<double> startVikNGS(Request req) {
 	std::map<int, int> readGroup;
 	std::vector<std::vector<int>> interval;
 
-	bool valid = parseAndFilter(req.vcfDir, req.sampleDir, req.bedDir,
-		req.highLowCutOff, req.collapseCoding, req.collapseExon,
-		req.missingThreshold, req.onlySNPs, req.mustPASS, req.mafCutoff, req.useCommon(),
-		X, Y, Z, G, readGroup, P, interval);
+	bool valid = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
 
 	bool useCovariates = Z.rows() > 0;
 
@@ -304,9 +253,9 @@ std::vector<double> startVikNGS(Request req) {
 	}
 	else {
 		if (useCovariates)
-			pval = runRareTest(X, Y, Z, G, readGroup, P, req.nboot, req.test);
+			pval = runRareTest(X, Y, Z, G, readGroup, P, req.nboot);
 		else
-			pval = runRareTest(X, Y, G, readGroup, P, req.nboot, req.test);
+			pval = runRareTest(X, Y, G, readGroup, P, req.nboot);
 	}
 
 	std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
@@ -351,37 +300,40 @@ SimulationRequest testSimulationRequest() {
 }
 
 
-/*
+
 int main() {
 
     //TODO: take as input from command line
     //---------------------------------------
-    bool simulation = false;
-    bool common = true;
+	bool simulation = false;
 
-    int highLowCutOff = 30;
-    bool collapseCoding = false;
-    bool collapseExon = true;
+	///input files
+    //std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
+    //std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-    //filtering paramaters
-    double mafCutoff = 0.05;
-    double missingThreshold = 0.1;
-    bool onlySNPs = true;
-    bool mustPASS = true;
-
-    bool rvs = true;
-
-    ///input files
-    std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
-    std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
-
-	//std::string vcfDir = "C:/Users/Scott/Desktop/RVS-master/example/example_1000snps.vcf";
-	//std::string infoDir = "C:/Users/Scott/Desktop/RVS-master/example/sampleInfo.txt";
+	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
+	std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
     std::string bedDir = "";
     //std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
 
     std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
+
+	initializeRequest(vcfDir, infoDir);
+	useCommonTest();
+	setHighLowCutOff(30);
+	
+	//setCollapseFile(bedDir);
+	//setCollapseCoding();
+
+	setMAFCutoff(0.05);
+	setMissingThreshold(0.1);
+	setMustPASS(true);
+	setOnlySNPs(true);
+	Request req = getRequest();
+
+
+	bool rvs = true;
 
     //---------------------------------------
 
@@ -405,17 +357,14 @@ int main() {
         outputPvals(pvals, outputDir);
     }
     else {
-        bool valid = parseAndFilter(vcfDir, infoDir, bedDir,
-            highLowCutOff, collapseCoding, collapseExon,
-            missingThreshold, onlySNPs, mustPASS, mafCutoff, common,
-            X, Y, Z, G, readGroup, P, interval);
+        bool valid = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
         if (!valid) {
             return 0;
         }
 
         generateForR(X, Y, Z, G, P, readGroup);
 
-        if (common) {
+        if (req.useCommon()) {
             std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
             //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
             //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
@@ -455,4 +404,4 @@ int main() {
 }
 
 
-*/
+

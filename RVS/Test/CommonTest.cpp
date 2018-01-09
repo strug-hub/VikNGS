@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "RVS.h"
+#include "../RVS.h"
 #include "CommonTestObject.h"
 
 /*

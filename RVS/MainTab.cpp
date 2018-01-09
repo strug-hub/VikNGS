@@ -26,6 +26,8 @@ Runner::~Runner() {}
 void Runner::process() {
 
     std::vector<double> pval = startVikNGS(request);
+    ui->outputBox->repaint();
+    ui->outputBox->update();
     replot(pval);
 
     ui->main_runBtn->setEnabled(true);
