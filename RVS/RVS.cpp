@@ -311,8 +311,11 @@ int main() {
     //std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
     //std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
-	std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
+	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
+	//std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
+
+	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
+	std::string infoDir = "C:/Users/Scott/Desktop/vcf/step3_sampleinfo.txt";
 
     std::string bedDir = "";
     //std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
@@ -357,10 +360,8 @@ int main() {
         outputPvals(pvals, outputDir);
     }
     else {
-        bool valid = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
-        if (!valid) {
-            return 0;
-        }
+        std::vector<VCFLine> variants = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
+
 
         generateForR(X, Y, Z, G, P, readGroup);
 

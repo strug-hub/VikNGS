@@ -32,3 +32,11 @@ inline void throwError(std::string source, std::string message, std::string valu
 
 	throw std::runtime_error(message);
 }
+
+inline void printWarning(std::string source, std::string message, std::string valueGiven) {
+	printWarning(message + " ||| " + valueGiven);
+}
+
+inline void printWarning(std::string source, std::string message) {
+	printWarning(message);
+}

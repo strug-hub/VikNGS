@@ -70,22 +70,21 @@ std::vector<std::string> split(std::string s, char sep);
 std::vector<VCFLine> calculateExpectedGenotypes(std::vector<VCFLine> &variants);
 VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p);
 VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
-bool fileExists(const std::string& name);
 
 //VCFParser.cpp
 std::vector<VCFLine> parseVCFLines(std::string vcfDir);
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 
 //SampleParser.cpp
-void parseSampleLines(std::string sampleInfoDir, std::map<std::string, int> &IDmap,
-	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, int highLowCutOff);
+void parseSampleLines(Request req, std::map<std::string, int> &IDmap,
+	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup);
 
 //BEDParser.cpp
 std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<VCFLine> variants, 
 	bool collapseCoding, bool collapseExon);
 
 //VariantFilter.cpp
-std::vector<VCFLine> filterVariants(Request req, std::vector<VCFLine> variants, VectorXd &G);
+std::vector<VCFLine> filterVariants(Request req, std::vector<VCFLine> &variants, VectorXd &G);
 std::vector<VCFLine> removeDuplicates(std::vector<VCFLine> variants);
 std::vector<VCFLine> filterHomozygousVariants(std::vector<VCFLine> &variants);
 std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, double mafCutoff, bool common);
@@ -97,10 +96,15 @@ struct File {
 	int lineNumber;
 
 	inline void open(std::string directory) {
-		mmap.open(directory);
-		pos = 0;
-		lineNumber = 0;
-		maxPos = mmap.size();
+		try {
+			mmap.open(directory);
+			pos = 0;
+			lineNumber = 0;
+			maxPos = mmap.size();
+		}
+		catch (...) {
+			throwError("file struct", "Cannot open file from provided directory.", directory);
+		}
 	}
 
 	inline void close() {

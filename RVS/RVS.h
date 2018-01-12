@@ -88,9 +88,9 @@ SimulationRequestGroup newSimulationRequestGroup(int groupID, std::string n, std
 std::vector<double> startSimulation (SimulationRequest req);
 std::vector<double> startVikNGS(Request req);
 
-//VCFParser.cpp
-bool parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
-	std::vector<std::vector<int>> & interval);
+//InputParser
+std::vector<VCFLine> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, 
+	std::map<int, int> &readGroup, MatrixXd &P, std::vector<std::vector<int>> & interval);
 
 //VectorHelper.cpp
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);

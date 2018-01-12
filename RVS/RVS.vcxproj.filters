@@ -720,12 +720,15 @@
     <ClInclude Include="Output\Output.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Parser\Sample\SampleParserUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser\Filter\VariantFilterUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CompQuadForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Parser\VariantFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Parser\InputParser.cpp">
@@ -747,9 +750,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Parser\ParserTools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Parser\SampleParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -783,6 +783,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RequestBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser\Sample\SampleParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser\Sample\SampleParserUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser\Filter\VariantFilterUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser\Filter\VariantFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,23 +2,6 @@
 #include <regex>
 #include <fstream>
 
-/**
-Checks whether or not a file exists.
-
-@param dir Directory to check.
-@return True if file exists.
-*/
-bool fileExists(const std::string& dir) {
-
-	std::ifstream f(dir.c_str());
-	if (f.good())
-		return true;
-
-	std::string message = "File does not exist or cannot be opened: ";
-	message.append(dir);
-	printError(message);
-	return false;
-}
 
 /**
 Extracts string from a MemoryMapped class

@@ -1,5 +1,8 @@
 #include "BEDParserUtils.h"
 
+static const std::string BED_PARSER_UTILS = "BED parser utils";
+
+
 Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int lineNumber) {
 
 	int nexons;
@@ -8,10 +11,9 @@ Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int l
 		nexons = stoi(lineSplit[9]);
 	}
 	catch (...) {
-		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Unexpected value '" + lineSplit[9];
-		message += "' in ninth column. Should be an integer value. Skipping line.";
-		printWarning(message);
+		std::string message = "Line " + std::to_string(lineNumber) +
+		" in BED file - Unexpected non-interger value in ninth column, skipping line.";
+		printWarning(BED_PARSER_UTILS, message);
 		return interval;
 	}
 
@@ -23,19 +25,19 @@ Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int l
 
 	if (blockSizes.size() < nexons) {
 		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Expected " + std::to_string(nexons);
+		message += " in BED file - Expected " + std::to_string(nexons);
 		message += " exons in eleventh column but only found ";
 		message += std::to_string(blockSizes.size()) + ". Skipping line.";
-		printWarning(message);
+		printWarning(BED_PARSER_UTILS, message);
 		return interval;
 	}
 
 	if (blockStarts.size() < nexons) {
 		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Expected " + std::to_string(nexons);
+		message += " in BED file - Expected " + std::to_string(nexons);
 		message += " exons in twelfth column but only found ";
 		message += std::to_string(blockStarts.size()) + ". Skipping line.";
-		printWarning(message);
+		printWarning(BED_PARSER_UTILS, message);
 		return interval;
 	}
 
@@ -48,10 +50,9 @@ Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int l
 			exonSize = stoi(blockSizes[i]);
 		}
 		catch (...) {
-			std::string message = "Line " + std::to_string(lineNumber);
-			message += " in BED file: Unexpected value '" + blockSizes[i];
-			message += "' in eleventh column. Should be an integer value. Skipping line.";
-			printWarning(message);
+			std::string message = "Line " + std::to_string(lineNumber) +
+			 " in BED file - Unexpected non-integer value in eleventh column, skipping line.";
+			printWarning(BED_PARSER_UTILS, message, blockSizes[i]);
 			return interval;
 		}
 		try {
@@ -59,9 +60,8 @@ Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int l
 		}
 		catch (...) {
 			std::string message = "Line " + std::to_string(lineNumber);
-			message += " in BED file: Unexpected value '" + blockStarts[i];
-			message += "' in twelfth column. Should be an integer value. Skipping line.";
-			printWarning(message);
+			message += " in BED file - Unexpected non-integer value in twelfth column, skipping line.";
+			printWarning(BED_PARSER_UTILS, message, blockStarts[i]);
 			return interval;
 		}
 
@@ -109,10 +109,11 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 	Interval interval;
 
 	if (lineSplit.size() < colsExpected) {
+
 		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Expected at least " + std::to_string(colsExpected);
-		message += " but only found " + std::to_string(lineSplit.size()) + ". Skipping line.";
-		printWarning(message);
+		message += " in BED file - Expected at least " + std::to_string(colsExpected);
+		message += " columns but only found " + std::to_string(lineSplit.size()) + ". Skipping line.";
+		printWarning(BED_PARSER_UTILS, message);
 		return interval;
 	}
 
@@ -127,9 +128,8 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 	}
 	catch (...) {
 		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Unexpected value '" + lineSplit[1];
-		message += "' in second column. Should be an integer value. Skipping line.";
-		printWarning(message);
+		message += " in BED file - Unexpected non-integer value in second column, skipping line.";
+		printWarning(BED_PARSER_UTILS, message, lineSplit[1]);
 		return interval;
 	}
 	try {
@@ -137,9 +137,8 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 	}
 	catch (...) {
 		std::string message = "Line " + std::to_string(lineNumber);
-		message += " in BED file: Unexpected value '" + lineSplit[2];
-		message += "' in third column. Should be an integer value. Skipping line.";
-		printWarning(message);
+		message += " in BED file - Unexpected non-integer value in third column, skipping line.";
+		printWarning(BED_PARSER_UTILS, message, lineSplit[2]);
 		return interval;
 	}
 
@@ -149,9 +148,8 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 		}
 		catch (...) {
 			std::string message = "Line " + std::to_string(lineNumber);
-			message += " in BED file: Unexpected value '" + lineSplit[6];
-			message += "' in seventh column. Should be an integer value. Skipping line.";
-			printWarning(message);
+			message += " in BED file - Unexpected non-integer value in seventh column, skipping line.";
+			printWarning(BED_PARSER_UTILS, message, lineSplit[6]);
 			return interval;
 		}
 		try {
@@ -159,9 +157,8 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 		}
 		catch (...) {
 			std::string message = "Line " + std::to_string(lineNumber);
-			message += " in BED file: Unexpected value '" + lineSplit[7];
-			message += "' in eigth column. Should be an integer. Skipping line.";
-			printWarning(message);
+			message += " in BED file - Unexpected non-integer value in eigth column, skipping line.";
+			printWarning(BED_PARSER_UTILS, message, lineSplit[7]);
 			return interval;
 		}
 

@@ -1,5 +1,7 @@
 #include "VCFParserUtils.h"
 
+static const std::string VCF_PARSER = "VCF parser";
+
 /*
 Reads every line (variant) from a VCF file.
 
@@ -15,13 +17,8 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 
 	int pos = 0;
 
-	try {
-		//skips header
-		extractHeader(vcf);
-	}
-	catch (...) { 
-		throw;
-	}
+	//skips header
+	extractHeader(vcf);
 
 	while (vcf.hasNext()) {
 
@@ -33,9 +30,8 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 		if (variant.isValid())
 			variants.push_back(variant);
 		else {
-			std::string warningMessage = "Error while parsing variant on line " + std::to_string(vcf.getLineNumber()) + ": ";
-			warningMessage += variant.getErrorMessage();
-			printWarning(warningMessage);
+			std::string lineNumber = std::to_string(vcf.getLineNumber());
+			printWarning(VCF_PARSER, "Skipping line " + lineNumber + " of VCF file - " + variant.getErrorMessage());
 		}
 	}
 

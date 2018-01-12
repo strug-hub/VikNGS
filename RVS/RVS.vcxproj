@@ -370,6 +370,8 @@
     <ClInclude Include="Eigen\src\SVD\UpperBidiagonalization.h" />
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
     <ClInclude Include="Output\Output.h" />
+    <ClInclude Include="Parser\Filter\VariantFilterUtils.h" />
+    <ClInclude Include="Parser\Sample\SampleParserUtils.h" />
     <ClInclude Include="Request.h" />
     <ClInclude Include="Test\CommonTestObject.h" />
     <ClInclude Include="Log.h" />
@@ -387,11 +389,13 @@
   <ItemGroup>
     <ClCompile Include="Output\OutputHandler.cpp" />
     <ClCompile Include="Parser\BED\BEDParser.cpp" />
+    <ClCompile Include="Parser\Sample\SampleParserUtils.cpp" />
+    <ClCompile Include="Parser\Filter\VariantFilterUtils.cpp" />
     <ClCompile Include="RequestBuilder.cpp" />
     <ClCompile Include="Test\CommonTest.cpp" />
     <ClCompile Include="CompQuadForm.cpp" />
     <ClCompile Include="Parser\BED\BEDParserUtils.cpp" />
-    <ClCompile Include="Parser\SampleParser.cpp" />
+    <ClCompile Include="Parser\Sample\SampleParser.cpp" />
     <ClCompile Include="Parser\MemoryMapped\MemoryMapped.cpp" />
     <ClCompile Include="Parser\VCF\VCFParserUtils.cpp" />
     <ClCompile Include="RVS.cpp" />
@@ -401,7 +405,7 @@
     <ClCompile Include="Test\RareTestObject.cpp" />
     <ClCompile Include="Simulation\Simulation.cpp" />
     <ClCompile Include="Simulation\SimulationHelper.cpp" />
-    <ClCompile Include="Parser\VariantFilter.cpp" />
+    <ClCompile Include="Parser\Filter\VariantFilter.cpp" />
     <ClCompile Include="Parser\VCF\VCFParser.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="VectorHelper.cpp" />

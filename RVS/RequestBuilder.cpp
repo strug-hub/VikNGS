@@ -1,6 +1,6 @@
 #include "Request.h"
 
-static const std::string REQUEST_ERROR = "request builder";
+static const std::string REQUEST_BUILDER = "request builder";
 static Request request;
 
 Request setDefaultParameters() {
@@ -44,19 +44,19 @@ void initializeRequest(std::string vcfDir, std::string sampleDir) {
 	if (checkFileExists(vcfDir))
 		request.vcfDir = vcfDir;
 	else
-		throwError(REQUEST_ERROR, "Cannot find file at VCF directory.", vcfDir);
+		throwError(REQUEST_BUILDER, "Cannot find file at VCF directory.", vcfDir);
 	
 	if (checkFileExists(sampleDir))
 		request.sampleDir = sampleDir;
 	else
-		throwError(REQUEST_ERROR, "Cannot find file at sample info directory.", sampleDir);
+		throwError(REQUEST_BUILDER, "Cannot find file at sample info directory.", sampleDir);
 }
 
 void setCollapseFile(std::string bedDir) {
 	if (checkFileExists(bedDir))
 		request.bedDir = bedDir;
 	else
-		throwError(REQUEST_ERROR, "Cannot find file at BED directory.", bedDir);
+		throwError(REQUEST_BUILDER, "Cannot find file at BED directory.", bedDir);
 }
 
 void setOutputDir(std::string outputDir) {
@@ -65,7 +65,7 @@ void setOutputDir(std::string outputDir) {
 	if (checkFileExists(outputDir))
 		request.outputDir = outputDir;
 	else
-		throwError(REQUEST_ERROR, "Output directory is invalid.", outputDir);
+		throwError(REQUEST_BUILDER, "Output directory is invalid.", outputDir);
 }
 
 
@@ -89,7 +89,7 @@ void setMustPASS(bool value) {
 void useBootstrap(int nboot) {
 	request.useBootstrap = true;
 	if(nboot < 1)
-		throwError(REQUEST_ERROR, "Number of bootstrapping permutions should be greater than 0.",
+		throwError(REQUEST_BUILDER, "Number of bootstrapping permutions should be greater than 0.",
 			std::to_string(nboot));
 
 	request.nboot = nboot;
@@ -104,7 +104,7 @@ void useCommonTest() {
 
 void setHighLowCutOff(int highLowCutOff) {
 	if (highLowCutOff < 1)
-		throwError(REQUEST_ERROR, "High-low read depth threshold should be greater than 0.",
+		throwError(REQUEST_BUILDER, "High-low read depth threshold should be greater than 0.",
 			std::to_string(highLowCutOff));
 
 	request.highLowCutOff = highLowCutOff;
@@ -112,7 +112,7 @@ void setHighLowCutOff(int highLowCutOff) {
 
 void setMAFCutoff(double mafCutoff) {
 	if (mafCutoff < 0 || mafCutoff > 0.5)
-		throwError(REQUEST_ERROR, "Minor allele frequency threshold should be a value between 0 and 0.5.",
+		throwError(REQUEST_BUILDER, "Minor allele frequency threshold should be a value between 0 and 0.5.",
 			std::to_string(mafCutoff));
 
 	request.mafCutoff = mafCutoff;
@@ -120,7 +120,7 @@ void setMAFCutoff(double mafCutoff) {
 
 void setMissingThreshold(double missingThreshold) {
 	if (missingThreshold < 0 || missingThreshold > 0.5)
-		throwError(REQUEST_ERROR, "Missing threshold should be a value between 0 and 0.5.",
+		throwError(REQUEST_BUILDER, "Missing threshold should be a value between 0 and 0.5.",
 			std::to_string(missingThreshold));
 
 	request.missingThreshold = missingThreshold;
