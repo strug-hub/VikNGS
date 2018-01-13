@@ -89,7 +89,7 @@ std::vector<double> startSimulation (SimulationRequest req);
 std::vector<double> startVikNGS(Request req);
 
 //InputParser
-std::vector<VCFLine> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, 
+std::vector<std::string> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, 
 	std::map<int, int> &readGroup, MatrixXd &P, std::vector<std::vector<int>> & interval);
 
 //VectorHelper.cpp

@@ -129,8 +129,6 @@ void setMissingThreshold(double missingThreshold) {
 Request getRequest() { return request; }
 
 
-
-
 /*
 
 Request newRequest(std::string vcfDir, std::string sampleDir, std::string bedDir,

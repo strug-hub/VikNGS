@@ -47,17 +47,13 @@ struct VCFLine {
 			return this->chr < line.chr;
 	}
 
+	inline std::string toString() {
+		std::string t = "\t";
+		return chr + t + std::to_string(loc) + t + ref + t + alt;
+	}
+
 	inline void print() {
-		std::cout << chr;
-		std::cout << "\t";
-		std::cout << loc;
-		std::cout << "\t";
-		std::cout << "ref: ";
-		std::cout << ref;
-		std::cout << "\t";
-		std::cout << "alt: ";
-		std::cout << alt;
-		std::cout << "\n";
+		std::cout << toString() + "\n";
 	}
 };
 
@@ -92,7 +88,7 @@ std::vector<VCFLine> filterMinorAlleleFrequency(std::vector<VCFLine> &variants, 
 struct File {
 	MemoryMapped mmap;
 	int pos;
-	int maxPos;
+	uint64_t maxPos;
 	int lineNumber;
 
 	inline void open(std::string directory) {

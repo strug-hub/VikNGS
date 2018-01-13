@@ -30,13 +30,13 @@ Output params:
 @param P Vector with probability of 0, 1 or 2 minor alleles.
 @param interval The indexes of variants within each interval.
 
-@return True if no issues detected during parsing or filtering.
+@return Vector of strings describing each variant (after filtering).
 @effect Modifies output params using information from input files.
 */
-std::vector<VCFLine> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
+std::vector<std::string> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
 	std::vector<std::vector<int>> & interval) {
 	
-	std::map<std::string, int> IDmap = getSampleIDMap(req.vcfDir);
+    std::map<std::string, int> IDmap = getSampleIDMap(req.vcfDir);
 	parseSampleLines(req, IDmap, Y, Z, G, readGroup);
 
 	std::vector<VCFLine> variants = parseVCFLines(req.vcfDir);
@@ -61,6 +61,10 @@ std::vector<VCFLine> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, Matri
 
 	X = x;
 	P = p;
-	
-	return variants;
+
+	std::vector<std::string> variantInfo;
+	for (int i = 0; i < variants.size(); i++)
+		variantInfo.push_back(variants[i].toString());
+
+	return variantInfo;
 }

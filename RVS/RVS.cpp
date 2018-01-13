@@ -227,17 +227,11 @@ std::vector<double> startVikNGS(Request req) {
 	std::map<int, int> readGroup;
 	std::vector<std::vector<int>> interval;
 
-	bool valid = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
+	std::vector<std::string> variantInfo = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
 
 	bool useCovariates = Z.rows() > 0;
 
 	std::vector<double> pval;
-
-
-	if (!valid) {
-		//TODO 
-		return pval;
-	}
 
     if (req.useCommon()) {
 
@@ -314,7 +308,9 @@ int main() {
 	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
 	//std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
+	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
+	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step5_2.vcf";
+
 	std::string infoDir = "C:/Users/Scott/Desktop/vcf/step3_sampleinfo.txt";
 
     std::string bedDir = "";
@@ -360,7 +356,8 @@ int main() {
         outputPvals(pvals, outputDir);
     }
     else {
-        std::vector<VCFLine> variants = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
+
+		std::vector<std::string> variantInfo = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
 
 
         generateForR(X, Y, Z, G, P, readGroup);
@@ -386,6 +383,7 @@ int main() {
 
             std::cout << "Rare Test p-values\n";
 			for (size_t i = 0; i < pval.size(); i++) {
+				std::cout << variantInfo[i] + "\t";
 				std::cout << pval[i];
 				std::cout << '\n';
 			}

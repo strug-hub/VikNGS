@@ -6,17 +6,15 @@ std::vector<std::string> extractHeader(File &vcf) {
 
 	std::string line;
 
-	while (true) {
-		if (vcf.hasNext()) {
-			line = vcf.nextLine();
+	while (vcf.hasNext()) {
+		line = vcf.nextLine();
 
-			if (line.substr(0, 2) == "##")
-				continue;
-			else if (line.substr(0, 1) == "#")
-				break;
-			else
-				throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
-		}
+		if (line.substr(0, 2) == "##")
+			continue;
+		else if (line.substr(0, 1) == "#")
+			break;
+		else
+			throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
 	}
 
 	return split(line, VCF_SEPARATOR);
