@@ -1,7 +1,19 @@
-#include "stdafx.h"
-#include "RVS.h"
+#include "VectorHelper.h"
+
+static const std::string VECTOR_HELPER = "vector helper";
+
+/*
+if (v.rows() != where.rows()) {
+std::string message = "Internal error in function extractRows: number of rows in input vector (" +
+std::to_string(v.rows()) + ") should match number of rows in condition vector (" +
+std::to_string(where.rows()) + ").";
+
+throwError(VECTOR_HELPER, message);
+}
+*/
 
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals) {
+	
 	VectorXd subset(v.rows());
 	int c = 0;
 
@@ -16,6 +28,7 @@ VectorXd extractRows(VectorXd &v, VectorXd &where, double equals) {
 }
 
 MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals) {
+
 	MatrixXd subset(m.rows(), m.cols());
 	int c = 0;
 	int i, j;
@@ -32,45 +45,46 @@ MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals) {
 }
 
 VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z) {
-	int nobs = Y.rows();
-	int ncov = Z.cols();
 
-	VectorXd toRemove(nobs);
+	int nobs = Y.rows();
+	int ncov = Z.cols();	
+
+	VectorXd isNAN(nobs);
 	
 	for (int i = 0; i < nobs; i++) {
-		toRemove[i] = 0;
+		isNAN[i] = 0;
 
 		if (isnan(X[i]) || isnan(Y[i]))
-			toRemove[i] = 1;
+			isNAN[i] = 1;
 		else {
 			for (int j = 0; j < ncov; j++)
 				if (isnan(Z(i, j)))
-					toRemove[i] = 1;
+					isNAN[i] = 1;
 		}
 	}
 
-	return toRemove;
+	return isNAN;
 }
 
 VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
 	int nobs = Y.rows();
 	int ncov = Z.cols();
 
-	VectorXd toRemove(nobs);
+	VectorXd isNAN(nobs);
 
 	for (int i = 0; i < nobs; i++) {
-		toRemove[i] = 0;
+		isNAN[i] = 0;
 
 		if (isnan(Y[i]))
-			toRemove[i] = 1;
+			isNAN[i] = 1;
 		else {
 			for (int j = 0; j < ncov; j++)
 				if (isnan(Z(i, j)))
-					toRemove[i] = 1;
+					isNAN[i] = 1;
 		}
 	}
 
-	return toRemove;
+	return isNAN;
 }
 
 VectorXd whereNAN(VectorXd &X, VectorXd &Y) {
@@ -127,12 +141,6 @@ double center(VectorXd &v) {
 }
 
 MatrixXd nanToZero(MatrixXd &M) {
-	std::cout << "\n";	std::cout << "\n";
-	std::cout << "\n";
-	std::cout << "\n";
-	std::cout << "\n";
-
-	std::cout << M;
 
 	for (size_t i = 0; i < M.cols(); i++) 
 		for (size_t j = 0; j < M.rows(); j++) 

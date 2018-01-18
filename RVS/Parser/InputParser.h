@@ -3,6 +3,7 @@
 #include "../Log.h"
 #include "../RVS.h"
 #include "../Request.h"
+#include "../TestInput.h"
 
 #include <iostream>  
 #include <vector>
@@ -90,6 +91,7 @@ struct File {
 	int pos;
 	uint64_t maxPos;
 	int lineNumber;
+
 
 	inline void open(std::string directory) {
 		try {

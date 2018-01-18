@@ -91,8 +91,19 @@ double rareTest(std::vector<RareTestObject> &t, int nboot, bool rvs, std::string
 //first 5
 //0.667967        0.940141
 //next 5
-std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, std::string test, int collapseNumber, bool rvs) {
+std::vector<double> runRareTestWithCovariates(Request req, TestInput input) {
+
+	MatrixXd X = input.X;
+	VectorXd Y = input.Y;
+	MatrixXd Z = input.Z;
+
+	VectorXd G = input.G;
+	std::map<int, int> readGroup = input.readGroup;
+	MatrixXd P = input.P;
+
+	//todo
+	int collapseNumber = 5;
+	std::string test = "cast";
 
 	int i, j, h;
 	std::vector<double> pvals;
@@ -125,14 +136,25 @@ std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd 
 			t.push_back(t_i);
 		}
 
-        pvals.push_back(rareTest(t, nboot, rvs, test));
+        pvals.push_back(rareTest(t, req.nboot, req.rvs, test));
 	}
 
 	return pvals;
 }
 
-std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P, 
-	int nboot, std::string test, int collapseNumber, bool rvs) {
+std::vector<double> runRareTestWithoutCovariates(Request req, TestInput input) {
+
+	MatrixXd X = input.X;
+	VectorXd Y = input.Y;
+
+	VectorXd G = input.G;
+	std::map<int, int> readGroup = input.readGroup;
+	MatrixXd P = input.P;
+
+	//todo
+	int collapseNumber = 5;
+	std::string test = "cast";
+
 
 	int i, j, h;
 	std::vector<double> pvals;
@@ -170,8 +192,16 @@ std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<
 			t.push_back(t_i);
 		}
 
-        pvals.push_back(rareTest(t, nboot, rvs, test));
+		pvals.push_back(rareTest(t, req.nboot, req.rvs, test));
 
 	}
 	return pvals;
+}
+
+
+std::vector<double> runRareTest(Request req, TestInput input) {
+	if (input.hasCovariates())
+		return runRareTestWithCovariates(req, input);
+	else
+		return runRareTestWithoutCovariates(req, input);
 }

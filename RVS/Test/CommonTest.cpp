@@ -64,22 +64,31 @@ double commonBootstrap(CommonTestObject t, int nboot, bool earlyStop, bool rvs) 
 			tcount++;
 
 		average += score;
+
+	//	if (earlyStop && n > 1000) {
+	//	pstar = a / ((n + c)*(1 + c));
+	//	if (bootScoreCount / bootcount > pstar) {
+	//	std::cout << "early stop";
+	//	break;
+	//	}
+	//	*/
+
 	}
 
 	return (tcount + 1) / (nboot + 1);
 
-	/*
-	if (earlyStop && bootcount > 1000) {
-	pstar = a / ((bootcount + c)*(1 + c));
-	if (bootScoreCount / bootcount > pstar) {
-	std::cout << "early stop";
-	break;
-	}
-	*/
+
 }
 
-std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs) {
+std::vector<double> runCommonTest(Request req, TestInput input) {
+	
+	MatrixXd X = input.X;
+	VectorXd Y = input.Y;
+	MatrixXd Z = input.Z;
+
+	VectorXd G = input.G;
+	std::map<int, int> readGroup = input.readGroup;
+	MatrixXd P = input.P;
 
 	int i,j;
 	std::vector<double> pvals;
@@ -90,56 +99,19 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorX
 	std::vector<int> rd;
 
 	int ngroups = 1 + (int)G.maxCoeff();
+	bool hasCovariates = input.hasCovariates();
 
 	for (i = 0; i < ngroups; i++) {
 		x.push_back(extractRows(X, G, i));
 		y.push_back(extractRows(Y, G, i));
 
-		if(Z.rows() > 0 && Z.cols() > 0)
+		if(hasCovariates)
 			z.push_back(extractRows(Z, G, i));
 
 		rd.push_back(readGroup[i]);
+
+
 	}
-
-	for (i = 0; i < X.cols(); i++) {
-
-		std::vector<VectorXd> x_i;
-		for (j = 0; j < ngroups; j++) 
-			x_i.push_back(x[j].col(i));
-
-		VectorXd X_i = X.col(i);
-		VectorXd P_i = P.row(i);
-		CommonTestObject t(X_i, Y, Z, x_i, y, z, rd, P_i);
-
-		if (nboot > 0)
-			pvals.push_back(commonBootstrap(t, nboot, false, rvs));
-		else
-			pvals.push_back(commonAsymptotic(t, rvs));
-	}
-
-	return pvals;
-
-}
-
-std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, bool rvs) {
-
-	int i, j;
-	std::vector<double> pvals;
-
-	std::vector<MatrixXd> x;
-	std::vector<VectorXd> y;
-	std::vector<int> rd;
-
-	int ngroups = 1 + (int)G.maxCoeff();
-
-	for (i = 0; i < ngroups; i++) {
-		x.push_back(extractRows(X, G, i));
-		y.push_back(extractRows(Y, G, i));
-		rd.push_back(readGroup[i]);
-	}
-
-	std::cout << "Calculating p-values";
 
 	for (i = 0; i < X.cols(); i++) {
 
@@ -154,18 +126,37 @@ std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::ma
 		std::cout << ".";
 
 		std::vector<VectorXd> x_i;
-		for (j = 0; j < ngroups; j++)
+		for (j = 0; j < ngroups; j++) 
 			x_i.push_back(x[j].col(i));
 
+		VectorXd X_i = X.col(i);
 		VectorXd P_i = P.row(i);
-		CommonTestObject t(x_i, y, rd, P_i);
 
-		if (nboot > 0)
-			pvals.push_back(commonBootstrap(t, nboot, false, rvs));
-		else
-			pvals.push_back(commonAsymptotic(t, rvs));
+//		if (i == 103) {
+
+	//		std::cout << '\n';
+		//	std::cout << '\n';
+			//std::cout << X_i;
+		//}
+
+		CommonTestObject testObject();
+		if (hasCovariates) {
+			CommonTestObject t(X_i, Y, Z, x_i, y, z, rd, P_i);
+			
+			if (req.nboot > 0)
+				pvals.push_back(commonBootstrap(t, req.nboot, false, req.rvs));
+			else
+				pvals.push_back(commonAsymptotic(t, req.rvs));
+		}
+		else {
+			CommonTestObject t(x_i, y, rd, P_i);
+
+			if (req.nboot > 0)
+				pvals.push_back(commonBootstrap(t, req.nboot, false, req.rvs));
+			else
+				pvals.push_back(commonAsymptotic(t, req.rvs));
+		}
 	}
 
 	return pvals;
-
 }

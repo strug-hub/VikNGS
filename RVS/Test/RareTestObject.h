@@ -1,4 +1,5 @@
 #include "../RVS.h"
+#include "../VectorHelper.h"
 
 class RareTestObject {
 private:

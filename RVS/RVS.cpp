@@ -227,14 +227,18 @@ std::vector<double> startVikNGS(Request req) {
 	std::map<int, int> readGroup;
 	std::vector<std::vector<int>> interval;
 
-	std::vector<std::string> variantInfo = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
+	TestInput input = parseAndFilter(req);
 
 	bool useCovariates = Z.rows() > 0;
 
 	std::vector<double> pval;
 
-    if (req.useCommon()) {
+	if (req.useCommon())
+		pval = runCommonTest(req, input);
+	else
+		pval = runRareTest(req, input);
 
+	/*
 		if (req.useBootstrap && useCovariates)
 			pval = runCommonTest(X, Y, Z, G, readGroup, P, req.nboot);
 		else if(req.useBootstrap && !useCovariates)
@@ -251,9 +255,9 @@ std::vector<double> startVikNGS(Request req) {
 		else
 			pval = runRareTest(X, Y, G, readGroup, P, req.nboot);
 	}
-
+	*/
 	std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
-	outputPvals(pval, outputDir);
+	//outputPvals(pval, outputDir);
 
 	return pval;
 }
@@ -269,17 +273,17 @@ std::vector<double> startSimulation(SimulationRequest req) {
 
 	if (req.test == "common"){
 		
-		if(req.useBootstrap)
-			pval = runCommonTest(X, Y, G, readGroup, P, req.nboot);
-		else
-			pval = runCommonTest(X, Y, G, readGroup, P);
+		//if(req.useBootstrap)
+	//		pval = runCommonTest(X, Y, G, readGroup, P, req.nboot);
+	//	else
+	//		pval = runCommonTest(X, Y, G, readGroup, P);
 
 	}
-	else
-		pval = runRareTest(X, Y, G, readGroup, P, req.nboot, req.test);
+//	else
+//		pval = runRareTest(X, Y, G, readGroup, P, req.nboot, req.test);
 
     std::string outputDir = "C:/Users/Scott/Desktop/out.txt";
-    outputPvals(pval, outputDir);
+  //  outputPvals(pval, outputDir);
 
     return pval;
 }
@@ -308,8 +312,8 @@ int main() {
 	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
 	//std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
-	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step5_2.vcf";
+	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
+	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step5_2.vcf";
 
 	std::string infoDir = "C:/Users/Scott/Desktop/vcf/step3_sampleinfo.txt";
 
@@ -326,26 +330,30 @@ int main() {
 	//setCollapseCoding();
 
 	setMAFCutoff(0.05);
-	setMissingThreshold(0.1);
+	setMissingThreshold(0.5);
 	setMustPASS(true);
 	setOnlySNPs(true);
+	
+	setRVS(true);
 	Request req = getRequest();
-
-
-	bool rvs = true;
+	
 
     //---------------------------------------
 
     //TODO: check to see if file can be opened when another application is using it (excel)
     //TODO: test windows vs unix EOF characters, doesn't seem to work well with windows
 
-    VectorXd Y, G; MatrixXd X, Z, P;
-    std::map<int, int> readGroup;
-    std::vector<std::vector<int>> interval;
+
 
     if (simulation) {
+		VectorXd Y, G; MatrixXd X, Z, P;
+		std::map<int, int> readGroup;
+		std::vector<std::vector<int>> interval;
+
         simulate(testSimulationRequest(), X, Y, G, readGroup, P);
-        std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
+       
+		std::vector<double> pvals;
+		//todo = runCommonTest(req, X, Y, G, readGroup, P);
 
         std::cout << "Common Test p-values\n";
         for (size_t i = 0; i < pvals.size(); i++) {
@@ -353,19 +361,15 @@ int main() {
             std::cout << '\n';
         }
 
-        outputPvals(pvals, outputDir);
+        //outputPvals( pvals, outputDir);
     }
     else {
 
-		std::vector<std::string> variantInfo = parseAndFilter(req, X, Y, Z, G, readGroup, P, interval);
-
-
-        generateForR(X, Y, Z, G, P, readGroup);
+		TestInput input = parseAndFilter(req);
+        generateForR(input.X, input.Y, input.Z, input.G, input.P, input.readGroup);
 
         if (req.useCommon()) {
-            std::vector<double> pvals = runCommonTest(X, Y, G, readGroup, P);
-            //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P);
-            //std::vector<double> pvals = runCommonTest(X, Y, Z, G, readGroup, P, 1000, true);
+            std::vector<double> pvals = runCommonTest(req, input);
 
             std::cout << "Common Test p-values\n";
             for (size_t i = 0; i < pvals.size(); i++) {
@@ -373,24 +377,21 @@ int main() {
                 std::cout << '\n';
             }
 
-			outputPvals(pvals, outputDir);
-
+			outputPvals(input.variantInfo, pvals, outputDir);
         }
         else {
 
-            std::vector<double> pval = runRareTest(X, Y, G, readGroup, P, 10);
-            //std::vector<double> pval = runRareTest(X, Y, G, readGroup, P, Z, 20000, true);
+            std::vector<double> pval = runRareTest(req, input);
 
             std::cout << "Rare Test p-values\n";
 			for (size_t i = 0; i < pval.size(); i++) {
-				std::cout << variantInfo[i] + "\t";
+				std::cout << input.variantInfo[i] + "\t";
 				std::cout << pval[i];
 				std::cout << '\n';
 			}
 
-			outputPvals(pval, outputDir);
-
-        }
+			outputPvals(input.variantInfo, pval, outputDir);
+		}
     }
 
 

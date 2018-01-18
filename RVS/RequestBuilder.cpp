@@ -19,6 +19,8 @@ Request setDefaultParameters() {
 	r.useBootstrap = false;
 	r.nboot = 0;
 
+	r.rvs = true;
+
 	return r;
 }
 
@@ -100,6 +102,10 @@ void useRareTest() {
 }
 void useCommonTest() {
 	request.test = COMMON_TEST;
+}
+
+void setRVS(bool value) {
+	request.rvs = value;;
 }
 
 void setHighLowCutOff(int highLowCutOff) {

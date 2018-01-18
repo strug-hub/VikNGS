@@ -30,41 +30,38 @@ Output params:
 @param P Vector with probability of 0, 1 or 2 minor alleles.
 @param interval The indexes of variants within each interval.
 
-@return Vector of strings describing each variant (after filtering).
-@effect Modifies output params using information from input files.
+@return TestInput object holding all the output parameters.
 */
-std::vector<std::string> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P,
-	std::vector<std::vector<int>> & interval) {
+TestInput parseAndFilter(Request req) {
 	
+	VectorXd Y, G; MatrixXd Z;
+	std::map<int, int> readGroup;
+	std::vector<std::vector<int>> interval;
+
     std::map<std::string, int> IDmap = getSampleIDMap(req.vcfDir);
 	parseSampleLines(req, IDmap, Y, Z, G, readGroup);
 
 	std::vector<VCFLine> variants = parseVCFLines(req.vcfDir);
 	variants = calculateExpectedGenotypes(variants);
 
-	if (req.shouldCollapse())
-		interval = parseBEDLines(req.bedDir, variants, req.shouldCollapseCoding(), req.shouldCollapseExon());
-
 	variants = filterVariants(req, variants, G);
-
 	if (variants.size() <= 0) 
 		throwError(INPUT_PARSER, "No variants left after filtering step. No results to display.");
 	
+	if (req.shouldCollapse())
+		interval = parseBEDLines(req.bedDir, variants, req.shouldCollapseCoding(), req.shouldCollapseExon());
 
-	MatrixXd x(variants[0].likelihood.size(), variants.size());
+	MatrixXd X(variants[0].likelihood.size(), variants.size());
 	for (int i = 0; i < variants.size(); i++)
-		x.col(i) = variants[i].expectedGenotype;
+		X.col(i) = variants[i].expectedGenotype;
 
-	MatrixXd p(variants.size(), 3);
+	MatrixXd P(variants.size(), 3);
 	for (int i = 0; i < variants.size(); i++)
-		p.row(i) = variants[i].P;
-
-	X = x;
-	P = p;
+		P.row(i) = variants[i].P;
 
 	std::vector<std::string> variantInfo;
 	for (int i = 0; i < variants.size(); i++)
 		variantInfo.push_back(variants[i].toString());
 
-	return variantInfo;
+	return buildTestInput(X, Y, Z, G, P, readGroup, interval, variantInfo);
 }

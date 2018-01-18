@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Parser/InputParser.h"
 #include "Request.h"
+#include "TestInput.h"
 
 #include <string>
 #include <vector>
@@ -89,18 +90,7 @@ std::vector<double> startSimulation (SimulationRequest req);
 std::vector<double> startVikNGS(Request req);
 
 //InputParser
-std::vector<std::string> parseAndFilter(Request req, MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, 
-	std::map<int, int> &readGroup, MatrixXd &P, std::vector<std::vector<int>> & interval);
-
-//VectorHelper.cpp
-VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);
-MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals);
-VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z); 
-VectorXd whereNAN(VectorXd &Y, MatrixXd &Z);
-VectorXd whereNAN(VectorXd &X);
-VectorXd whereNAN(VectorXd &X, VectorXd &Y);
-double average(std::vector<VectorXd> v);
-double variance(VectorXd &v);
+TestInput parseAndFilter(Request req);
 
 //StatisticsHelper.cpp
 VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z);
@@ -117,16 +107,9 @@ MatrixXd correlation(MatrixXd &M);
 double pnorm(double x);
 
 //CommonTest.cpp
-std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot=0, bool rvs=true);
-std::vector<double> runCommonTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot=0, bool rvs=true);
-
+std::vector<double> runCommonTest(Request req, TestInput input);
 //RareTest.cpp
-std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, std::string test = "calpha", int collapseNumber = 5, bool rvs = true);
-std::vector<double> runRareTest(MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd P,
-	int nboot, std::string test = "calpha", int collapseNumber = 5, bool rvs = true);
+std::vector<double> runRareTest(Request req, TestInput input);
 
 //CompQuadForm.cpp
 double qfc(std::vector<double>, double, int);
@@ -135,7 +118,7 @@ double qfc(std::vector<double>, double, int);
 void simulate(SimulationRequest req, MatrixXd &X, VectorXd &Y, VectorXd &G, std::map<int, int> &readGroup, MatrixXd &P);
 
 //OutputHandler.cpp
-void outputPvals(std::vector<double> pvalues, std::string outputDir);
+void outputPvals(std::vector<std::string> info, std::vector<double> pvalues, std::string outputDir);
 
 //========================================================
 // timing functions

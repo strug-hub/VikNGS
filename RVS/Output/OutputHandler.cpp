@@ -1,10 +1,9 @@
 #include "../RVS.h"
-#include "Output.h"
 
 #include <iostream>  
 #include <fstream>
 
-void outputPvals(std::vector<double> pvalues, std::string outputDir) {
+void outputPvals(std::vector<std::string> info, std::vector<double> pvalues, std::string outputDir) {
 	std::ofstream out(outputDir);
 
 	int precise = 12;
@@ -13,6 +12,8 @@ void outputPvals(std::vector<double> pvalues, std::string outputDir) {
 	{
 		for (size_t i = 0; i < pvalues.size(); i++) {
 
+			out << info[i];
+			out << '\t';
 			out << pvalues[i];
 			out << '\n';
 		}

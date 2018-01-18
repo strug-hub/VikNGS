@@ -32,6 +32,8 @@ struct Request {
 	bool useBootstrap;
 	int nboot;
 
+	bool rvs;
+
 	inline bool useCommon() { return test == COMMON_TEST; }
 	inline bool shouldCollapse() { return collapseType != COLLAPSE_NONE && bedDir != ""; }
 	inline bool shouldCollapseGene() { return collapseType == COLLAPSE_GENE; }
@@ -67,6 +69,7 @@ void setMustPASS(bool value);
 void useRareTest();
 void useCommonTest();
 void useBootstrap(bool nboot);
+void setRVS(bool value);
 
 void setHighLowCutOff(int highLowCutOff);
 void setMAFCutoff(double mafCutoff);

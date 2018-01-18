@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "RVS.h"
+#include "VectorHelper.h"
 #include <random>
 
 inline VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z) {
@@ -182,6 +181,7 @@ double pnorm(double x)
 
 	// A&S formula 7.1.26
 	double t = 1.0 / (1.0 + p*x);
+
 	return (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
 }
 
@@ -228,5 +228,5 @@ double chiSquareOneDOF(double statistic) {
 
 	p /= tgamma(0.5);
 
-	return 1 - p;
+	return std::max(1 - p, 1e-14);
 }

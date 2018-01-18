@@ -53,13 +53,13 @@ GenotypeLikelihood getGT(std::string gt, GenotypeLikelihood gl) {
 		gl.missing = false;
 	}
 
-	//todo : make optional, missing = reference
-	else if (gt[0] == '.') {
-		gl.L00 = p1;
-		gl.L01 = p0_1;
-		gl.L11 = p0_2;
-		gl.missing = false;
-	}
+	//todo : make optional?, missing = reference
+	//else if (gt[0] == '.') {
+	//	gl.L00 = p1;
+	//	gl.L01 = p0_1;
+	//	gl.L11 = p0_2;
+	//	gl.missing = false;
+	//}
 
 	return gl;
 }
@@ -100,6 +100,15 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 
 	std::vector<std::string> parts = split(column, ':');
 
+	//if GT is missing, return NAN
+	if (indexGT > -1 && parts.size() > indexGT) {
+		std::string gt = parts[indexGT];
+		if (gt[0] == '.') {
+			return gl;
+			//todo print warning?
+		}
+	}
+
 	//try to get GL
 	if (indexGL > -1 && parts.size() > indexGL) {
 		std::vector<std::string> l = split(parts[indexGL], ',');
@@ -129,7 +138,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 	}
 
 	//try to get GT
-	if (indexGT > -1 && parts.size()) {
+	if (indexGT > -1 && parts.size() > indexGT) {
 		std::string gt = parts[indexGT];
 		gl = getGT(gt, gl);
 	}
@@ -186,26 +195,22 @@ VCFLine constructVariant(std::vector<std::string> columns) {
 	//finds the index of "PL" and "GL" from the FORMAT column
 	std::string fmt = columns[FORMAT];
 
-	int index = 0;
 	int indexPL = -1;
 	int indexGL = -1;
 	int indexGT = -1;
 
-	int pos = 0;
-	while (pos < fmt.size()) {
-		if (fmt[pos] == ':')
-			index++;
-		else if (fmt[pos] == 'P' && fmt[pos + 1] == 'L')
-			indexPL = index;
-		else if (fmt[pos] == 'G' && fmt[pos + 1] == 'L')
-			indexGL = index;
-		else if (fmt[pos] == 'G' && fmt[pos + 1] == 'T')
-			indexGT = index;
+	std::vector<std::string> format = split(fmt, ':');
+	
+	for (int i = 0; i < format.size(); i++) {
 
-		else if (fmt[pos] == VCF_SEPARATOR) {
-			break;
+		if (format[i].size() == 2) {
+			if (format[i][0] == 'P' && format[i][1] == 'L')
+				indexPL = i;
+			else if (format[i][0] == 'G' && format[i][1] == 'L')
+				indexGL = i;
+			else if (format[i][0] == 'G' && format[i][1] == 'T')
+				indexGT = i;
 		}
-		pos++;
 	}
 
 	if (indexPL < 0 && indexGL < 0 && indexGT < 0) {

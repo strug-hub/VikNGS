@@ -369,10 +369,11 @@
     <ClInclude Include="Eigen\src\SVD\SVDBase.h" />
     <ClInclude Include="Eigen\src\SVD\UpperBidiagonalization.h" />
     <ClInclude Include="Eigen\src\UmfPackSupport\UmfPackSupport.h" />
-    <ClInclude Include="Output\Output.h" />
+    <ClInclude Include="VectorHelper.h" />
     <ClInclude Include="Parser\Filter\VariantFilterUtils.h" />
     <ClInclude Include="Parser\Sample\SampleParserUtils.h" />
     <ClInclude Include="Request.h" />
+    <ClInclude Include="TestInput.h" />
     <ClInclude Include="Test\CommonTestObject.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="Parser\BED\BEDParserUtils.h" />

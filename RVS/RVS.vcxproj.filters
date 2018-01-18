@@ -717,13 +717,16 @@
     <ClInclude Include="Request.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Output\Output.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Parser\Sample\SampleParserUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Parser\Filter\VariantFilterUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestInput.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

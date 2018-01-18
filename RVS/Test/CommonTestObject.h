@@ -1,5 +1,6 @@
 #pragma once
 #include "../RVS.h"
+#include "../VectorHelper.h"
 
 class CommonTestObject {
 private:
