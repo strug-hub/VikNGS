@@ -12,18 +12,18 @@ std::vector<VCFLine> missingTest(std::vector<VCFLine> &variants, VectorXd &G, in
 		std::vector<double> counter(ngroup, 0);
 		std::vector<double> n(ngroup, 0);
 
-		for (int i = 0; i < variants[i].likelihood.size(); i++) {
+		for (int j = 0; j < variants[i].likelihood.size(); j++) {
 
-			n[G[i]]++;
-			if (variants[i].likelihood[i].missing)
-				counter[G[i]]++;
+			n[G[j]]++;
+			if (variants[i].likelihood[j].missing)
+				counter[G[j]]++;
 		}
-
 
 		bool valid = true;
 
-		for (int i = 0; i < ngroup; i++) {
-			if (counter[i] / n[i] > missingThreshold) {
+		for (int j = 0; j < ngroup; j++) {
+
+			if (counter[j] / n[j] > missingThreshold) {
 				valid = false;
 				break;
 			}

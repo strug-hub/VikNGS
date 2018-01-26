@@ -31,6 +31,8 @@ struct Request {
 	int test;
 	bool useBootstrap;
 	int nboot;
+	bool stopEarly;
+	int nthreads;
 
 	bool rvs;
 
@@ -65,12 +67,14 @@ void setCollapseGene();
 void setCollapseExon();
 void setCollapseCoding();
 void setOnlySNPs(bool value);
-void setMustPASS(bool value);
+void setMustPASS(bool value); 
+void setStopEarly(bool value);
 void useRareTest();
 void useCommonTest();
-void useBootstrap(bool nboot);
+void useBootstrap(int nboot);
 void setRVS(bool value);
 
+void setNumberThreads(int nthreads);
 void setHighLowCutOff(int highLowCutOff);
 void setMAFCutoff(double mafCutoff);
 void setMissingThreshold(double missingThreshold);

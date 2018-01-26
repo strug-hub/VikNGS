@@ -20,14 +20,8 @@ std::vector<VCFLine> parseVCFLines(std::string vcfDir) {
 	//skips header
 	extractHeader(vcf);
 
-//	int counter = 0;
-
 	while (vcf.hasNext()) {
 
-	///	if (counter == 153)
-//			std::cout << "here we go...";
-
-	//	counter++;
 
 		std::string line = vcf.nextLine();
 		std::vector<std::string> columns = split(line, VCF_SEPARATOR);

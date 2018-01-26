@@ -297,7 +297,77 @@ SimulationRequest testSimulationRequest() {
     return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", groups, "common", false, 0);
 }
 
+int main(int argc, char* argv[]) {
 
+	initializeRequest(vcfDir, infoDir);
+
+	std::vector <std::string> sources;
+
+	for (int i = 1; i < argc; ++i) {
+
+		if (std::string(argv[i]) == "-t" || std::string(argv[i]) == "--threads") {
+			int nthreads = std::stoi(argv[i++]);
+			setNumberThreads(nthreads);
+		}
+
+		if (std::string(argv[i]) == "-r" || std::string(argv[i]) == "--rare") {
+			useRareTest();
+		}
+		if (std::string(argv[i]) == "-c" || std::string(argv[i]) == "--common") {
+			useRareTest();
+		}
+		if (std::string(argv[i]) == "-n" || std::string(argv[i]) == "--nboot") {
+			int nboot = std::stoi(argv[i++]);
+			useBootstrap(nboot);
+		}
+		if (std::string(argv[i]) == "-s" || std::string(argv[i]) == "--stop") {
+			double stopParam = std::stod(argv[i++]);
+			setStopEarly(stopParam);
+		}
+		
+		if (std::string(argv[i]) == "-b" || std::string(argv[i]) == "--bed") {
+			std::string bedDir = std::string(argv[i++]);
+			setCollapseFile(bedDir);
+		}
+
+		if (std::string(argv[i]) == "--gene") {
+			setCollapseGene();
+		}
+
+		if (std::string(argv[i]) == "--exon") {
+			setCollapseExon();
+		}
+
+		if (std::string(argv[i]) == "--coding") {
+			setCollapseCoding();
+		}
+
+
+		if (std::string(argv[i]) == "--destination") {
+
+			if (i + 1 < argc) { // Make sure we aren't at the end of argv!
+				destination = argv[i++]; // Increment 'i' so we don't get the argument as the next argv[i].
+			}
+			else { // Uh-oh, there was no argument to the destination option.
+				std::cerr << "--destination option requires one argument." << std::endl;
+				return 1;
+			}
+		}
+		else {
+			sources.push_back(argv[i]);
+		}
+	}
+	return move(sources, destination);
+}
+
+
+
+	//keep console open while debugging
+	//TODO: be sure to remove eventually!
+	std::cout << "\ndone...>";
+	while (true) {}
+	return 0;
+}
 
 int main() {
 
@@ -309,13 +379,13 @@ int main() {
     //std::string vcfDir = "C:/Users/Scott/Desktop/vcf/chr7_case_control.vcf";
     //std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
-	//std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
+	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/example_1000snps.vcf";
+	std::string infoDir = "C:/Users/Scott/Desktop/vcf/sampleInfo.txt";
 
-	std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
+	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step3_1.vcf";
 	//std::string vcfDir = "C:/Users/Scott/Desktop/vcf/step5_2.vcf";
 
-	std::string infoDir = "C:/Users/Scott/Desktop/vcf/step3_sampleinfo.txt";
+	//std::string infoDir = "C:/Users/Scott/Desktop/vcf/step3_sampleinfo.txt";
 
     std::string bedDir = "";
     //std::string bedDir = "C:/Users/Scott/Desktop/RVS-master/example/chr11.bed";
@@ -331,9 +401,11 @@ int main() {
 
 	setMAFCutoff(0.05);
 	setMissingThreshold(0.5);
-	setMustPASS(true);
+	setMustPASS(false);
 	setOnlySNPs(true);
 	
+	useBootstrap(10000);
+	setStopEarly(false);
 	setRVS(true);
 	Request req = getRequest();
 	

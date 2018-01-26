@@ -18,6 +18,7 @@ Request setDefaultParameters() {
 	r.test = COMMON_TEST;
 	r.useBootstrap = false;
 	r.nboot = 0;
+	r.nthreads = 1;
 
 	r.rvs = true;
 
@@ -87,6 +88,10 @@ void setOnlySNPs(bool value) {
 void setMustPASS(bool value) {
 	request.mustPASS = value;
 }
+void setStopEarly(bool value){
+	request.stopEarly = value;
+}
+
 
 void useBootstrap(int nboot) {
 	request.useBootstrap = true;
@@ -108,6 +113,15 @@ void setRVS(bool value) {
 	request.rvs = value;;
 }
 
+
+
+void setNumberThreads(int nthreads) {
+	if (nthreads < 1)
+		throwError(REQUEST_BUILDER, "Number of threads should be greater than 0.",
+			std::to_string(nthreads));
+
+	request.nthreads = nthreads;
+}
 void setHighLowCutOff(int highLowCutOff) {
 	if (highLowCutOff < 1)
 		throwError(REQUEST_BUILDER, "High-low read depth threshold should be greater than 0.",

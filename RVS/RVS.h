@@ -107,7 +107,7 @@ MatrixXd correlation(MatrixXd &M);
 double pnorm(double x);
 
 //CommonTest.cpp
-std::vector<double> runCommonTest(Request req, TestInput input);
+std::vector<double> runCommonTest(Request &req, TestInput &input);
 //RareTest.cpp
 std::vector<double> runRareTest(Request req, TestInput input);
 
