@@ -20,6 +20,8 @@ Request setDefaultParameters() {
 	r.nboot = 0;
 	r.nthreads = 1;
 
+	r.stopEarly = false;
+
 	r.rvs = true;
 
 	return r;

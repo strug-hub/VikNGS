@@ -297,13 +297,80 @@ SimulationRequest testSimulationRequest() {
     return newSimulationRequest("3000", "0.1", "100", "0.01", "0.025", "1.4", "0.1", groups, "common", false, 0);
 }
 
-int main(int argc, char* argv[]) {
 
-	initializeRequest(vcfDir, infoDir);
 
-	std::vector <std::string> sources;
+#include "CLI11.hpp"
 
+
+int main_soon(int argc, char* argv[]) {
+
+	CLI::App app{ "vikNGS Variant Association Tool" };
+
+	std::string filename = "default";
+
+	bool common;
+	CLI::Option *c = app.add_flag("-c,--common", common, "Perform a common variant association test (default)");
+	bool rare;
+	CLI::Option *r = app.add_flag("-r,--rare", rare, "Perform a rare variant association test");
+	int threads;
+	CLI::Option *t = app.add_option("-t,--threads", threads, "Number of threads", 1);
+	int nboot;
+	CLI::Option *n = app.add_option("-n,--boot", nboot, "Number of bootstrap iterations to calculate");
+	bool stopEarly;
+	CLI::Option *s = app.add_option("-s,--stop", stopEarly, "Stop bootstrapping if p-value looks to be > 0.05");
+	std::string bedDir;
+	CLI::Option *b = app.add_option("-b,--bed", bedDir, "Specify a directory of a BED file for collapsing variants");
+	bool byGene;
+	CLI::Option *gene = app.add_option("--gene", byGene, "Collapse variants by gene if BED file specified (default)");
+	bool byExon;
+	CLI::Option *exom = app.add_option("--exon", byExon, "Collapse variants by exon if BED file specified");
+	bool byCoding;
+	CLI::Option *coding = app.add_option("--coding", byCoding, "Collapse variants by coding if BED file specified");
+	double maf;
+	CLI::Option *m = app.add_option("-m,--maf", maf, "Minor allele frequency cut-off (common-rare threshold)", 0.05);
+	int depth;
+	CLI::Option *d = app.add_option("-d,--depth", depth, "Read depth cut-off (low-high read depth threshold)", 30);
+	double missing;
+	CLI::Option *x = app.add_option("-x,--missing", missing, "Missing data cut-off (variants with a proportion of missing data more than this threshold will not be tested)", 0.1);
+	bool all;
+	CLI::Option *a = app.add_flag("-a,--all", all, "Include variants which do not have PASS in the FILTER column");
+
+	std::string vcfDir;
+	CLI::Option *i = app.add_option("vcf,-i,--vcf", vcfDir, "Specify a directory of a multisample VCF file (required)");
+	i->required();
+
+	std::string sampleDir;
+	CLI::Option *g = app.add_option("sample,-g,--sample", sampleDir, "Specify a directory of a TXT file containing sample information (required)");
+	g->required();
+
+	std::string outputDir;
+	CLI::Option *o = app.add_option("-o,--out", outputDir, "Specify a directory for output (default = current directory)", ".");
+
+	CLI11_PARSE(app, argc, argv);
+
+	i->check(CLI::ExistingFile);
+	g->check(CLI::ExistingFile);
+
+	initializeRequest(vcfDir, sampleDir);
+/*
 	for (int i = 1; i < argc; ++i) {
+
+		if (std::string(argv[i]) == "-m" || std::string(argv[i]) == "--maf") {
+			double maf = std::stod(argv[i++]);
+			setMAFCutoff(maf);
+		}
+		if (std::string(argv[i]) == "-d" || std::string(argv[i]) == "--depth") {
+			int depth = std::stoi(argv[i++]);
+			setHighLowCutOff(depth);
+		}
+		if (std::string(argv[i]) == "-x" || std::string(argv[i]) == "--missing") {
+			double missing = std::stoi(argv[i++]);
+			setNumberThreads(missing);
+		}
+		if (std::string(argv[i]) == "-a" || std::string(argv[i]) == "--all") {
+			setMustPASS(false);
+		}
+
 
 		if (std::string(argv[i]) == "-t" || std::string(argv[i]) == "--threads") {
 			int nthreads = std::stoi(argv[i++]);
@@ -326,20 +393,16 @@ int main(int argc, char* argv[]) {
 		}
 		
 		if (std::string(argv[i]) == "-b" || std::string(argv[i]) == "--bed") {
-			std::string bedDir = std::string(argv[i++]);
 			setCollapseFile(bedDir);
-		}
+		}		std::string bedDir = std::string(argv[i++]);
+	
 
-		if (std::string(argv[i]) == "--gene") {
-			setCollapseGene();
-		}
 
-		if (std::string(argv[i]) == "--exon") {
-			setCollapseExon();
-		}
 
-		if (std::string(argv[i]) == "--coding") {
-			setCollapseCoding();
+
+
+		if (std::string(argv[i]) == "-h" || std::string(argv[i]) == "--help") {
+			//todo
 		}
 
 
@@ -358,10 +421,11 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	return move(sources, destination);
+	
 }
 
 
-
+*/
 	//keep console open while debugging
 	//TODO: be sure to remove eventually!
 	std::cout << "\ndone...>";
