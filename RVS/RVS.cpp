@@ -301,55 +301,99 @@ SimulationRequest testSimulationRequest() {
 
 #include "CLI11.hpp"
 
-
-int main_soon(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
 	CLI::App app{ "vikNGS Variant Association Tool" };
 
 	std::string filename = "default";
-
+	
+	// -------------------------------------
 	bool common;
 	CLI::Option *c = app.add_flag("-c,--common", common, "Perform a common variant association test (default)");
 	bool rare;
 	CLI::Option *r = app.add_flag("-r,--rare", rare, "Perform a rare variant association test");
+	r->excludes(c);
+	// -------------------------------------
+
+	// -------------------------------------
 	int threads;
 	CLI::Option *t = app.add_option("-t,--threads", threads, "Number of threads", 1);
+	t->check(CLI::Range(1, 2147483647));
+
 	int nboot;
 	CLI::Option *n = app.add_option("-n,--boot", nboot, "Number of bootstrap iterations to calculate");
+	n->check(CLI::Range(1, 2147483647));
+
 	bool stopEarly;
-	CLI::Option *s = app.add_option("-s,--stop", stopEarly, "Stop bootstrapping if p-value looks to be > 0.05");
+	CLI::Option *s = app.add_flag("-s,--stop", stopEarly, "Stop bootstrapping if p-value looks to be > 0.05");
+	// -------------------------------------
+
+	// -------------------------------------
 	std::string bedDir;
 	CLI::Option *b = app.add_option("-b,--bed", bedDir, "Specify a directory of a BED file for collapsing variants");
+	b->check(CLI::ExistingFile);
+
 	bool byGene;
 	CLI::Option *gene = app.add_option("--gene", byGene, "Collapse variants by gene if BED file specified (default)");
 	bool byExon;
-	CLI::Option *exom = app.add_option("--exon", byExon, "Collapse variants by exon if BED file specified");
+	CLI::Option *exon = app.add_option("--exon", byExon, "Collapse variants by exon if BED file specified");
 	bool byCoding;
 	CLI::Option *coding = app.add_option("--coding", byCoding, "Collapse variants by coding if BED file specified");
+	gene->excludes(exon);
+	gene->excludes(coding);
+	exon->excludes(coding);
+	gene->requires(b);
+	exon->requires(b);
+	coding->requires(b);
+	// -------------------------------------
+
+	// -------------------------------------
 	double maf;
 	CLI::Option *m = app.add_option("-m,--maf", maf, "Minor allele frequency cut-off (common-rare threshold)", 0.05);
+	m->check(CLI::Range(0.0, 1.0));
+
 	int depth;
 	CLI::Option *d = app.add_option("-d,--depth", depth, "Read depth cut-off (low-high read depth threshold)", 30);
+	d->check(CLI::Range(1, 2147483647));
+
 	double missing;
 	CLI::Option *x = app.add_option("-x,--missing", missing, "Missing data cut-off (variants with a proportion of missing data more than this threshold will not be tested)", 0.1);
+	x->check(CLI::Range(0.0, 0.5));
+
 	bool all;
 	CLI::Option *a = app.add_flag("-a,--all", all, "Include variants which do not have PASS in the FILTER column");
+	// -------------------------------------
 
+	// -------------------------------------
 	std::string vcfDir;
 	CLI::Option *i = app.add_option("vcf,-i,--vcf", vcfDir, "Specify a directory of a multisample VCF file (required)");
 	i->required();
+	i->check(CLI::ExistingFile);
 
 	std::string sampleDir;
 	CLI::Option *g = app.add_option("sample,-g,--sample", sampleDir, "Specify a directory of a TXT file containing sample information (required)");
 	g->required();
+	g->check(CLI::ExistingFile);
 
 	std::string outputDir;
 	CLI::Option *o = app.add_option("-o,--out", outputDir, "Specify a directory for output (default = current directory)", ".");
+	g->check(CLI::ExistingDirectory);
+
+	// -------------------------------------
 
 	CLI11_PARSE(app, argc, argv);
 
-	i->check(CLI::ExistingFile);
-	g->check(CLI::ExistingFile);
+	std::string newline = "\n";
+
+	std::cout << "Starting vikNGS..." << newline;
+	std::cout << "VCF file: " << vcfDir << newline;
+	std::cout << "Sample info file: " << sampleDir << newline;
+	std::cout << "Output directory: " << sampleDir << newline;
+
+
+
+
+	std::cout << sampleDir;
 
 	initializeRequest(vcfDir, sampleDir);
 /*
@@ -433,7 +477,7 @@ int main_soon(int argc, char* argv[]) {
 	return 0;
 }
 
-int main() {
+int main_old() {
 
     //TODO: take as input from command line
     //---------------------------------------
