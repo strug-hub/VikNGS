@@ -1,0 +1,1038 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>884</width>
+    <height>752</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>vikNGS GUI interface</string>
+  </property>
+  <widget class="QWidget" name="MainWindowFrame">
+   <layout class="QVBoxLayout" name="verticalLayout_8" stretch="0,0">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>60</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <property name="movable">
+       <bool>true</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="mainTab">
+       <attribute name="title">
+        <string>Association Test</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="100,5,100">
+        <item>
+         <layout class="QVBoxLayout" name="InputLayout1" stretch="80,5,15,0">
+          <item>
+           <widget class="QGroupBox" name="main_vcfGrp">
+            <property name="title">
+             <string>Multisample VCF File</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <layout class="QHBoxLayout" name="VCFDirLayout">
+               <item>
+                <widget class="QLineEdit" name="main_vcfDirTxt">
+                 <property name="text">
+                  <string>/home/scott/vikNGS/example_1000snps.vcf</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="main_vcfDirBtn">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="gridLayout">
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="main_vcfMafTxt">
+                 <property name="text">
+                  <string>0.05</string>
+                 </property>
+                 <property name="placeholderText">
+                  <string>0.05</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="main_vcfMafLbl">
+                 <property name="text">
+                  <string>MAF Cutoff</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLineEdit" name="main_vcfMissingTxt">
+                 <property name="text">
+                  <string>0.2</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="main_vcfMissingLbl">
+                 <property name="text">
+                  <string>Missing Threshold</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLineEdit" name="main_vcfChromFilterTxt">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLabel" name="main_vcfChrLbl">
+                 <property name="text">
+                  <string>Chromosome filter</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="main_vcfPassChk">
+               <property name="toolTip">
+                <string>QUAL column in VCF must contain PASS</string>
+               </property>
+               <property name="text">
+                <string>Must PASS</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="main_sampleGrp">
+            <property name="title">
+             <string>Sample Data File</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <layout class="QHBoxLayout" name="SampleDirLayout">
+               <item>
+                <widget class="QLineEdit" name="main_sampleDirTxt">
+                 <property name="text">
+                  <string>/home/scott/vikNGS/sampleInfo.txt</string>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="main_sampleDirBtn">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="SampleParamLayout">
+               <item>
+                <widget class="QLineEdit" name="main_sampleDepthTxt">
+                 <property name="text">
+                  <string>30</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="main_sampleDepthLbl">
+                 <property name="text">
+                  <string>Read Depth High/Low Cutoff</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QGroupBox" name="main_bedGrp">
+            <property name="title">
+             <string>BED file (optional)</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
+              <layout class="QHBoxLayout" name="BEDDirLayout">
+               <item>
+                <widget class="QLineEdit" name="main_bedDirTxt">
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="main_bedDirBtn">
+                 <property name="maximumSize">
+                  <size>
+                   <width>20</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="main_bedCollapseGrp">
+               <property name="title">
+                <string>Collapse By</string>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <item>
+                 <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
+                  <property name="text">
+                   <string>Entire gene</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="main_bedCollapseCodingBtn">
+                  <property name="text">
+                   <string>Coding only</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="main_bedCollapseExonBtn">
+                  <property name="text">
+                   <string>Exon only</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="main_testGrp">
+            <property name="title">
+             <string>Test</string>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <layout class="QVBoxLayout" name="TestLayout">
+               <item>
+                <widget class="QRadioButton" name="main_testCommonBtn">
+                 <property name="text">
+                  <string>Common</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="main_testRareCastBtn">
+                 <property name="text">
+                  <string>Rare (CAST)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="main_testRareCalphaBtn">
+                 <property name="text">
+                  <string>Rare (c-alpha)</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <item>
+                <widget class="QCheckBox" name="main_testBootChk">
+                 <property name="text">
+                  <string>Bootstrap</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QLineEdit" name="main_testBootTxt">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="main_testBootLbl">
+                   <property name="text">
+                    <string># iterations</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="main_testStopChk">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Stop Early</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="main_startGrp">
+            <property name="title">
+             <string>Start</string>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,1">
+             <item>
+              <widget class="QPushButton" name="main_runBtn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>1</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>RUN</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="ThreadsLayout">
+               <item>
+                <widget class="QLineEdit" name="main_threadsTxt">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>16</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="main_threadsLbl">
+                 <property name="text">
+                  <string># threads</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="simulationTab">
+       <attribute name="title">
+        <string>Power Simulation (case/control)</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_17">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_24">
+          <item>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="2">
+             <widget class="QGroupBox" name="sim_variantGrp">
+              <property name="title">
+               <string>Variant Parameters</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="2,4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_17">
+                 <item>
+                  <widget class="QLineEdit" name="sim_variantSizeTxt">
+                   <property name="text">
+                    <string>100</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_variantMafTxt">
+                   <property name="text">
+                    <string>0.1</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_18">
+                 <item>
+                  <widget class="QLabel" name="sim_variantSizeLbl">
+                   <property name="toolTip">
+                    <string>Number of variants to test</string>
+                   </property>
+                   <property name="text">
+                    <string># of Variants</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_variantMafLbl">
+                   <property name="toolTip">
+                    <string>Minor allele frequency</string>
+                   </property>
+                   <property name="text">
+                    <string>MAF</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QGroupBox" name="sim_populationGrp">
+              <property name="title">
+               <string>Population Simulation</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_15">
+                 <item>
+                  <widget class="QLineEdit" name="sim_populationSizeTxt">
+                   <property name="text">
+                    <string>500</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_populationPrevalenceTxt">
+                   <property name="text">
+                    <string>0.2</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_16">
+                 <item>
+                  <widget class="QLabel" name="sim_populationSizeLbl">
+                   <property name="toolTip">
+                    <string>Size of population to simulate</string>
+                   </property>
+                   <property name="text">
+                    <string>Size</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_pouulationPrevalenceLbl">
+                   <property name="toolTip">
+                    <string>Prevalence of the disease in the simulated population</string>
+                   </property>
+                   <property name="text">
+                    <string>Prevalence</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QGroupBox" name="sim_powerGrp">
+              <property name="title">
+               <string>Power</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="2,4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_21">
+                 <item>
+                  <widget class="QLineEdit" name="sim_powerStepTxt">
+                   <property name="text">
+                    <string>10</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_powerAlphaTxt">
+                   <property name="text">
+                    <string>0.05</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_oddsRatioTxt">
+                   <property name="text">
+                    <string>1.5</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_22">
+                 <item>
+                  <widget class="QLabel" name="sim_powerStepLbl">
+                   <property name="toolTip">
+                    <string>Mean read depth of sequencing group</string>
+                   </property>
+                   <property name="text">
+                    <string>Steps</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_powerAlphaLbl">
+                   <property name="toolTip">
+                    <string>Odds ratio of disease</string>
+                   </property>
+                   <property name="text">
+                    <string>Alpha</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_oddsRatioLbl">
+                   <property name="toolTip">
+                    <string>Odds ratio of disease</string>
+                   </property>
+                   <property name="text">
+                    <string>Odds Ratio</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="sim_sequencingGrp">
+              <property name="title">
+               <string>Sequencing Parameters</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="2,4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_19">
+                 <item>
+                  <widget class="QLineEdit" name="sim_sequencingErrorRateTxt">
+                   <property name="text">
+                    <string>0.01</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_sequencingErrorSdTxt">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>0.025</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_20">
+                 <item>
+                  <widget class="QLabel" name="sim_sequencingErrorRateLbl">
+                   <property name="toolTip">
+                    <string>Base calling error rate of sequencer</string>
+                   </property>
+                   <property name="text">
+                    <string>Error Rate</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_sequencingErrorSdLbl">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>Standard deviation of base calling error rate of sequencer</string>
+                   </property>
+                   <property name="text">
+                    <string>Error SD</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_15">
+            <item>
+             <widget class="QGroupBox" name="sim_testGrp">
+              <property name="title">
+               <string>Test</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <item>
+                  <widget class="QRadioButton" name="sim_testCommonBtn">
+                   <property name="text">
+                    <string>Common</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="sim_testRareCastBtn">
+                   <property name="text">
+                    <string>Rare (CAST)</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="sim_testRareCalphaBtn">
+                   <property name="text">
+                    <string>Rare (c-alpha)</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_9">
+                 <item>
+                  <widget class="QCheckBox" name="sim_testBootChk">
+                   <property name="text">
+                    <string>Bootstrap</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <widget class="QLineEdit" name="sim_testBootTxt">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="text">
+                      <string>100</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="sim_testBootLbl">
+                     <property name="text">
+                      <string># iterations</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="sim_testStopChk">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string>Stop Early</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QLabel" name="sim_groupHighLowLbl">
+                <property name="toolTip">
+                 <string>Any mean read depth less than this will be considered a low read group</string>
+                </property>
+                <property name="text">
+                 <string>High/low cutoff</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="sim_groupHighLowTxt">
+                <property name="text">
+                 <string>30</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="sim_runBtn">
+                <property name="text">
+                 <string>RUN</string>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+                <property name="default">
+                 <bool>false</bool>
+                </property>
+                <property name="flat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_23">
+          <item>
+           <widget class="QGroupBox" name="sim_groupGrp">
+            <property name="title">
+             <string>Group</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_25">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_16">
+               <item>
+                <widget class="QGroupBox" name="sim_groupCohortGrp">
+                 <property name="title">
+                  <string>Cohort</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <item>
+                   <widget class="QRadioButton" name="sim_groupCaseBtn">
+                    <property name="toolTip">
+                     <string>Group contains affected individuals</string>
+                    </property>
+                    <property name="text">
+                     <string>Case</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="sim_groupControlBtn">
+                    <property name="toolTip">
+                     <string>Group contains unaffected individuals</string>
+                    </property>
+                    <property name="text">
+                     <string>Control</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="sim_groupDepthGrp">
+                 <property name="title">
+                  <string>Depth</string>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="2,4">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_11">
+                    <item>
+                     <widget class="QLineEdit" name="sim_groupDepthMeanTxt">
+                      <property name="text">
+                       <string>30</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="sim_groupDepthSdTxt">
+                      <property name="text">
+                       <string>5</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_10">
+                    <item>
+                     <widget class="QLabel" name="sim_groupDepthMeanLbl">
+                      <property name="toolTip">
+                       <string>Mean read depth of sequencing group</string>
+                      </property>
+                      <property name="text">
+                       <string>Mean</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="sim_groupDepthSdLbl">
+                      <property name="toolTip">
+                       <string>Read depth standard deviation of sequencing group</string>
+                      </property>
+                      <property name="text">
+                       <string>SD</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QGroupBox" name="sim_groupSizeGrp">
+                 <property name="title">
+                  <string># Individuals</string>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="2,0">
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_13">
+                    <item>
+                     <widget class="QLineEdit" name="sim_groupSizeMinTxt">
+                      <property name="text">
+                       <string>20</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="sim_groupSizeMaxTxt">
+                      <property name="text">
+                       <string>40</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_12">
+                    <item>
+                     <widget class="QLabel" name="sim_groupDepthMeanLbl_4">
+                      <property name="toolTip">
+                       <string>Mean read depth of sequencing group</string>
+                      </property>
+                      <property name="text">
+                       <string>From</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="sim_groupDepthMeanLbl_5">
+                      <property name="toolTip">
+                       <string>Mean read depth of sequencing group</string>
+                      </property>
+                      <property name="text">
+                       <string>To</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <item>
+                <widget class="QPushButton" name="sim_groupAddBtn">
+                 <property name="text">
+                  <string>Add Group</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="sim_groupRemoveBtn">
+                 <property name="text">
+                  <string>Remove Selected</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="sim_groupTbl">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderStretchLastSection">
+                <bool>false</bool>
+               </attribute>
+               <column>
+                <property name="text">
+                 <string># Individuals</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Cohort</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Mean Depth</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Depth SD</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Power Simulation (quantitative)</string>
+       </attribute>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>80</x>
+          <y>30</y>
+          <width>121</width>
+          <height>81</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Coming Soon!</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="outputBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>40</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
