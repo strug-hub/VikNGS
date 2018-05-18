@@ -32,46 +32,117 @@ void CommonTestObject::setFamily(std::string fam){
     }
 }
 
-double CommonTestObject::getVariance(bool rvs) {
+double CommonTestObject::getVarianceBinomial(bool rvs) {
 
-    if(covariates){
+    if(regular){
+
+        std::vector<VectorXd> hess1;
+        for (int i = 0; i < size(); i++) {
+            VectorXd h;
+            h = (this->mu[i].array() * (1 - mu[i].array()) );
+            hess1.push_back(h);
+        }
+
+        if(covariates){
+
+            int ncov = z[0].cols();
+            MatrixXd aaRegular = MatrixXd::Constant(ncov, ncov, 0);
+            VectorXd abRegular = VectorXd::Constant(ncov, 0);
+            double bbRegular=0;
+
+            for (int i = 0; i < size(); i++) {
+                for (int j = 0; j < hess1[i].rows(); j++) {
+
+                    VectorXd zrow = z[i].row(j);
+                    MatrixXd aa =  zrow * zrow.transpose();
+                    aa = aa.array() * hess1[i][j];
+                    aaRegular = aaRegular + aa;
+
+                    VectorXd ab = zrow.array() * (hess1[i][j] * x[i][j]);
+                    abRegular = abRegular + ab;
+
+                    bbRegular += hess1[i][j] * x[i][j] * x[i][j];
+                }
+            }
+
+            double var = (abRegular.transpose() * aaRegular.inverse() * abRegular)(0);
+            return bbRegular - var;
+
+        }
+        else{
+            double aaRegular = 0;
+            double abRegular = 0;
+            double bbRegular = 0;
+
+            for (int i = 0; i < size(); i++) {
+                for (int j = 0; j < hess1[i].rows(); j++) {
+                    aaRegular += hess1[i][j];
+                    abRegular += hess1[i][j] * x[i][j];
+                    bbRegular += hess1[i][j] * x[i][j] * x[i][j];
+                }
+            }
+            double var = bbRegular - abRegular * (1.0/aaRegular) * abRegular;
+            return var;
+        }
+
+    }
+
+    if(useHatMatrix && covariates){
         double var = covariateVarianceCalculation(rvs);
         double cov = covariateCovarianceCalculation();
         return var + 2*cov;
     }
 
     double var = 0;
+    for (int i = 0; i < size(); i++) {
 
-    if(normal){
-        double var_y = variance(y);
+        double var_y = ycenter[i].array().pow(2).sum();
+        if (rvs && readDepth[i] == 1)
+            var += var_y * robustVar;
+        else
+            var += var_y * variance(x[i]);
+    }
+    return var;
 
+}
+
+double CommonTestObject::getVarianceNormal(bool rvs) {
+
+    if(covariates){
+
+        double var = 0;
+        double var_y = 0;
+        double n = 0;
         for (int i = 0; i < size(); i++) {
+            var_y += ycenter[i].array().pow(2).sum();
+
+            double groupSize = x[i].rows();
+            n+=groupSize;
+
             if (rvs && readDepth[i] == 1)
-                var += this->y[i].rows() * var_y * robustVar;
+                var += groupSize * robustVar;
             else
-                var += y[i].rows() * var_y * variance(x[i]);
+                var += groupSize * variance(x[i]);
         }
-        return var;
+
+        return (1.0/n) * var_y * var;
     }
 
-    //don't replace this later, use for comparsion
-    if(binomial){
-
-        for (int i = 0; i < size(); i++) {
-
-            double var_y = ycenter[i].array().pow(2).sum();
-            if (rvs && readDepth[i] == 1)
-                var += var_y * robustVar;
-            else
-                var += var_y * variance(x[i]);
-        }
-        return var;
+    double var_y = variance(y);
+    double var = 0;
+    for (int i = 0; i < size(); i++) {
+        if (rvs && readDepth[i] == 1)
+            var += this->y[i].rows() * var_y * robustVar;
+        else
+            var += y[i].rows() * var_y * variance(x[i]);
     }
+    return var;
 
-    throwError("common test", "Don't know how to compute variance, this error should not happen.");
 }
 
 void CommonTestObject::bootstrap() {
+
+    //todo: shuffle Z if has covariates? OR remove completely
     std::vector<VectorXd> newxboot;
     int length;
 
@@ -89,6 +160,11 @@ void CommonTestObject::bootstrap() {
 
 double CommonTestObject::bootVariance(int i) { return ycenter[i].array().pow(2).sum() * variance(xboot[i]); }
 
+
+
+// hat matrix logic
+// v v v v v v v v
+
 void CommonTestObject::constructHatMatrix(VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::vector<VectorXd> &yhat){
     VectorXd toRemove = whereNAN(X, Y, Z);
     MatrixXd Z_filtered = extractRows(Z, toRemove, 0);
@@ -105,7 +181,7 @@ void CommonTestObject::constructHatMatrix(VectorXd &X, VectorXd &Y, MatrixXd &Z,
                 this->yvar.push_back(MatrixXd::Constant(x[i].rows(), 1, constant));
     }
     else if(this->binomial){
-        VectorXd mu = concat(yhat);
+        VectorXd mu = concatenate(yhat);
         VectorXd mu_ = mu.array() * (VectorXd::Ones(mu.rows()) - mu).array();
         VectorXd mu_sqrt = mu_.array().sqrt();
 
@@ -125,7 +201,7 @@ void CommonTestObject::constructHatMatrix(VectorXd &X, VectorXd &Y, MatrixXd &Z,
         this->hdiag.push_back(extractRows(Hdiag, G_filtered, i));
     }
 
-    this->Yvar = concat(this->yvar);
+    this->Yvar = concatenate(this->yvar);
 }
 
 double CommonTestObject::covariateCovarianceCalculation(){

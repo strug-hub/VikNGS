@@ -3,29 +3,39 @@
 
 class CommonTestObject {
 private:
+    double n;
 	//NANs have been removed
 	std::vector<VectorXd> x;
 	std::vector<VectorXd> y;
 	std::vector<MatrixXd> z;
 
+    //----------------------
+	std::vector<int> readDepth;
+    std::vector<VectorXd> mu;
+	std::vector<VectorXd> ycenter;
+	double robustVar;
+
+    bool covariates;
+    bool regular;
+    bool normal;
+    bool binomial;
+
+    void filterNAN();
+    void setFamily(std::string fam);
+
+    //hat matrix logic, not used
+    //--------------------------
+    bool useHatMatrix = false;
+    //--------------------------
+    void constructHatMatrix(VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::vector<VectorXd> &yhat);
+    double covariateVarianceCalculation(bool rvs);
+    double covariateCovarianceCalculation();
     MatrixXd H;
     std::vector<MatrixXd> h;
     std::vector<VectorXd> hdiag;
     VectorXd Yvar;
     std::vector<VectorXd> yvar;
-
-    //----------------------
-	std::vector<int> readDepth;
-	std::vector<VectorXd> ycenter;
-	double robustVar;
-    bool covariates;
-
-    bool normal;
-    bool binomial;
-
-    void filterNAN();
-    void constructHatMatrix(VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::vector<VectorXd> &yhat);
-    void setFamily(std::string fam);
+    //--------------------------
 
 public:
     CommonTestObject(VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G,
@@ -33,6 +43,7 @@ public:
         std::vector<int> &readDepth, VectorXd &P, std::string family) {
 
         covariates = true;
+        regular = false;
         setFamily(family);
 
 		this->x = x;
@@ -43,11 +54,12 @@ public:
         filterNAN();
 
         VectorXd beta = getBeta(X, Y, Z, family);
-        std::vector<VectorXd> yhat = fitModel(beta, this->y, this->z, family);
+        this->mu = fitModel(beta, this->y, this->z, family);
         for (int i = 0; i < y.size(); i++)
-            ycenter.push_back(this->y[i] - yhat[i]);
+            ycenter.push_back(this->y[i] - mu[i]);
 
-        constructHatMatrix(X, Y, Z, G, yhat);
+        if(useHatMatrix)
+            constructHatMatrix(X, Y, Z, G, mu);
 
         robustVar = calcRobustVar(P);
 	}
@@ -56,19 +68,22 @@ public:
         std::vector<int> &readDepth, VectorXd &P, std::string family) {
 
         covariates = false;
+        regular = false;
         setFamily(family);
 
 		this->x = x;
 		this->y = y;
 		this->readDepth = readDepth;
 
-
         filterNAN();
 
-		double ybar = average(this->y);
+        double ybar = average(this->y);
 
-        for (int i = 0; i < size(); i++)
-			ycenter.push_back(this->y[i].array() - ybar);
+        for (int i = 0; i < size(); i++){
+            VectorXd temp = VectorXd::Constant(y[i].rows(), ybar);
+            mu.push_back(temp);
+            ycenter.push_back(this->y[i].array() - ybar);
+        }
 
 		robustVar = calcRobustVar(P);
 	}
@@ -81,9 +96,18 @@ public:
         return score;
     }
 
-    double getVariance(bool rvs);
-    double covariateVarianceCalculation(bool rvs);
-    double covariateCovarianceCalculation();
+    double getVarianceBinomial(bool rvs);
+    double getVarianceNormal(bool rvs);
+
+    inline double getVariance(bool rvs){
+        if(binomial)
+            return getVarianceBinomial(rvs);
+        if(normal)
+            return getVarianceNormal(rvs);
+
+        throwError("COMMON_TEST_OBJECT", "Don't know how to compute variance during test, this error should not happen.");
+    }
+
     inline int size() { return x.size(); }
 
 	//bootstrapping ------------------------------

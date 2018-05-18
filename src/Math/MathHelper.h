@@ -7,7 +7,8 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
 
-VectorXd concat(std::vector<VectorXd> &v);
+VectorXd concatenate(std::vector<VectorXd> &v);
+MatrixXd concatenate(std::vector<MatrixXd> &m);
 
 /*
 Creates a subset of vector v by taking all indexes i such that where[i] == equals.
@@ -19,6 +20,8 @@ Creates a subset of vector v by taking all indexes i such that where[i] == equal
 @return A subset of v.
 */
 VectorXd extractRows(VectorXd &v, VectorXd &where, double equals);
+
+MatrixXd replaceNAN(MatrixXd & M, double value);
 
 /*
 Creates a subset of matrix m (rows) by taking all indexes i such that where[i] == equals.
@@ -33,53 +36,53 @@ MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals);
 
 /*
 Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of X, Y or Z 
+- the vector contains a 1 at if a NAN exists in a given row of V1, V2 or M
 - 0 otherwise
 
-@param X Vector to check for NANs.
-@param Y Vector to check for NANs.
-@param Z Matrix to check for NANs (rows).
+@param V1 Vector to check for NANs.
+@param V2 Vector to check for NANs.
+@param M Matrix to check for NANs (rows).
 
-@requires X, Y, Z have the same number of rows.
-@return A vector specifing where NANs appear in X, Y or Z.
+@requires V1, V2, M have the same number of rows.
+@return A vector specifing where NANs appear in V1, V2 or M.
 */
-VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z);
+VectorXd whereNAN(VectorXd &V1, VectorXd &V2, MatrixXd &M);
 
 /*
 Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of Y or Z
+- the vector contains a 1 at if a NAN exists in a given row of V or M
 - 0 otherwise
 
-@param Y Vector to check for NANs.
-@param Z Matrix to check for NANs (rows).
+@param V Vector to check for NANs.
+@param M Matrix to check for NANs (rows).
 
-@requires Y, Z have the same number of rows.
-@return A vector specifing where NANs appear in Y or Z.
+@requires V, M have the same number of rows.
+@return A vector specifing where NANs appear in V or M.
 */
-VectorXd whereNAN(VectorXd &Y, MatrixXd &Z);
+VectorXd whereNAN(VectorXd &V, MatrixXd &M);
 
 /*
 Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of X
+- the vector contains a 1 at if a NAN exists in a given row of V
 - 0 otherwise
 
-@param X Vector to check for NANs.
-@return A vector specifing where NANs appear in Z.
+@param V Vector to check for NANs.
+@return A vector specifing where NANs appear in V.
 */
-VectorXd whereNAN(VectorXd &X);
+VectorXd whereNAN(VectorXd &V);
 
 /*
 Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of X or Y
+- the vector contains a 1 at if a NAN exists in a given row of V1 or V2
 - 0 otherwise
 
-@param X Vector to check for NANs.
-@param Y Vector to check for NANs.
+@param V1 Vector to check for NANs.
+@param V2 Vector to check for NANs.
 
-@requires X, Y have the same number of rows.
-@return A vector specifing where NANs appear in Y or Z.
+@requires V1, V2 have the same number of rows.
+@return A vector specifing where NANs appear in V1 or V2.
 */
-VectorXd whereNAN(VectorXd &X, VectorXd &Y);
+VectorXd whereNAN(VectorXd &V1, VectorXd &V2);
 
 /*
 Finds the mean of the values in a vector of vectors.
@@ -110,7 +113,10 @@ double variance(std::vector<VectorXd> v);
 
 //StatisticsHelper.cpp
 VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z, std::string family);
+VectorXd getBeta(VectorXd &Y, MatrixXd &Z, std::string family);
 std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution);
+VectorXd shuffleWithoutReplacement(std::vector<VectorXd> &v);
+MatrixXd shuffleWithReplacement(std::vector<MatrixXd> &m);
 
 /*
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2

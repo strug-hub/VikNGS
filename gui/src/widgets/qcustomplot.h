@@ -2184,7 +2184,7 @@ protected:
   virtual void deselectEvent(bool *selectionStateChanged) Q_DECL_OVERRIDE;
   // mouse events:
   virtual void mousePressEvent(QMouseEvent *event, const QVariant &details);
-  virtual void mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
+  virtual void  mouseMoveEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void mouseReleaseEvent(QMouseEvent *event, const QPointF &startPos);
   virtual void wheelEvent(QWheelEvent *event);
   

@@ -3,7 +3,7 @@
 static const std::string MATH_HELPER = "math helper";
 
 
-VectorXd concat(std::vector<VectorXd> &v) {
+VectorXd concatenate(std::vector<VectorXd> &v) {
 
     VectorXd cat = v[0];
 
@@ -14,6 +14,32 @@ VectorXd concat(std::vector<VectorXd> &v) {
     }
 
     return cat;
+}
+
+MatrixXd concatenate(std::vector<MatrixXd> &m) {
+
+    MatrixXd cat = m[0];
+
+    for (int i = 1; i < m.size(); i++) {
+        VectorXd temp(cat.rows() + m[i].rows(), m[i].cols());
+        temp << cat, m[i];
+        cat = temp;
+    }
+
+    return cat;
+}
+
+
+MatrixXd replaceNAN(MatrixXd & M, double value) {
+    int nrow = M.rows();
+    int ncol = M.cols();
+
+    for (int i = 0; i < nrow; i++)
+        for (int j = 0; j < ncol; j++)
+                if (std::isnan(M(i, j)))
+                    M(i, j) = value;
+
+    return M;
 }
 
 
@@ -49,21 +75,21 @@ MatrixXd extractRows(MatrixXd &m, VectorXd &where, double equals) {
 	return subset.block(0, 0, c, m.cols());
 }
 
-VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z) {
+VectorXd whereNAN(VectorXd &V1, VectorXd &V2, MatrixXd &M) {
 
-	int nobs = Y.rows();
-	int ncov = Z.cols();	
+    int nrow = V1.rows();
+    int ncol = M.cols();
 
-	VectorXd isNAN(nobs);
+    VectorXd isNAN(nrow);
 	
-	for (int i = 0; i < nobs; i++) {
+    for (int i = 0; i < nrow; i++) {
 		isNAN[i] = 0;
 
-		if (std::isnan(X[i]) || std::isnan(Y[i]))
+        if (std::isnan(V1[i]) || std::isnan(V2[i]))
 			isNAN[i] = 1;
 		else {
-			for (int j = 0; j < ncov; j++)
-				if (std::isnan(Z(i, j)))
+            for (int j = 0; j < ncol; j++)
+                if (std::isnan(M(i, j)))
 					isNAN[i] = 1;
 		}
 	}
@@ -71,20 +97,20 @@ VectorXd whereNAN(VectorXd &X, VectorXd &Y, MatrixXd &Z) {
 	return isNAN;
 }
 
-VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
-	int nobs = Y.rows();
-	int ncov = Z.cols();
+VectorXd whereNAN(VectorXd &V, MatrixXd &M) {
+    int nrow = V.rows();
+    int ncol = M.cols();
 
-	VectorXd isNAN(nobs);
+    VectorXd isNAN(nrow);
 
-	for (int i = 0; i < nobs; i++) {
+    for (int i = 0; i < nrow; i++) {
 		isNAN[i] = 0;
 
-		if (std::isnan(Y[i]))
+        if (std::isnan(V[i]))
 			isNAN[i] = 1;
 		else {
-			for (int j = 0; j < ncov; j++)
-				if (std::isnan(Z(i, j)))
+            for (int j = 0; j < ncol; j++)
+                if (std::isnan(M(i, j)))
 					isNAN[i] = 1;
 		}
 	}
@@ -92,25 +118,26 @@ VectorXd whereNAN(VectorXd &Y, MatrixXd &Z) {
 	return isNAN;
 }
 
-VectorXd whereNAN(VectorXd &X, VectorXd &Y) {
-	int nobs = X.rows();
-	int ncov = Y.cols();
-	VectorXd toRemove(nobs);
+//todo: print warning if many rows are removed due to NA?
+VectorXd whereNAN(VectorXd &V1, VectorXd &V2) {
+    int nrow = V1.rows();
+    VectorXd toRemove(nrow);
 
-	for (int i = 0; i < nobs; i++) {
+    for (int i = 0; i < nrow; i++) {
 		toRemove[i] = 0;
-		if (std::isnan(X[i]) || std::isnan(Y[i]))
+        if (std::isnan(V1[i]) || std::isnan(V2[i]))
 			toRemove[i] = 1;
 	}
 	return toRemove;
 }
 
-VectorXd whereNAN(VectorXd &X) {
-	VectorXd toRemove(X.rows());
-	for (int i = 0; i < X.rows(); i++) {
+VectorXd whereNAN(VectorXd &V) {
+    int nrow = V.rows();
+    VectorXd toRemove(nrow);
+    for (int i = 0; i < nrow; i++) {
 		toRemove[i] = 0;
 
-		if (std::isnan(X[i]))
+        if (std::isnan(V[i]))
 			toRemove[i] = 1;
 		else 
 			toRemove[i] = 0;

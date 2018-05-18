@@ -56,7 +56,8 @@ SOURCES += \
     ../src/Parser/InputParser.cpp \
     ../src/Parser/ParserTools.cpp \
     ../src/Test/CommonTestObject.cpp \
-    src/windows/simulationtab.cpp
+    src/windows/simulationtab.cpp \
+    ../src/Test/RareTestCollapseObject.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -283,7 +284,8 @@ HEADERS += \
     ../src/Parser/BED/BEDParserUtils.h \
     ../src/Parser/Filter/VariantFilterUtils.h \
     ../src/Test/CommonTestObject.h \
-    ../src/Test/RareTestObject.h
+    ../src/Test/RareTestObject.h \
+    ../src/Test/RareTestCollapseObject.h
 
 
 FORMS += \

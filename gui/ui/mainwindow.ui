@@ -27,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="movable">
        <bool>true</bool>
@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/home/scott/vikNGS/example_1000snps.vcf</string>
+                  <string>/Users/presentations/Desktop/vikNGS/vcf/test.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -167,7 +167,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/home/scott/vikNGS/sampleInfo.txt</string>
+                  <string>/Users/presentations/Desktop/vikNGS/vcf/test.info.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -250,6 +250,9 @@
               <layout class="QHBoxLayout" name="BEDDirLayout">
                <item>
                 <widget class="QLineEdit" name="main_bedDirTxt">
+                 <property name="text">
+                  <string/>
+                 </property>
                  <property name="readOnly">
                   <bool>true</bool>
                  </property>
@@ -320,7 +323,7 @@
                   <string>Common</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -328,6 +331,9 @@
                 <widget class="QRadioButton" name="main_testRareCastBtn">
                  <property name="text">
                   <string>Rare (CAST)</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -347,6 +353,9 @@
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -354,7 +363,7 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
                     <string>100</string>
@@ -373,7 +382,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -390,7 +399,28 @@
             <property name="title">
              <string>Start</string>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,1">
+            <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
+             <item>
+              <layout class="QHBoxLayout" name="ThreadsLayout">
+               <item>
+                <widget class="QLineEdit" name="main_threadsTxt">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="main_threadsLbl">
+                 <property name="text">
+                  <string># threads</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
              <item>
               <widget class="QPushButton" name="main_runBtn">
                <property name="sizePolicy">
@@ -403,27 +433,6 @@
                 <string>RUN</string>
                </property>
               </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="ThreadsLayout">
-               <item>
-                <widget class="QLineEdit" name="main_threadsTxt">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="text">
-                  <string>16</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="main_threadsLbl">
-                 <property name="text">
-                  <string># threads</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </item>
             </layout>
            </widget>

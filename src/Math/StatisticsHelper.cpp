@@ -24,6 +24,16 @@ VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z, std::string family) {
     throwError(STATISTICS_HELPER, "Family not recognized, could not compute beta values.", family);
 }
 
+VectorXd getBeta(VectorXd &Y, MatrixXd &Z, std::string family) {
+
+    if(family == "binomial")
+        return CovariateBinomialRegression(Y, Z);
+    if(family == "normal")
+        return CovariateNormalRegression(Y, Z);
+
+    throwError(STATISTICS_HELPER, "Family not recognized, could not compute beta values.", family);
+}
+
 std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string family) {
     std::vector<VectorXd> yhat;
 
@@ -138,6 +148,7 @@ MatrixXd correlation(MatrixXd &M) {
 				meanj = 0;
 
 				for (k = 0; k < m; k++) {
+                    //todo: assume no NAs???
 					if (!std::isnan(M(k, i)) && !std::isnan(M(k, j))) {
 						count++;
 						meani += M(k, i);
@@ -310,4 +321,37 @@ VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
     }
 
     return beta;
+}
+
+
+VectorXd shuffleWithoutReplacement(std::vector<VectorXd> &v){
+
+    std::vector<VectorXd> shuffled;
+
+    for(int i = 0; i < v.size(); i++){
+
+        VectorXi indices = VectorXi::LinSpaced(v[i].rows(), 0, v[i].rows());
+        std::random_shuffle(indices.data(), indices.data() + v[i].rows());
+        VectorXd s = indices.asPermutation() * v[i];
+
+        shuffled.push_back(s);
+    }
+
+    return shuffled;
+}
+
+MatrixXd shuffleWithReplacement(std::vector<MatrixXd> &m){
+
+    std::vector<MatrixXd> shuffled;
+
+    for(int i = 0; i < m.size(); i++){
+
+        VectorXi indices = VectorXi::LinSpaced(m[i].rows(), 0, m[i].rows());
+        std::random_shuffle(indices.data(), indices.data() + m[i].rows());
+        MatrixXd s = indices.asPermutation() * m[i];
+
+        shuffled.push_back(s);
+    }
+
+    return shuffled;
 }

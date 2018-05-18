@@ -12,7 +12,6 @@ private:
     QString name;
     double maxPos;
     double minPos;
-    double offset;
 
 public:
     Chromosome(){

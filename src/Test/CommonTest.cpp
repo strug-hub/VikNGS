@@ -20,7 +20,7 @@ double commonAsymptotic(CommonTestObject t, bool rvs) {
     double variance = t.getVariance(rvs);
     double test = std::pow(score, 2) / variance;
     double p = chiSquareOneDOF(test);
-    test+p;
+
     return p;
 }
 

@@ -14,6 +14,7 @@ inline double toDouble(std::string valueName, std::string value){
     }catch(...){
         throwError("TypeConverter", valueName + " is expected to be a decimal value.", value );
     }
+    return -1;
 }
 
 inline int toInt(std::string valueName, std::string value){
@@ -22,6 +23,7 @@ inline int toInt(std::string valueName, std::string value){
     }catch(...){
         throwError("TypeConverter", valueName + " is expected to be an integer value.", value );
     }
+    return -1;
 }
 
 inline std::string toString(double value){

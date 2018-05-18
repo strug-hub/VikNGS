@@ -2,51 +2,16 @@
 #include "../Request.h"
 #include "../TestInput.h"
 #include "RareTestObject.h"
+#include "RareTestCollapseObject.h"
+
 #include <future>
 
-double getTestStatistic(std::vector<RareTestObject> &t, bool rvs, std::string test) {
-	int nsnp = t.size();
-	int i, j;
 
-	MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
 
-	VectorXd var(nsnp);
-	VectorXd ym_hrd(nsnp);
-	VectorXd ym_lrd(nsnp);
+double getTestStatistic(RareTestCollapseObject &collapse, bool rvs, std::string test) {
 
-	for (i = 0; i < nsnp; i++) {
-		var[i] = sqrt(t[i].getRobustVar());
-		ym_hrd[i] = t[i].getYm(1);
-		ym_lrd[i] = t[i].getYm(0);
-	}
-
-	MatrixXd diagVar = var.asDiagonal();
-	MatrixXd diagYm_hrd = ym_hrd.asDiagonal();
-	MatrixXd diagYm_lrd = ym_lrd.asDiagonal();
-
-	for (i = 0; i < t[0].size(); i++) {
-		VectorXd x_0 = t[0].getX(i);
-		MatrixXd x(x_0.rows(), nsnp);
-		x.col(0) = x_0;
-
-		for (j = 1; j < nsnp; j++)
-			x.col(j) = t[j].getX(i);
-
-		if (t[0].isHRG(i)) {
-			if (rvs) {
-				MatrixXd var_hrd = diagVar.transpose() * correlation(x) * diagVar;
-				diagS += diagYm_hrd * var_hrd * diagYm_hrd;
-			}
-			else
-				diagS += diagYm_hrd * covariance(x) * diagYm_hrd;
-		}
-		else
-			diagS += diagYm_lrd * covariance(x) * diagYm_lrd;
-	}
-
-	VectorXd score(nsnp);
-	for (i = 0; i < nsnp; i++)
-		score[i] = t[i].getScore();
+    MatrixXd diagS = collapse.getVariance(rvs);
+    VectorXd score = collapse.getScore();
 
 	VectorXd e = diagS.eigenvalues().real();
 	std::vector<double> eigenvals(e.data(), e.data() + e.size());
@@ -63,11 +28,11 @@ double getTestStatistic(std::vector<RareTestObject> &t, bool rvs, std::string te
 	return tstat;
 }
 
-double rareTest(std::vector<RareTestObject> &t, int nboot, bool stopEarly, bool rvs, std::string test) {
-	int i, j, h;
-	int nsnp = t.size();
+double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, bool rvs, std::string test) {
+    int i, h;
+    int nsnp = collapse.size();
 
-	double tobs = getTestStatistic(t, rvs, test);
+    double tobs = getTestStatistic(collapse, rvs, test);
 
 	//start bootstrapping!
 
@@ -77,9 +42,9 @@ double rareTest(std::vector<RareTestObject> &t, int nboot, bool stopEarly, bool 
 
 	for (h = 0; h < nboot; h++) {
 		for (i = 0; i < nsnp; i++)
-			t[i].bootstrap();
+            collapse.bootstrap();
 
-		tsamp = getTestStatistic(t, false, test);
+        tsamp = getTestStatistic(collapse, false, test);
 
 		if (tsamp <= tobs)
 			tcount++;
@@ -97,44 +62,21 @@ double rareTest(std::vector<RareTestObject> &t, int nboot, bool stopEarly, bool 
 		}
 	}
 
-	return{ (tcount + 1) / (bootCount + 1)};
+    return (tcount + 1) / (bootCount + 1) ;
 }
 
-std::vector<double> runRareTestParallel(Request &req, TestInput &input, int threadID, int nthreads) {
+std::vector<double> runRareTestParallel(std::vector<MatrixXd> x, std::vector<VectorXd> y, std::vector<MatrixXd> z,
+                                        std::vector<int> rd, std::vector<VectorXd> ycenter,
+                                        Request &req, TestInput &input, int threadID, int nthreads) {
   
-  MatrixXd X = input.X;
-  VectorXd Y = input.Y;
-  MatrixXd Z = input.Z;
-  
-  VectorXd G = input.G;
-  std::map<int, int> readGroup = input.readGroup;
-  MatrixXd P = input.P;
-  
-  //todo calpha cannot go in parallel???
-  std::string test = req.rareTest;
+    MatrixXd P = input.P;
+    int ngroups = 1 + (int)input.G.maxCoeff();
 
-  int i, j, k;
-  std::vector<double> pvals;
-  
-  std::vector<MatrixXd> x;
-  std::vector<VectorXd> y;
-  std::vector<MatrixXd> z;
-  std::vector<int> rd;
-  
-  int ngroups = 1 + (int)G.maxCoeff();
-  bool hasCovariates = input.hasCovariates();
-  
-  for (i = 0; i < ngroups; i++) {
-    x.push_back(extractRows(X, G, i));
-    y.push_back(extractRows(Y, G, i));
-    
-    if (hasCovariates)
-      z.push_back(extractRows(Z, G, i));
-    
-    rd.push_back(readGroup[i]);
-  }
+    //todo calpha cannot go in parallel???
+    std::string test = req.rareTest;
+    std::vector<double> pvals;
 
-  for (k = threadID; k < input.interval.size(); k+=nthreads) {
+  for (int k = threadID; k < input.interval.size(); k+=nthreads) {
 
     if (k % (25) == 0) {
       std::cout << std::endl << k;
@@ -143,38 +85,30 @@ std::vector<double> runRareTestParallel(Request &req, TestInput &input, int thre
 
     }
     
-    std::vector<RareTestObject> t;
+    RareTestCollapseObject collapse(y, z, ycenter, input.hasCovariates(), input.family);
 
-      
     std::cout << "Collasping: ";
-    for (i = 0; i < input.interval[k].size(); i++) {
+    for (int i = 0; i < input.interval[k].size(); i++) {
     	std::cout << input.interval[k][i] << " ";
     }
     std::cout << "\n";
 
     try{
-        for (i = 0; i < input.interval[k].size(); i++) {
+        for (int i = 0; i < input.interval[k].size(); i++) {
 
           int index = input.interval[k][i];
 
           std::vector<VectorXd> x_i;
-          for (j = 0; j < ngroups; j++)
+          for (int j = 0; j < ngroups; j++)
             x_i.push_back(x[j].col(index));
 
-          VectorXd X_i = X.col(index);
-          VectorXd P_i = P.row(index);
+          //VectorXd X_i = X.col(index);
+          VectorXd p = P.row(index);
+          collapse.addVariant(x_i, rd, p);
 
-          if (hasCovariates) {
-            RareTestObject t_i(X_i, Y, Z, x_i, y, z, rd, P_i);
-            t.push_back(t_i);
-          }
-          else{
-            RareTestObject t_i(x_i, y, rd, P_i);
-            t.push_back(t_i);
-          }
         }
 
-        pvals.push_back(rareTest(t, req.nboot, req.stopEarly, req.rvs, test));
+        pvals.push_back(rareTest(collapse, req.nboot, req.stopEarly, req.rvs, test));
 
     }catch(variant_exception){
 
@@ -189,11 +123,73 @@ std::vector<double> runRareTestParallel(Request &req, TestInput &input, int thre
 
 
 std::vector<Variant> runRareTest(Request req, TestInput input) {
+
+    //preprocessing
+    //------------------
+
+    VectorXd Y = input.Y;
+    MatrixXd Z = input.Z;
+    bool covariates = input.hasCovariates();
+    MatrixXd X = input.X;
+    VectorXd G = input.G;
+    VectorXd toRemove;
+
+    if(covariates){
+        toRemove = whereNAN(Y, Z);
+        Z = extractRows(Z, toRemove, 0);
+    }
+    else
+        toRemove = whereNAN(Y);
+
+    Y = extractRows(Y, toRemove, 0);
+    G = extractRows(G, toRemove, 0);
+    X = extractRows(X, toRemove, 0);
+    X = replaceNAN(X,  0);
+
+    std::map<int, int> readGroup = input.readGroup;
+
+    std::vector<MatrixXd> x;
+    std::vector<VectorXd> y;
+    std::vector<MatrixXd> z;
+    std::vector<int> rd;
+
+    int ngroups = 1 + (int)G.maxCoeff();
+
+    for (int i = 0; i < ngroups; i++) {
+      x.push_back(extractRows(X, G, i));
+      y.push_back(extractRows(Y, G, i));
+
+      if (covariates)
+        z.push_back(extractRows(Z, G, i));
+
+      rd.push_back(readGroup[i]);
+    }
+
+    std::vector<VectorXd> ycenter;
+
+  try{
+      if(covariates){
+          VectorXd beta = getBeta(Y, Z, input.family);
+          ycenter = fitModel(beta, y, z, input.family);
+      }
+      else{
+          double ybar = average(y);
+          for (int i = 0; i < y.size(); i++)
+              ycenter.push_back(y[i].array() - ybar);
+      }
+
+  }catch(...){
+      //todo when will this error be caught? correlated response variables?
+      printWarning("Error occured while regressing covariates on response variable.");
+  }
+
+  //------------------
+
   int nthreads = req.nthreads;
   std::vector<std::future<std::vector<double>>> pvalsFuture;
   
   if (nthreads <= 1){
-    std::vector<double> pvals = runRareTestParallel(req, input, 0, 1);
+    std::vector<double> pvals = runRareTestParallel(x, y, z, rd, ycenter, req, input, 0, 1);
     for (int i = 0; i < pvals.size(); i++)
         input.variants[i].pvalue = pvals[i];
     return input.variants;
@@ -201,16 +197,14 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
   
   for (int i = 0; i < nthreads; i++) {
     pvalsFuture.push_back(std::async(std::launch::async,
-                                     [&,i] { return runRareTestParallel(req, input, i, nthreads); } ));
+                                     [&,i] { return runRareTestParallel(x, y, z, rd, ycenter, req, input, i, nthreads); } ));
   }
   
   std::vector<std::vector<double>> pvalsFromThread;
   
   for (int i = 0; i < nthreads; i++) 
     pvalsFromThread.push_back(pvalsFuture[i].get());
-  
-  std::vector<double> pvals;
-  
+    
   int i = 0;
   int index = 0;
   while (true) {
