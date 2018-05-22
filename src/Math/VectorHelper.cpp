@@ -21,7 +21,7 @@ MatrixXd concatenate(std::vector<MatrixXd> &m) {
     MatrixXd cat = m[0];
 
     for (int i = 1; i < m.size(); i++) {
-        VectorXd temp(cat.rows() + m[i].rows(), m[i].cols());
+        MatrixXd temp(cat.rows() + m[i].rows(), m[i].cols());
         temp << cat, m[i];
         cat = temp;
     }

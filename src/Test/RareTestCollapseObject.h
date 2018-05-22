@@ -6,7 +6,10 @@ private:
 
     std::vector<VectorXd> y_original;
     std::vector<VectorXd> ycenter_original;
+    std::vector<MatrixXd> z_original;
+
     MatrixXd Z;
+    VectorXd Y;
 
     std::vector<VectorXd> y;
     std::vector<VectorXd> ycenter;
@@ -25,23 +28,28 @@ private:
     void binomialBootstrap();
 
 public:
-    RareTestCollapseObject(VectorXd Y, MatrixXd Z, std::vector<VectorXd> y, std::vector<MatrixXd> z,
+    RareTestCollapseObject(std::vector<VectorXd> y, std::vector<MatrixXd> z,
                            std::vector<VectorXd> &ycenter, bool covariates, std::string family) {
+
+        this->covariates = covariates;
+        setFamily(family);
 
         this->y = y;
         y_original = y;
         this->z = z;
+        z_original = z;
+
         Z = concatenate(z);
+        Y = concatenate(y);
+
         this->ycenter = ycenter;
         ycenter_original = ycenter;
-        this->covariates = covariates;
-        setFamily(family);
 	}
 
     void addVariant(std::vector<VectorXd> &x, std::vector<int> &readDepth, VectorXd &p) {
 
-      RareTestObject newTest(x, readDepth, p);
-      t.push_back(newTest);
+        RareTestObject newObj(x, readDepth, p);
+        t.push_back(newObj);
 
     }
 
@@ -61,11 +69,5 @@ public:
     }
 
     inline int size() { return t.size(); }
-
-	//bootstrapping ------------------------------
-
     void bootstrap();
-
-	//bootstrapping ------------------------------
-
 };

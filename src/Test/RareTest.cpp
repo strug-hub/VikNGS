@@ -6,8 +6,6 @@
 
 #include <future>
 
-
-
 double getTestStatistic(RareTestCollapseObject &collapse, bool rvs, std::string test) {
 
     MatrixXd diagS = collapse.getVariance(rvs);
@@ -29,9 +27,7 @@ double getTestStatistic(RareTestCollapseObject &collapse, bool rvs, std::string 
 }
 
 double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, bool rvs, std::string test) {
-    int i, h;
-    int nsnp = collapse.size();
-
+    int h;
     double tobs = getTestStatistic(collapse, rvs, test);
 
 	//start bootstrapping!
@@ -41,8 +37,7 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
 	double tsamp;
 
 	for (h = 0; h < nboot; h++) {
-		for (i = 0; i < nsnp; i++)
-            collapse.bootstrap();
+        collapse.bootstrap();
 
         tsamp = getTestStatistic(collapse, false, test);
 
@@ -62,6 +57,7 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
 		}
 	}
 
+    //todo: pvalue is 0???
     return (tcount + 1) / (bootCount + 1) ;
 }
 

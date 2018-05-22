@@ -324,7 +324,7 @@ VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
 }
 
 
-VectorXd shuffleWithoutReplacement(std::vector<VectorXd> &v){
+std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v){
 
     std::vector<VectorXd> shuffled;
 
@@ -340,18 +340,43 @@ VectorXd shuffleWithoutReplacement(std::vector<VectorXd> &v){
     return shuffled;
 }
 
-MatrixXd shuffleWithReplacement(std::vector<MatrixXd> &m){
+std::vector<VectorXd> shuffleWithReplacement(std::vector<VectorXd> &v){
 
-    std::vector<MatrixXd> shuffled;
+    std::vector<VectorXd> shuffled;
+    int n, j;
 
-    for(int i = 0; i < m.size(); i++){
+    for(int i = 0; i < v.size(); i++){
+        n = v[i].rows();
+        VectorXd s(n);
 
-        VectorXi indices = VectorXi::LinSpaced(m[i].rows(), 0, m[i].rows());
-        std::random_shuffle(indices.data(), indices.data() + m[i].rows());
-        MatrixXd s = indices.asPermutation() * m[i];
+        for (j = 0; j < n; j++)
+            s[j] = v[i][randomInt(0, n - 1)];
 
         shuffled.push_back(s);
     }
 
     return shuffled;
+
 }
+
+std::vector<MatrixXd> shuffleWithReplacement(std::vector<MatrixXd> &m){
+
+    std::vector<MatrixXd> shuffled;
+    int n, ncol, j, k;
+
+    for(int i = 0; i < m.size(); i++){
+        n = m[i].rows();
+        ncol = m[i].cols();
+        MatrixXd s(n, ncol);
+
+        for (k = 0; k < ncol; k++)
+            for (j = 0; j < n; j++)
+                s(j,k) = m[i](randomInt(0, n - 1),k);
+
+        shuffled.push_back(s);
+    }
+
+    return shuffled;
+
+}
+

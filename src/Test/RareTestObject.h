@@ -4,7 +4,8 @@
 class RareTestObject {
 private:
 
-	std::vector<VectorXd> x;
+    std::vector<VectorXd> x_original;
+    std::vector<VectorXd> x;
 
 	std::vector<int> readDepth;
 	std::vector<VectorXd> xcenter;
@@ -14,6 +15,7 @@ public:
     RareTestObject(std::vector<VectorXd> &x, std::vector<int> &readDepth, VectorXd &p) {
 
 		this->x = x;
+        x_original = x;
 		this->readDepth = readDepth;
         this->robustVar = calcRobustVar(p);
 
@@ -37,12 +39,6 @@ public:
 	inline VectorXd getX(int i) { return x[i]; }
 	inline int size() { return x.size(); }
 
-	//bootstrapping ------------------------------
-
     void bootstrap();
-
-
-
-	//bootstrapping ------------------------------
 
 };

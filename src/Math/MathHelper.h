@@ -5,6 +5,7 @@
 #include "../Eigen/Dense"
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using Eigen::VectorXi;
 
 
 VectorXd concatenate(std::vector<VectorXd> &v);
@@ -110,13 +111,13 @@ Note: uses n, not n-1 for final division
 double variance(std::vector<VectorXd> v);
 
 
-
 //StatisticsHelper.cpp
 VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z, std::string family);
 VectorXd getBeta(VectorXd &Y, MatrixXd &Z, std::string family);
 std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution);
-VectorXd shuffleWithoutReplacement(std::vector<VectorXd> &v);
-MatrixXd shuffleWithReplacement(std::vector<MatrixXd> &m);
+std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v);
+std::vector<MatrixXd> shuffleWithReplacement(std::vector<MatrixXd> &m);
+std::vector<VectorXd> shuffleWithReplacement(std::vector<VectorXd> &v);
 
 /*
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2

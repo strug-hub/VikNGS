@@ -131,7 +131,7 @@ void RareTestCollapseObject::bootstrap() {
     if(normal)
         normalBootstrap();
     else if (binomial)
-        binomialBoostrap();
+        binomialBootstrap();
 
     return;
 }
@@ -141,8 +141,13 @@ void RareTestCollapseObject::binomialBootstrap() {
     for(int i = 0; i< size(); i++)
         t[i].bootstrap();
 
-    z = shuffleWithoutReplacement(z);
+    if(covariates){
+        z = shuffleWithReplacement(z_original);
+        MatrixXd shuffleZ = concatenate(z);
 
+        VectorXd beta = getBeta(Y, shuffleZ, "binomial");
+        ycenter = fitModel(beta, y, z, "binomial");
+    }
 }
 
 
@@ -155,10 +160,9 @@ void RareTestCollapseObject::normalBootstrap() {
         for (int i = 0; i < residuals.size(); i++)
             y.push_back(y_original[i] - ycenter_original[i] + residuals[i]);
 
+        VectorXd shuffleY = concatenate(y);
 
-        VectorXd Y = concatenate(y);
-
-        VectorXd beta = getBeta(Y, Z, "normal");
+        VectorXd beta = getBeta(shuffleY, Z, "normal");
         ycenter = fitModel(beta, y, z, "normal");
     }
     else{
