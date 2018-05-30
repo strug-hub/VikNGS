@@ -11,55 +11,27 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
 
 	printInfo("Setting up simulation parameters.");
 
-    int npop = sr.npop;
-    double prevalence = sr.prevalence;
-
-	int ncase_pop = floor(npop * prevalence);
-
     int nsnp = sr.nsnp;
-
-    double me = sr.me;
-    double sde = sr.sde;
-
     double oddsRatio = sr.oddsRatio;
-    double maf = sr.maf;
+    double mafMin = sr.mafMin;
+    double mafMax = sr.mafMax;
 
-    VectorXd mafs = simulateMinorAlleleFrequency(nsnp, maf, maf);
-    //todo:?
-    /* or we can determine the minor allele frequency fixed for each collapsed SNPs(5 SNPs in the current setting)
-        njoint = 5
-        loopno = nsnp / njoint
-
-        mafco_5 = c(0.040856639, 0.021548447, 0.015053696, 0.005911941, 0.022559459)
-        mafco = rep(mafco_5, loopno)
-    */
+    VectorXd mafs = simulateMinorAlleleFrequency(nsnp, mafMin, mafMax);
 
     std::vector<Variant> variantInfo;
 
     for (int i = 0; i < nsnp; i++)
         variantInfo.push_back(randomVariant());
 
-    printInfo("Simulating population data.");
-
-    MatrixXd Xpop = simulatePopulationX(npop, ncase_pop, oddsRatio, mafs);
-    VectorXd Ypop = simulatePopulationY(npop, ncase_pop);
-
-    printInfo("Simulating sample data.");
+    printInfo("Simulating data.");
 
     std::vector<TestInput> inputs;
 
     for(SimulationRequest simReq : simReqs){
 
         int nsamp;
-        int ncase = 0;
-        int ncont = 0;
-
-        for (SimulationRequestGroup srg : simReq.groups) {
-            if (srg.isCase)
-                ncase += srg.n;
-            else
-                ncont += srg.n;
-        }
+        int ncase = simReq.ncase();
+        int ncont = simReq.ncontrol();
 
         nsamp = ncase + ncont;
 
@@ -76,8 +48,15 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
             counter += srg.n;
         }
 
-        MatrixXd x = sampleX(simReq, Xpop, nsamp, ncase, ncase_pop);
-        VectorXd y = sampleY(simReq, Ypop, nsamp, ncase, ncase_pop);
+        MatrixXd x;
+
+        if(simReq.isRare())
+            x = simulateX(simReq, oddsRatio, mafs, simReq.collapse);
+
+        else
+            x = simulateX(simReq, oddsRatio, mafs);
+
+        VectorXd y = simulateY(simReq);
 
         MatrixXd EG(nsamp, nsnp);
         MatrixXd p(nsnp, 3);
@@ -87,16 +66,28 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
         for (int i = 0; i < EG.cols(); i++) {
 
             Variant info = variantInfo[i];
-            Variant variant = generateSeqData(x.col(i), y, g, group, me, sde, info);
+            Variant variant = generateSeqData(x.col(i), y, g, group, info);
 
             variants.push_back(variant);
             EG.col(i) = variant.expectedGenotype;
             p.row(i) = variant.P;
         }
 
-        //dummy variables
+        //empty variables
         MatrixXd z;
         std::vector<std::vector<int>> interval;
+
+        if(simReq.isRare()){
+
+            std::vector<int> inv;
+            for(int i = 0; i < nsnp; i++){
+                if(i%simReq.collapse == 0 && i > 0){
+                    interval.push_back(inv);
+                    inv.clear();
+                }
+                inv.push_back(i);
+            }
+        }
 
         TestInput t = buildTestInput(EG, y, z, g, p, readGroup, interval, variants, "binomial");
         inputs.push_back(t);

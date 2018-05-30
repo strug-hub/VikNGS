@@ -60,19 +60,35 @@ inline void outputPvals(std::vector<Variant> variants, std::string outputDir, in
 	}
 }
 
-inline void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir) {
+inline void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
+                           std::vector<std::string> codeMap, std::string outputDir) {
 
 	std::string ffile = outputDir + "/filtered.txt";
 	std::ofstream filtered(ffile, std::ios_base::app);
 
 	if (filtered.is_open())
 	{
-        for (size_t i = 0; i < variants.size(); i++) {
-
-            filtered << variants[i].toString() << '\t';
-			filtered << explain << '\n';
+        for (size_t i = 0; i < variantInfo.size(); i++) {
+            filtered << variantInfo[i] << '\t';
+            filtered << codeMap[failCode[i]] << std::endl;
 		}
 		filtered.close();
 	}
+}
+
+inline void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir) {
+
+    std::string ffile = outputDir + "/filtered.txt";
+    std::ofstream filtered(ffile, std::ios_base::app);
+
+    if (filtered.is_open())
+    {
+        for (size_t i = 0; i < variants.size(); i++) {
+
+            filtered << variants[i].toString() << '\t';
+            filtered << explain << '\n';
+        }
+        filtered.close();
+    }
 }
 

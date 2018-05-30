@@ -28,6 +28,7 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int test, int nt
         QString caseControl = ui->sim_groupTbl->item(i, 1)->text();
         QString meanDepth = ui->sim_groupTbl->item(i, 2)->text();
         QString sdDepth = ui->sim_groupTbl->item(i, 3)->text();
+        QString errorRate = ui->sim_groupTbl->item(i, 4)->text();
 
         QString highLow =
                 ui->sim_groupTbl->item(i, 2)->text().toDouble() < ui->sim_groupHighLowTxt->text().toDouble() ?
@@ -39,6 +40,7 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int test, int nt
         g.isHrg = (highLow == "high");
         g.meanDepth = meanDepth.toDouble();
         g.sdDepth = sdDepth.toDouble();
+        g.errorRate = errorRate.toDouble();
 
         groups.push_back(g);
 
@@ -52,11 +54,17 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
     SimulationRequest request;
     request.groups = groups;
 
+
     request.test = "common";
-    if(ui->sim_testRareCalphaBtn->isChecked())
+    if(ui->sim_testRareCalphaBtn->isChecked()){
         request.test = "calpha";
-    else if(ui->sim_testRareCastBtn->isChecked())
+        request.collapse = ui->sim_collapseTxt->text().toInt();
+    }
+    else if(ui->sim_testRareCastBtn->isChecked()){
         request.test= "cast";
+        request.collapse = ui->sim_collapseTxt->text().toInt();
+    }
+
 
     request.useBootstrap = ui->sim_testBootChk->isChecked();
     request.stopEarly = false;
@@ -67,15 +75,11 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
     else
         request.nboot=0;
 
-    request.npop = ui->sim_populationSizeTxt->text().toInt();
-    request.prevalence = ui->sim_populationPrevalenceTxt->text().toDouble();
-
     request.nsnp = ui->sim_variantSizeTxt->text().toInt();
-    request.me = ui->sim_sequencingErrorRateTxt->text().toDouble();
-    request.sde = ui->sim_sequencingErrorSdTxt->text().toDouble();
 
     request.oddsRatio = ui->sim_oddsRatioTxt->text().toDouble();
-    request.maf = ui->sim_variantMafTxt->text().toDouble();
+    request.mafMin = ui->sim_variantMafMinTxt->text().toDouble();
+    request.mafMax = ui->sim_variantMafMaxTxt->text().toDouble();
 
     return request;
 }
@@ -157,7 +161,6 @@ void MainWindow::on_sim_runBtn_clicked(){
     }
 }
 
-
 void MainWindow::on_sim_groupRemoveBtn_clicked()
 {
     QList<QPersistentModelIndex> indexes;
@@ -177,16 +180,28 @@ void MainWindow::on_sim_groupRemoveBtn_clicked()
 void MainWindow::on_sim_testRareCastBtn_toggled(bool checked){
     if(checked)
         ui->sim_testBootChk->setChecked(true);
+
+    if(checked)
+        ui->sim_collapseTxt->setEnabled(true);
+    else
+        ui->sim_collapseTxt->setEnabled(false);
+
 }
 
 void MainWindow::on_sim_testRareCalphaBtn_toggled(bool checked){
     if(checked)
         ui->sim_testBootChk->setChecked(true);
+
+    if(checked)
+        ui->sim_collapseTxt->setEnabled(true);
+    else
+        ui->sim_collapseTxt->setEnabled(false);
 }
 
 void MainWindow::on_sim_testBootChk_stateChanged(int arg1)
 {
     ui->sim_testBootTxt->setEnabled(ui->sim_testBootChk->isChecked());
+
 }
 
 void MainWindow::on_sim_testBootChk_toggled(bool checked){
@@ -229,6 +244,7 @@ void MainWindow::on_sim_groupAddBtn_clicked()
 
     QString mean = ui->sim_groupDepthMeanTxt->text();
     QString sd = ui->sim_groupDepthSdTxt->text();
+    QString error = ui->sim_groupErrorTxt->text();
 
     bool ok = false;
     double checkMean = mean.toDouble(&ok);
@@ -239,10 +255,18 @@ void MainWindow::on_sim_groupAddBtn_clicked()
     }
 
     ok=false;
-    int checkSd = sd.toInt(&ok);
+    double checkSd = sd.toDouble(&ok);
 
     if(!ok || checkSd < 0){
         warningDialog("Invalid group settings. Expected read depth SD to be a numeric value greater than or equal to 0.");
+        return;
+    }
+
+    ok=false;
+    double checkError = error.toDouble(&ok);
+
+    if(!ok || error < 0){
+        warningDialog("Invalid group settings. Expected error rate to be a numeric value greater than or equal to 0.");
         return;
     }
 
@@ -268,6 +292,9 @@ void MainWindow::on_sim_groupAddBtn_clicked()
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
     ui->sim_groupTbl->setItem(index, 3, item);
 
+    item = new QTableWidgetItem(error);
+    item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+    ui->sim_groupTbl->setItem(index, 4, item);
 
     ui->sim_groupTbl->selectRow(index);
 

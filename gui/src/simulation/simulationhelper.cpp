@@ -1,9 +1,8 @@
 #include "simulation.h"
 
 
-Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, SimulationRequestGroup> group, double error, double sde,
-                                     Variant &variant) {
-    double mean, sd;
+Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant) {
+    double mean, sd, error;
     int rd;
 
     MatrixXd M(x.rows(), 3);
@@ -14,13 +13,10 @@ Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, Simula
 
         mean = group[g[i]].meanDepth;
         sd = group[g[i]].sdDepth;
+        error = group[g[i]].errorRate;
 
         rd = std::round(randomNormal(mean, sd));
         rd = std::max(rd, 1);
-
-//        VectorXd error(rd);
-//        for (int j = 0; j < error.rows(); j++)
-//            error[j] = randomNormal(me, sde);
 
         int k = x[i];
 
@@ -84,7 +80,7 @@ VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max) {
 
 double inline generateGenotype(double prob_y, double prob_x0, double prob_x1) {
 
-	//rob(x=0, y=1) + prob(x=1, y=1) + prob(x=2, y=1) = prob(y=1)
+    //prob(x=0, y=1) + prob(x=1, y=1) + prob(x=2, y=1) = prob(y=1)
 	double rand = randomDouble(0, prob_y);
 
 	if (rand > prob_x0)
@@ -97,22 +93,23 @@ double inline generateGenotype(double prob_y, double prob_x0, double prob_x1) {
 }
 
 /*
-Produces a matrix of genotypes for the population using minor allele frequency and odds ratio.
+Produces a matrix of genotypes using minor allele frequency and odds ratio.
 
-@param npop Number of individuals in the population.
-@param ncase Number of affected individuals in the population.
+@param simReq Provides information about which groups are case/control.
 @param oddsRatio Odds ratio of being affected given harmful variant.
-@param Vector of minor allele frequencies for each variant.
+@param maf Vector of minor allele frequencies for each variant.
 
-@return Matrix of population expected genotypes, cases occupy columns 0 to ncase-1.
+@return Matrix of expected genotypes.
 */
-MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf) {
+MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf) {
 	int nsnp = maf.size();
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> X(npop, nsnp);
+    int ncont = simReq.ncontrol();
+    int ncase = simReq.ncase();
+    int nsamp = ncont + ncase;
 
-	int ncont = npop - ncase;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> X(nsamp, nsnp);
 
-    double p_y1 = ncase / (double)npop;
+    double p_y1 = ncase / (double)nsamp;
     double p_y0 = 1 - p_y1 ;
 
 	for (int i = 0; i < nsnp; i++) {
@@ -124,105 +121,140 @@ MatrixXd simulatePopulationX(int npop, int ncase, double oddsRatio, VectorXd maf
         //double odds_y1_x2 = beta0 * oddsRatio * oddsRatio;
 
 
-		double p_x0_y0 = ncont / (double) npop * pow(1 - maf[i], 2);
-		double p_x1_y0 = 2 * maf[i] * (1 - maf[i]) * ncont / (double) npop;
+        double p_x0_y0 = ncont / (double) nsamp * pow(1 - maf[i], 2);
+        double p_x1_y0 = 2 * maf[i] * (1 - maf[i]) * ncont / (double) nsamp;
 		double p_x0_y1 = odds_y1_x0 * p_x0_y0;
 		double p_x1_y1 = odds_y1_x0 * oddsRatio * p_x1_y0;
 
+        int index = 0;
+        for (int j = 0; j < simReq.groups.size(); j++){
 
-		for (int j = 0; j < npop; j++) 
-			if(j <= ncase )
-				X(j, i) = generateGenotype(p_y1, p_x0_y1, p_x1_y1);
-			else
-				X(j, i) = generateGenotype(p_y0, p_x0_y0, p_x1_y0);
-	}
+            if(simReq.groups[j].isCase){
+                for (int k = 0; k < simReq.groups[j].n; k++){
+                    X(index, i) = generateGenotype(p_y1, p_x0_y1, p_x1_y1);
+                    index++;
+                }
+            }
+            else{
+                for (int k = 0; k < simReq.groups[j].n; k++){
+                    X(index, i) = generateGenotype(p_y0, p_x0_y0, p_x1_y0);
+                    index++;
+                }
+            }
+        }
+    }
 
 	return X;
 }
 
 /*
-Produces a vector of case/control status for the population.
+Produces a matrix of genotypes using minor allele frequency and odds ratio. Adjusts odds ratio with respect to collapsed region.
 
-@param npop Number of individuals in the population.
-@param ncase Number of affected individuals in the population.
+@param simReq Provides information about which groups are case/control.
+@param oddsRatio Odds ratio of being affected given harmful variant.
+@param maf Vector of minor allele frequencies for each variant.
 
-@return Vector of population case/control status, cases are rows 0 to ncase-1.
+@param collapse Number of variants per collapsed region.
+
+@return Matrix of expected genotypes.
 */
-VectorXd simulatePopulationY(int npop, int ncase) {
-	VectorXd Y(npop);
+MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf, int collapse) {
+    int nsnp = maf.size();
+    int ncont = simReq.ncontrol();
+    int ncase = simReq.ncase();
+    int nsamp = ncont + ncase;
 
-	for (int i = 0; i < npop; i++) {
-		if (i < ncase)
-			Y[i] = 1;
-		else
-			Y[i] = 0;
-	}
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> X(nsamp, nsnp);
 
-	return Y;
-}
+    double p_y1 = ncase / (double)nsamp;
+    double p_y0 = 1 - p_y1 ;
 
-VectorXd sampleY(SimulationRequest simReq, VectorXd Y, int nsamp, int ncase, int ncase_pop) {
-    VectorXd y(nsamp);
-    int row = 0;
+    std::vector<double> oddsRatios(collapse);
 
-    for (SimulationRequestGroup srg : simReq.groups) {
-        double val = 0;
+    for (int i = 0; i < nsnp; i++) {
 
-        if (srg.isCase)
-            val = 1;
+        if(i % collapse == 0){
+            int effectIndex = randomInt(0, collapse-1);
+            oddsRatios[effectIndex] = oddsRatio;
 
-        for(int i = 0; i<srg.n; i++){
-            y[row] = val;
-            row++;
+            double lastOR = oddsRatio;
+            for(int j = effectIndex-1; j >= 0; j--){
+                lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+                oddsRatios[j] = lastOR;
+            }
+            lastOR = oddsRatio;
+            for(int j = effectIndex+1; j < collapse; j++){
+                lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+                oddsRatios[j] = lastOR;
+            }
+        }
+
+        double odds = oddsRatios[i%collapse];
+
+        double beta0 = ncase / (ncont * pow(maf[i] * (1 - odds) - 1, 2));
+
+        double odds_y1_x0 = beta0;
+        //double odds_y1_x1 = beta0 * oddsRatio;
+        //double odds_y1_x2 = beta0 * oddsRatio * oddsRatio;
+
+
+        double p_x0_y0 = ncont / (double) nsamp * pow(1 - maf[i], 2);
+        double p_x1_y0 = 2 * maf[i] * (1 - maf[i]) * ncont / (double) nsamp;
+        double p_x0_y1 = odds_y1_x0 * p_x0_y0;
+        double p_x1_y1 = odds_y1_x0 * odds * p_x1_y0;
+
+        int index = 0;
+        for (int j = 0; j < simReq.groups.size(); j++){
+
+            if(simReq.groups[j].isCase){
+                for (int k = 0; k < simReq.groups[j].n; k++){
+                    X(index, i) = generateGenotype(p_y1, p_x0_y1, p_x1_y1);
+                    index++;
+                }
+            }
+            else{
+                for (int k = 0; k < simReq.groups[j].n; k++){
+                    X(index, i) = generateGenotype(p_y0, p_x0_y0, p_x1_y0);
+                    index++;
+                }
+            }
         }
     }
 
-    return y;
+    return X;
 }
 
 /*
-Produces a matrix of expected genotypes for samples.
+Produces a vector of case/control status.
 
 @param simReq Provides information about which groups are case/control.
-@param X Matrix of expected genotypes from the population.
-@param nsamp Number of individuals in the sample.
-@param ncase Number of affected individuals in the sample.
-@param ncase_pop Number of affected individuals in the population.
 
-@return Matrix of sample expected genotypes.
+@return Vector of case/control status.
 */
-MatrixXd sampleX(SimulationRequest simReq, MatrixXd X, int nsamp, int ncase, int ncase_pop) {
-	int rows = X.rows();
-	int cols = X.cols();
+VectorXd simulateY(SimulationRequest simReq) {
+    int ncont = simReq.ncontrol();
+    int ncase = simReq.ncase();
+    int nsamp = ncont + ncase;
 
-    //randomize
-    VectorXi caseIndex = VectorXi::LinSpaced(ncase_pop, 0, ncase_pop-1);
-    std::random_shuffle(caseIndex.data(), caseIndex.data() + caseIndex.rows());
-    VectorXi contIndex = VectorXi::LinSpaced(rows - ncase_pop, ncase_pop, rows);
-    std::random_shuffle(contIndex.data(), contIndex.data() + contIndex.rows());
+    VectorXd Y(nsamp);
 
-    MatrixXd x(nsamp, cols);
+    int index = 0;
+    for (int j = 0; j < simReq.groups.size(); j++){
 
-    int row = 0;
-    int caseCounter = 0;
-    int controlCounter = 0;
-
-    for (SimulationRequestGroup srg : simReq.groups) {
-        if (srg.isCase)
-            for(int i = 0; i < srg.n; i++){
-                x.row(row) = X.row(caseIndex[caseCounter]);
-                caseCounter++;
-                row++;
+        if(simReq.groups[j].isCase){
+            for (int k = 0; k < simReq.groups[j].n; k++){
+                Y[index] = 1;
+                index++;
             }
-        else
-            for(int i = 0; i < srg.n; i++){
-                x.row(row) = X.row(contIndex[controlCounter]);
-                controlCounter++;
-                row++;
+        }
+        else{
+            for (int k = 0; k < simReq.groups[j].n; k++){
+                Y[index] = 0;
+                index++;
             }
+        }
     }
-
-	return x;
+	return Y;
 }
 
 /*

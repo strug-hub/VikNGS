@@ -1,5 +1,7 @@
 #include "Log.h"
 
+std::string newline = "\n";
+
 void printInfo(std::string message) {
 	std::cout << "[INFO] " << message << newline;
 }

@@ -47,7 +47,6 @@ SOURCES += \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
     ../src/Parser/VCF/VCFParser.cpp \
     ../src/Parser/VCF/VCFParserUtils.cpp \
-    ../src/Parser/Filter/VariantFilterUtils.cpp \
     ../src/Parser/Filter/VariantFilter.cpp \
     ../src/Parser/Sample/SampleParserUtils.cpp \
     ../src/Parser/Sample/SampleParser.cpp \

@@ -80,13 +80,10 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
 
         Request req = getRequest();
 
-        if (req.useCommon()) {
+        if (req.useCommon())
             results.push_back(runCommonTest(req, input));
-        }
-
-        //if (!req.useCommon())
-
-       //results.push_back(runRareTest(req, input));
+        else
+            results.push_back(runRareTest(req, input));
     }
 
     return results;

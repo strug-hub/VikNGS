@@ -13,19 +13,25 @@
 #include <algorithm>
 #include <map>
 
+static const int PASS = 0;
+static const int SNP_FAIL = 1;
+static const int FILTER_FAIL = 2;
+static const int MISSING_FAIL = 3;
+static const int HOMOZYGOUS_FAIL = 4;
+static const int MAF_FAIL = 5;
 
 //ParserTools.cpp
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
 std::string extractString(MemoryMapped &charArray, int start, int end);
 std::string trim(std::string str);
 std::vector<std::string> split(std::string s, char sep);
-std::vector<Variant> calculateExpectedGenotypes(std::vector<Variant> &variants);
+Variant calculateExpectedGenotypes(Variant &variants);
 VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p);
 VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
 std::string determineFamily(VectorXd Y);
 
 //VCFParser.cpp
-std::vector<Variant> parseVCFLines(std::string vcfDir, int minPos, int maxPos);
+std::vector<Variant> parseVCFLines(Request &req, VectorXd &Y, std::string family);
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 
 //SampleParser.cpp
@@ -37,23 +43,44 @@ std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<Vari
 	bool collapseCoding, bool collapseExon);
 
 //VariantFilter.cpp
-std::vector<Variant> filterVariants(Request req, std::vector<Variant> &variants, VectorXd &Y, std::string family);
+int filterVariant(Request &req, Variant &variant, VectorXd &Y, std::string family);
+void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode);
+
 std::vector<Variant> removeDuplicates(std::vector<Variant> variants);
 std::vector<Variant> filterMinorAlleleFrequency(std::vector<Variant> &variants, double mafCutoff, bool common);
 
 struct File {
 	MemoryMapped mmap;
-	int pos;
-	uint64_t maxPos;
-	int lineNumber;
+    uint64_t pos;
 
+    uint64_t segmentSize;
+    uint64_t pageSize;
+    uint64_t pagesPerSegment;
+    uint64_t currentPage;
+
+    bool lastSegment;
+    uint64_t lineNumber;
+    uint64_t memory = 4e9; //4gb
 
 	inline void open(std::string directory) {
 		try {
-			mmap.open(directory);
-			pos = 0;
+
+            pageSize = mmap.getpagesize();
+            pagesPerSegment = memory/pageSize;
+            uint64_t one = 1;
+            pagesPerSegment = std::max(one, pagesPerSegment);
+
+            mmap.open(directory, pagesPerSegment * pageSize, MemoryMapped::CacheHint::SequentialScan);
+            currentPage = pagesPerSegment;
+
+            pos = 0;
 			lineNumber = 0;
-			maxPos = mmap.size();
+            segmentSize = mmap.mappedSize();
+
+            lastSegment = false;
+            if(segmentSize >= mmap.size())
+                lastSegment = true;
+
 		}
 		catch (...) {
 			throwError("file struct", "Cannot open file from provided directory.", directory);
@@ -61,21 +88,34 @@ struct File {
 	}
 
 	inline void close() {
+
 		mmap.close();
 	}
 
 	inline std::string nextLine() {
-		int start = pos;
+
+        std::string line = "";
 
 		while (true) {
-			pos++;
-			if (pos >= maxPos || mmap[pos] == '\n')
-				break;
-		}
-		pos++;
-		lineNumber++;
+            if(pos >= segmentSize){
 
-		return extractString(mmap, start, pos - 1);
+                if(lastSegment)
+                    break;
+                else
+                    remap();
+            }
+
+            if (mmap[pos] == '\n')
+				break;
+
+            line+= mmap[pos];
+            pos++;
+		}
+
+		lineNumber++;
+        pos++;
+
+        return line;
 	}
 
 	inline int getLineNumber() {
@@ -83,6 +123,21 @@ struct File {
 	}
 
 	inline bool hasNext() {
-		return pos < maxPos;
+        return !lastSegment || (pos < segmentSize);
 	}
+
+    void remap() {
+
+        printInfo("Reading another 4GB");
+        size_t offset = currentPage * pageSize;
+        size_t mapSize = pagesPerSegment * pageSize;
+
+        mmap.remap(offset, mapSize);
+        segmentSize = mmap.mappedSize();
+
+        lastSegment = (offset + mapSize) >= mmap.size();
+        currentPage += pagesPerSegment;
+        pos=0;
+
+    }
 };

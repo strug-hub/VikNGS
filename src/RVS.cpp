@@ -90,10 +90,6 @@ void generateForR(MatrixXd X, VectorXd Y, MatrixXd Z, VectorXd G, MatrixXd P, st
 	}
 }
 
-std::vector<double> startSimulation (SimulationRequest req){
-      std::cout << "Simulation not available in command line version");
-}
-
 
 void run(Request req) {
 

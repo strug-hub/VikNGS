@@ -166,7 +166,8 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 
 	File vcf;
 	vcf.open(vcfDir);
-	ID = extractHeader(vcf);
+    ID = extractHeader(vcf);
+
 	vcf.close();
 
 	bool flag = false;

@@ -210,16 +210,12 @@ Using the genotype likelihood for case and controls from VCF file to generates t
 and then use it to calculate the expected genotype probabilities E(G_ij | D_ij) by calling function calcEG.
 Variants with homozygous call in the whole sample (standard deviation of their E(G_ij | D_ij) < 10^4) are removed.
 
-@param variants Lines from VCF file
-@return Input variants with calculated value p for each Variant object.
+@param variants Variant from VCF file
+@return Input variant with calculated value P.
 */
-std::vector<Variant> calculateExpectedGenotypes(std::vector<Variant> &variants) {
+Variant calculateExpectedGenotypes(Variant &variant) {
 
-	for (size_t i = 0; i < variants.size(); i++) {
-		variants[i].P = calcEM(variants[i].likelihood);
-		variants[i].expectedGenotype = calcEG(variants[i].likelihood, variants[i].P);
-	}
-
-	return variants;
+    variant.P = calcEM(variant.likelihood);
+    variant.expectedGenotype = calcEG(variant.likelihood, variant.P);
+    return variant;
 }
-

@@ -66,14 +66,14 @@ public:
 	/// replace mapping by a new one of the same file, offset MUST be a multiple of the page size
 	bool remap(uint64_t offset, size_t mappedBytes);
 
+    /// get OS page size (for remap)
+    static int getpagesize();
+
 private:
 	/// don't copy object
 	MemoryMapped(const MemoryMapped&);
 	/// don't copy object
 	MemoryMapped& operator=(const MemoryMapped&);
-
-	/// get OS page size (for remap)
-	static int getpagesize();
 
 	/// file name
 	std::string _filename;

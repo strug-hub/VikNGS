@@ -99,6 +99,7 @@ void MainWindow::on_main_bedDirBtn_clicked()
 
 void MainWindow::on_main_runBtn_clicked()
 {
+
     greyOutput();
 
     if(!ui->main_runBtn->isEnabled())
@@ -276,7 +277,6 @@ void MainWindow::on_main_runBtn_clicked()
     printOutput("Command Line :", green);
     printOutput(command, green);
     printOutput("---------------------\n", green);
-
 
     QThread* thread = new QThread;
     Runner* runner = new Runner();

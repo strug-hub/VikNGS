@@ -1,16 +1,16 @@
-CC=g++ -std=c++11 -D_GNU_SOURCE
+CC=g++ -std=c++11 -D_GNU_SOURCE -O3
 CFLAGS=-c
 SOURCE=../src/
 
 all: build
 
-build: root parser test RVS.o 
+build: root math parser test RVS.o 
 	$(CC) RVS.o Log.o \
 MemoryMapped.o InputParser.o ParserTools.o \
 CompQuadForm.o RequestBuilder.o VectorHelper.o StatisticsHelper.o \
 VariantFilterUtils.o VariantFilter.o SampleParserUtils.o SampleParser.o \
 BEDParserUtils.o BEDParser.o VCFParserUtils.o VCFParser.o \
-CommonTest.o RareTest.o RareTestObject.o \
+CommonTest.o RareTest.o RareTestObject.o RareTestCollapseObject.o CommonTestObject.o \
 -pthread -o vikNGS
 	
 parser: MemoryMapped.o VCFParser.o SampleParser.o BEDParser.o VariantFilter.o InputParser.o ParserTools.o 
@@ -42,27 +42,33 @@ BEDParser.o: BEDParserUtils.o
 BEDParserUtils.o:
 	$(CC) $(CFLAGS) $(SOURCE)Parser/BED/BEDParserUtils.cpp
 
-root: Log.o StatisticsHelper.o CompQuadForm.o RequestBuilder.o VectorHelper.o 
+root: Log.o RequestBuilder.o
 
 Log.o:
 	$(CC) $(CFLAGS) $(SOURCE)Log.cpp
-StatisticsHelper.o:
-	$(CC) $(CFLAGS) -w $(SOURCE)StatisticsHelper.cpp
-CompQuadForm.o:
-	$(CC) $(CFLAGS) $(SOURCE)CompQuadForm.cpp
 RequestBuilder.o:
 	$(CC) $(CFLAGS) $(SOURCE)RequestBuilder.cpp
-VectorHelper.o: 
-	$(CC) $(CFLAGS) -w $(SOURCE)VectorHelper.cpp
 
-test: CommonTest.o RareTest.o RareTestObject.o
+math: StatisticsHelper.o CompQuadForm.o VectorHelper.o 
+
+StatisticsHelper.o:
+	$(CC) $(CFLAGS) -w $(SOURCE)Math/StatisticsHelper.cpp
+CompQuadForm.o:
+	$(CC) $(CFLAGS) $(SOURCE)Math/CompQuadForm.cpp
+VectorHelper.o: 
+	$(CC) $(CFLAGS) -w $(SOURCE)Math/VectorHelper.cpp
+
+test: CommonTestObject.o RareTestObject.o RareTestCollapseObject.o CommonTest.o RareTest.o
 CommonTest.o:
 	$(CC) $(CFLAGS) $(SOURCE)Test/CommonTest.cpp
 RareTest.o:
 	$(CC) $(CFLAGS) $(SOURCE)Test/RareTest.cpp
 RareTestObject.o: 
 	$(CC) $(CFLAGS) $(SOURCE)Test/RareTestObject.cpp
-
+CommonTestObject.o: 
+	$(CC) $(CFLAGS) $(SOURCE)Test/CommonTestObject.cpp
+RareTestCollapseObject.o: 
+	$(CC) $(CFLAGS) $(SOURCE)Test/RareTestCollapseObject.cpp
 
 RVS.o: 
 	$(CC) $(CFLAGS) $(SOURCE)RVS.cpp

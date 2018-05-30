@@ -157,8 +157,8 @@ void setMAFCutoff(double mafCutoff) {
 }
 
 void setMissingThreshold(double missingThreshold) {
-	if (missingThreshold < 0 || missingThreshold > 0.5)
-		throwError(REQUEST_BUILDER, "Missing threshold should be a value between 0 and 0.5.",
+    if (missingThreshold < 0 || missingThreshold > 1)
+        throwError(REQUEST_BUILDER, "Missing threshold should be a value between 0 and 1.",
 			std::to_string(missingThreshold));
 
 	request.missingThreshold = missingThreshold;

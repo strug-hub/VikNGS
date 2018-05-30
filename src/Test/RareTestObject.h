@@ -4,18 +4,17 @@
 class RareTestObject {
 private:
 
-    std::vector<VectorXd> x_original;
+    //xcenter gets randomized for bootstrap
+    std::vector<VectorXd> xcenter;
     std::vector<VectorXd> x;
 
 	std::vector<int> readDepth;
-	std::vector<VectorXd> xcenter;
 	double robustVar;
 
 public:
     RareTestObject(std::vector<VectorXd> &x, std::vector<int> &readDepth, VectorXd &p) {
 
 		this->x = x;
-        x_original = x;
 		this->readDepth = readDepth;
         this->robustVar = calcRobustVar(p);
 
@@ -30,8 +29,9 @@ public:
 
     inline double getScore(std::vector<VectorXd> & ycenter) {
 		double score = 0;
-		for (int i = 0; i < size(); i++) 
+        for (int i = 0; i < size(); i++)
             score += (ycenter[i].array() * x[i].array()).sum();
+
         return score;
 	}
 

@@ -36,10 +36,13 @@ public:
 
         this->y = y;
         y_original = y;
-        this->z = z;
-        z_original = z;
 
-        Z = concatenate(z);
+        if(covariates){
+            this->z = z;
+            z_original = z;
+            Z = concatenate(z);
+        }
+
         Y = concatenate(y);
 
         this->ycenter = ycenter;
@@ -50,7 +53,6 @@ public:
 
         RareTestObject newObj(x, readDepth, p);
         t.push_back(newObj);
-
     }
 
     MatrixXd getRobustVar();

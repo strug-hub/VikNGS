@@ -154,8 +154,10 @@ void RareTestCollapseObject::binomialBootstrap() {
 void RareTestCollapseObject::normalBootstrap() {
 
     if(covariates){
-        std::vector<VectorXd> residuals = shuffleWithoutReplacement(ycenter_original);
         y.clear();
+        ycenter.clear();
+
+        std::vector<VectorXd> residuals = shuffleWithoutReplacement(ycenter_original);
 
         for (int i = 0; i < residuals.size(); i++)
             y.push_back(y_original[i] - ycenter_original[i] + residuals[i]);
@@ -163,7 +165,10 @@ void RareTestCollapseObject::normalBootstrap() {
         VectorXd shuffleY = concatenate(y);
 
         VectorXd beta = getBeta(shuffleY, Z, "normal");
-        ycenter = fitModel(beta, y, z, "normal");
+        std::vector<VectorXd> ybar = fitModel(beta, y, z, "normal");
+        for (int i = 0; i < y.size(); i++)
+            ycenter.push_back(y[i].array() - ybar[i].array());
+
     }
     else{
 

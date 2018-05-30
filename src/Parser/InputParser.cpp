@@ -42,10 +42,8 @@ TestInput parseAndFilter(Request req) {
 
     std::string family = determineFamily(Y);
 
-    std::vector<Variant> variants = parseVCFLines(req.vcfDir, req.minPos, req.maxPos);
-	variants = calculateExpectedGenotypes(variants);
+    std::vector<Variant> variants = parseVCFLines(req, Y, family);
 
-    variants = filterVariants(req, variants, Y, family);
 	if (variants.size() <= 0) 
 		throwError(INPUT_PARSER, "No variants left after filtering step. No results to display.");
 	

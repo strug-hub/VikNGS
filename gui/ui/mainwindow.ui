@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>884</width>
+    <width>900</width>
     <height>752</height>
    </rect>
   </property>
@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/Users/presentations/Desktop/vikNGS/vcf/test.vcf</string>
+                  <string>/home/scott/chr22.merged.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -97,7 +97,7 @@
                <item row="1" column="0">
                 <widget class="QLineEdit" name="main_vcfMissingTxt">
                  <property name="text">
-                  <string>0.2</string>
+                  <string>0.1</string>
                  </property>
                 </widget>
                </item>
@@ -167,7 +167,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/Users/presentations/Desktop/vikNGS/vcf/test.info.txt</string>
+                  <string>/home/scott/vikNGS/vcf/chr22.info</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -366,7 +366,7 @@
                     <bool>true</bool>
                    </property>
                    <property name="text">
-                    <string>100</string>
+                    <string>1000</string>
                    </property>
                   </widget>
                  </item>
@@ -450,109 +450,7 @@
          <layout class="QVBoxLayout" name="verticalLayout_24">
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="0" column="2">
-             <widget class="QGroupBox" name="sim_variantGrp">
-              <property name="title">
-               <string>Variant Parameters</string>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="2,4">
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_17">
-                 <item>
-                  <widget class="QLineEdit" name="sim_variantSizeTxt">
-                   <property name="text">
-                    <string>100</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="sim_variantMafTxt">
-                   <property name="text">
-                    <string>0.1</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_18">
-                 <item>
-                  <widget class="QLabel" name="sim_variantSizeLbl">
-                   <property name="toolTip">
-                    <string>Number of variants to test</string>
-                   </property>
-                   <property name="text">
-                    <string># of Variants</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="sim_variantMafLbl">
-                   <property name="toolTip">
-                    <string>Minor allele frequency</string>
-                   </property>
-                   <property name="text">
-                    <string>MAF</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QGroupBox" name="sim_populationGrp">
-              <property name="title">
-               <string>Population Simulation</string>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,4">
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_15">
-                 <item>
-                  <widget class="QLineEdit" name="sim_populationSizeTxt">
-                   <property name="text">
-                    <string>500</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="sim_populationPrevalenceTxt">
-                   <property name="text">
-                    <string>0.2</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QVBoxLayout" name="verticalLayout_16">
-                 <item>
-                  <widget class="QLabel" name="sim_populationSizeLbl">
-                   <property name="toolTip">
-                    <string>Size of population to simulate</string>
-                   </property>
-                   <property name="text">
-                    <string>Size</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="sim_pouulationPrevalenceLbl">
-                   <property name="toolTip">
-                    <string>Prevalence of the disease in the simulated population</string>
-                   </property>
-                   <property name="text">
-                    <string>Prevalence</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item row="1" column="2">
+            <item row="1" column="1">
              <widget class="QGroupBox" name="sim_powerGrp">
               <property name="title">
                <string>Power</string>
@@ -620,55 +518,66 @@
               </layout>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QGroupBox" name="sim_sequencingGrp">
+            <item row="0" column="1">
+             <widget class="QGroupBox" name="sim_variantGrp">
               <property name="title">
-               <string>Sequencing Parameters</string>
+               <string>Variant Parameters</string>
               </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="2,4">
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_19">
+                <layout class="QVBoxLayout" name="verticalLayout_17">
                  <item>
-                  <widget class="QLineEdit" name="sim_sequencingErrorRateTxt">
+                  <widget class="QLineEdit" name="sim_variantSizeTxt">
                    <property name="text">
-                    <string>0.01</string>
+                    <string>100</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="sim_sequencingErrorSdTxt">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
+                  <widget class="QLineEdit" name="sim_variantMafMinTxt">
                    <property name="text">
-                    <string>0.025</string>
+                    <string>0.05</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="sim_variantMafMaxTxt">
+                   <property name="text">
+                    <string>0.1</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_20">
+                <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
-                  <widget class="QLabel" name="sim_sequencingErrorRateLbl">
+                  <widget class="QLabel" name="sim_variantSizeLbl">
                    <property name="toolTip">
-                    <string>Base calling error rate of sequencer</string>
+                    <string>Number of variants to test</string>
                    </property>
                    <property name="text">
-                    <string>Error Rate</string>
+                    <string># of Variants</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="sim_sequencingErrorSdLbl">
-                   <property name="enabled">
-                    <bool>false</bool>
-                   </property>
+                  <widget class="QLabel" name="sim_variantMafMinLbl">
                    <property name="toolTip">
-                    <string>Standard deviation of base calling error rate of sequencer</string>
+                    <string>Minor allele frequency</string>
                    </property>
                    <property name="text">
-                    <string>Error SD</string>
+                    <string>MAF min</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="sim_variantMafMaxLbl">
+                   <property name="toolTip">
+                    <string>Minor allele frequency</string>
+                   </property>
+                   <property name="text">
+                    <string>MAF max</string>
                    </property>
                   </widget>
                  </item>
@@ -780,6 +689,23 @@
                </widget>
               </item>
               <item>
+               <widget class="QLabel" name="sim_collapseLbl">
+                <property name="text">
+                 <string>Collapse </string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="sim_collapseTxt">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="sim_runBtn">
                 <property name="text">
                  <string>RUN</string>
@@ -846,7 +772,7 @@
                <item>
                 <widget class="QGroupBox" name="sim_groupDepthGrp">
                  <property name="title">
-                  <string>Depth</string>
+                  <string>Sequencing</string>
                  </property>
                  <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="2,4">
                   <item>
@@ -865,6 +791,13 @@
                       </property>
                      </widget>
                     </item>
+                    <item>
+                     <widget class="QLineEdit" name="sim_groupErrorTxt">
+                      <property name="text">
+                       <string>0.01</string>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
                   </item>
                   <item>
@@ -875,7 +808,7 @@
                        <string>Mean read depth of sequencing group</string>
                       </property>
                       <property name="text">
-                       <string>Mean</string>
+                       <string>Mean Depth</string>
                       </property>
                      </widget>
                     </item>
@@ -885,7 +818,17 @@
                        <string>Read depth standard deviation of sequencing group</string>
                       </property>
                       <property name="text">
-                       <string>SD</string>
+                       <string>SD Depth</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="sim_groupErrorLbl">
+                      <property name="toolTip">
+                       <string>Base calling error rate of sequencer</string>
+                      </property>
+                      <property name="text">
+                       <string>Error Rate</string>
                       </property>
                      </widget>
                     </item>
@@ -994,6 +937,11 @@
                <column>
                 <property name="text">
                  <string>Depth SD</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Error Rate</string>
                 </property>
                </column>
               </widget>

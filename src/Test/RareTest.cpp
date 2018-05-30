@@ -57,7 +57,6 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
 		}
 	}
 
-    //todo: pvalue is 0???
     return (tcount + 1) / (bootCount + 1) ;
 }
 
@@ -66,7 +65,7 @@ std::vector<double> runRareTestParallel(std::vector<MatrixXd> x, std::vector<Vec
                                         Request &req, TestInput &input, int threadID, int nthreads) {
   
     MatrixXd P = input.P;
-    int ngroups = 1 + (int)input.G.maxCoeff();
+    int ngroups = y.size();
 
     //todo calpha cannot go in parallel???
     std::string test = req.rareTest;
@@ -166,7 +165,10 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
   try{
       if(covariates){
           VectorXd beta = getBeta(Y, Z, input.family);
-          ycenter = fitModel(beta, y, z, input.family);
+          std::vector<VectorXd> ybar = fitModel(beta, y, z, input.family);
+
+          for (int i = 0; i < y.size(); i++)
+              ycenter.push_back(y[i].array() - ybar[i].array());
       }
       else{
           double ybar = average(y);
@@ -186,8 +188,14 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
   
   if (nthreads <= 1){
     std::vector<double> pvals = runRareTestParallel(x, y, z, rd, ycenter, req, input, 0, 1);
-    for (int i = 0; i < pvals.size(); i++)
-        input.variants[i].pvalue = pvals[i];
+
+    int counter = 0;
+    for (int i = 0; i < pvals.size(); i++){
+        for (int j = 0; j < input.interval[i].size(); j++){
+            input.variants[counter].pvalue = pvals[i];
+            counter++;
+        }
+  }
     return input.variants;
   }
   

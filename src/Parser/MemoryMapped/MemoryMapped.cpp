@@ -154,7 +154,7 @@ void MemoryMapped::close()
 #ifdef _MSC_VER
 		::UnmapViewOfFile(_mappedView);
 #else
-		::munmap(_mappedView, _filesize);
+        ::munmap(_mappedView, _mappedBytes);
 #endif
 		_mappedView = NULL;
 	}
@@ -245,7 +245,7 @@ bool MemoryMapped::remap(uint64_t offset, size_t mappedBytes)
 #ifdef _MSC_VER
 		::UnmapViewOfFile(_mappedView);
 #else
-		::munmap(_mappedView, _mappedBytes);
+        ::munmap(_mappedView, _mappedBytes);
 #endif
 		_mappedView = NULL;
 	}
@@ -303,7 +303,7 @@ bool MemoryMapped::remap(uint64_t offset, size_t mappedBytes)
 	default: break;
 	}
 	// assume that file will be accessed soon
-	//linuxHint |= MADV_WILLNEED;
+	linuxHint |= MADV_WILLNEED;
 	// assume that file will be large
 	//linuxHint |= MADV_HUGEPAGE;
 
