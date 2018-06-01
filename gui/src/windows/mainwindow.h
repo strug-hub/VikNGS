@@ -60,6 +60,7 @@ private slots:
     void on_main_testRareCalphaBtn_toggled(bool checked);
     void on_main_testBootChk_stateChanged(int arg1);
     void on_main_testBootChk_toggled(bool checked);
+    void on_main_vcfWholeFileChk_toggled(bool checked);
 
 signals:
     void sendPlotData(QVector<double> values);

@@ -100,7 +100,7 @@ GenotypeLikelihood getPL(std::vector<std::string> l, GenotypeLikelihood gl) {
 	return gl;
 }
 
-GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int indexGL, int indexGT) {
+GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT) {
 
 	GenotypeLikelihood gl;
 	gl.L00 = NAN;
@@ -154,7 +154,6 @@ GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int in
 		std::string gt = parts[indexGT];
 		gl = getGT(gt, gl);
 	}
-
 	
 	return gl;
 }
@@ -191,7 +190,7 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 	return IDmap;
 }
 
-Variant constructVariant(std::vector<std::string> columns) {
+Variant constructVariant(std::vector<std::string> &columns, bool onlyGT) {
 
     Variant variant;
 
@@ -232,11 +231,19 @@ Variant constructVariant(std::vector<std::string> columns) {
 		return variant;
 	}
 
+    if(onlyGT){
+        indexPL = -1;
+        indexGL = -1;
+
+        if(indexGT < 0)
+            variant.setInvalid("Genotype calls (GT) not found in FORMAT column.");
+
+    }
+
 	//get genotype likelihood for every sample
 	for (int i = FORMAT + 1; i < columns.size(); i++) {		
-		GenotypeLikelihood gl = getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT);
-		variant.likelihood.push_back(gl);
-	}
+        variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT));
+    }
 
 	return variant;
 }

@@ -39,9 +39,9 @@
        <attribute name="title">
         <string>Association Test</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="100,5,100">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="100,5,0">
         <item>
-         <layout class="QVBoxLayout" name="InputLayout1" stretch="80,5,15,0">
+         <layout class="QVBoxLayout" name="InputLayout1" stretch="0,15,0">
           <item>
            <widget class="QGroupBox" name="main_vcfGrp">
             <property name="title">
@@ -77,20 +77,54 @@
              </item>
              <item>
               <layout class="QGridLayout" name="gridLayout">
-               <item row="0" column="0">
-                <widget class="QLineEdit" name="main_vcfMafTxt">
+               <item row="1" column="1">
+                <widget class="QLabel" name="main_vcfMissingLbl">
                  <property name="text">
-                  <string>0.05</string>
-                 </property>
-                 <property name="placeholderText">
-                  <string>0.05</string>
+                  <string>Missing Threshold</string>
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
-                <widget class="QLabel" name="main_vcfMafLbl">
+               <item row="5" column="0">
+                <widget class="QLineEdit" name="main_vcfFromPosTxt">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QCheckBox" name="main_vcfWholeFileChk">
                  <property name="text">
-                  <string>MAF Cutoff</string>
+                  <string>Whole file</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLineEdit" name="main_vcfChromFilterTxt">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0">
+                <widget class="QLineEdit" name="main_vcfToPosTxt">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="1">
+                <widget class="QLabel" name="main_vcfToPosLbl">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>End at</string>
                  </property>
                 </widget>
                </item>
@@ -101,60 +135,60 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
-                <widget class="QLabel" name="main_vcfMissingLbl">
+               <item row="7" column="0">
+                <widget class="QCheckBox" name="main_vcfPassChk">
+                 <property name="toolTip">
+                  <string>QUAL column in VCF must contain PASS</string>
+                 </property>
                  <property name="text">
-                  <string>Missing Threshold</string>
+                  <string>Must PASS</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
-                <widget class="QLineEdit" name="main_vcfChromFilterTxt">
+               <item row="5" column="1">
+                <widget class="QLabel" name="main_vcfFromPosLbl">
                  <property name="enabled">
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string/>
+                  <string>Start from</string>
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
-                <widget class="QLabel" name="main_vcfChrLbl">
+               <item row="0" column="1">
+                <widget class="QLabel" name="main_vcfMafLbl">
                  <property name="text">
-                  <string>Chromosome filter</string>
+                  <string>MAF Cutoff</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLineEdit" name="main_vcfMafTxt">
+                 <property name="text">
+                  <string>0.05</string>
+                 </property>
+                 <property name="placeholderText">
+                  <string>0.05</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QLabel" name="main_vcfChrLbl">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Chromosome</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
-             <item>
-              <widget class="QCheckBox" name="main_vcfPassChk">
-               <property name="toolTip">
-                <string>QUAL column in VCF must contain PASS</string>
-               </property>
-               <property name="text">
-                <string>Must PASS</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
             </layout>
            </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item>
            <widget class="QGroupBox" name="main_sampleGrp">
@@ -278,30 +312,44 @@
                <property name="title">
                 <string>Collapse By</string>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_9">
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
                 <item>
-                 <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
-                  <property name="text">
-                   <string>Entire gene</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="main_bedCollapseCodingBtn">
-                  <property name="text">
-                   <string>Coding only</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="main_bedCollapseExonBtn">
-                  <property name="text">
-                   <string>Exon only</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QRadioButton" name="main_bedCollapseExonBtn">
+                    <property name="text">
+                     <string>Exon only</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
+                    <property name="text">
+                     <string>Entire gene</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="main_bedCollapseKBtn">
+                    <property name="text">
+                     <string>Every k </string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="main_bedCollapseKTxt">
+                    <property name="text">
+                     <string>5</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </widget>
@@ -399,23 +447,50 @@
             <property name="title">
              <string>Start</string>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
+            <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <layout class="QHBoxLayout" name="ThreadsLayout">
-               <item>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="0" column="0">
                 <widget class="QLineEdit" name="main_threadsTxt">
                  <property name="enabled">
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>1</string>
+                  <string>4</string>
                  </property>
                 </widget>
                </item>
-               <item>
+               <item row="0" column="1">
                 <widget class="QLabel" name="main_threadsLbl">
                  <property name="text">
                   <string># threads</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLineEdit" name="main_batchSizeTxt">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="text">
+                  <string>100</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="main_batchSizeLbl">
+                 <property name="text">
+                  <string>Batch Size</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QCheckBox" name="main_plotChk">
+                 <property name="text">
+                  <string>Plot results</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>

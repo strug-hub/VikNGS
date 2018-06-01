@@ -1,36 +1,40 @@
 #include "BEDParserUtils.h"
 
 /*
-Parses intervals from a a BED file and collapses variants along intervals. Variants can be collapsed
-along exons, exons+introns or any arbitrary region.
+Parses intervals from a a BED file.
 Note: BED files start position on a chromosome is 0, VCF start at 1
 
 @param bedDir Directory to a bed file.
-@param variants Lines parsed from a VCF file.
-@param collapseCoding Collapse along coding region (defined as thickStart and thickEnd in BED format).
 @param collapseExon Collapse along exons only (defined as blocks in BED format).
 @return The indexes of variants within each interval.
 */
-std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<Variant> variants, bool collapseCoding, bool collapseExon) {
+std::vector<Interval> parseBEDLines(std::string bedDir, bool collapseExon) {
 	
 	File bed;
 	bed.open(bedDir);
 
-	std::vector<Interval> collapse;
+    std::vector<BEDInterval> intervals;
 
 	int colsExpected = 3;
-	if (collapseCoding || collapseExon)
+    if (collapseExon)
 		colsExpected = 12;
 
 	while (bed.hasNext()) {
 
-		std::vector<std::string> lineSplit = split(bed.nextLine(), BED_SEPARATOR);
+        std::string line = bed.nextLine();
+        if (line[0] == '#')
+            continue;
 
-		Interval interval = lineToInterval(lineSplit, colsExpected, bed.getLineNumber(), collapseCoding);
+        std::vector<std::string> lineSplit = split(line, BED_SEPARATOR);
+
+        BEDInterval interval = lineToBedInterval(lineSplit, colsExpected, bed.getLineNumber());
 		
 		if(interval.valid)
-			collapse.push_back(interval);
+            intervals.push_back(interval);
 	}
 	
-	return collapseVariants(collapse, variants, collapseCoding, collapseExon);
+    if(collapseExon)
+        return toExonInterval(intervals);
+    else
+        return toInterval(intervals);
 }

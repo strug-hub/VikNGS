@@ -46,22 +46,20 @@ inline bool homozygousTest(Variant &variant) {
 
     int j;
 
-    VectorXd EG = variant.expectedGenotype;
-
     double mean = 0;
     double n = 0;
-    for (j = 0; j < EG.size(); j++) {
-        if (!std::isnan(EG[j])) {
-            mean += EG[j];
+    for (j = 0; j < variant.expectedGenotype.size(); j++) {
+        if (!std::isnan(variant.expectedGenotype[j])) {
+            mean += variant.expectedGenotype[j];
             n++;
         }
     }
     mean = mean / n;
 
     double sd = 0;
-    for (j = 0; j < EG.size(); j++)
-        if (!std::isnan(EG[j]))
-            sd += pow((EG[j] - mean), 2);
+    for (j = 0; j < variant.expectedGenotype.size(); j++)
+        if (!std::isnan(variant.expectedGenotype[j]))
+            sd += pow((variant.expectedGenotype[j] - mean), 2);
 
     if (1e-8*(n - 1) < sd)
         return true;

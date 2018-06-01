@@ -89,7 +89,7 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
             }
         }
 
-        TestInput t = buildTestInput(EG, y, z, g, p, readGroup, interval, variants, "binomial");
+        TestInput t = buildTestInput(EG, y, z, g, p, readGroup, variants, "binomial");
         inputs.push_back(t);
     }
 

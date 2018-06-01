@@ -7,7 +7,7 @@ Request setDefaultParameters() {
 
 	Request r;
 	r.highLowCutOff = 30;
-	r.collapseType = COLLAPSE_NONE;
+    r.collapseType = COLLAPSE_K;
 	r.mafCutoff = 0.05;
 	r.missingThreshold = 0.1;
 	r.onlySNPs = true;
@@ -26,6 +26,10 @@ Request setDefaultParameters() {
 	r.stopEarly = false;
 
 	r.rvs = true;
+    r.regularTest = false;
+
+    r.batchSize = 1000;
+    r.retainVariants = false;
 
 	return r;
 }
@@ -64,6 +68,10 @@ void initializeRequest() {
     request = setDefaultParameters();
 }
 void setCollapse(int k){
+    if(k < 2)
+        throwError(REQUEST_BUILDER, "Collapse k value should be greater than 1.",
+            std::to_string(k));
+
 	request.collapse = k;
 }
 
@@ -90,13 +98,21 @@ void setCollapseGene() {
 void setCollapseExon() {
 	request.collapseType = COLLAPSE_EXON;
 }
+/*
 void setCollapseCoding() {
 	request.collapseType = COLLAPSE_CODING;
-}
+}*/
 
 void setOnlySNPs(bool value) {
 	request.onlySNPs = value;
 }
+
+void setRegularTest(bool value){
+    request.regularTest = value;
+    if(!value)
+        setRVS(false);
+}
+
 void setMustPASS(bool value) {
 	request.mustPASS = value;
 }
@@ -126,10 +142,18 @@ void setRVS(bool value) {
 }
 
 void setMinPos(int min){
+    if (min < 0)
+        throwError(REQUEST_BUILDER, "Filter from POS should be greater than or equal to 0.",
+            std::to_string(min));
+
 	request.minPos = min;
 }
 
 void setMaxPos(int max){
+    if (max < 1)
+        throwError(REQUEST_BUILDER, "Filter from POS should be greater than 0.",
+            std::to_string(max));
+
 	request.maxPos = max;
 }
 
@@ -140,6 +164,18 @@ void setNumberThreads(int nthreads) {
 
 	request.nthreads = nthreads;
 }
+
+void setRetainVariants(bool value) {
+    request.retainVariants = value;
+}
+
+void setBatchSize(int batch) {
+    if(batch < 1)
+        throwError(REQUEST_BUILDER, "Batch size should be greater than 0.",
+            std::to_string(batch));
+    request.batchSize = batch;
+}
+
 void setHighLowCutOff(int highLowCutOff) {
 	if (highLowCutOff < 1)
 		throwError(REQUEST_BUILDER, "High-low read depth threshold should be greater than 0.",

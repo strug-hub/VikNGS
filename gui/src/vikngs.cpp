@@ -12,41 +12,39 @@ std::vector<Variant> startVikNGS(Request req) {
     createFile(req.outputDir);
 
     printInfo("Parsing files...");
-    TestInput input = parseAndFilter(req);
+    TestInput input = parseInfo(req);
 
-    if(input.hasCovariates()){
+    if(input.hasCovariates())
         printInfo(std::to_string(input.countCovariates()) + " covariates parsed");
-    }
+
+    std::vector<Variant> variants = processVCF(input, req);
+    return variants;
+}
+
+std::vector<Variant> runTest(TestInput &input, Request &req){
 
     if (req.useCommon()) {
 
-        printInfo("Starting tests...");
         std::vector<Variant> variants = runCommonTest(req, input);
 
-        printInfo("Common Test p-values");
         for (size_t i = 0; i < variants.size(); i++) {
             std::cout << variants[i].toString() << "\t" << variants[i].pvalue;
             std::cout << '\n';
         }
 
-        outputPvals(variants, req.outputDir);
         return variants;
     }
 
   //if (!req.useCommon())
 
-    printInfo("Starting tests...");
     std::vector<Variant> variants = runRareTest(req, input);
 
-    printInfo("Rare Test p-values");
     for (size_t i = 0; i < variants.size(); i++) {
       std::cout << variants[i].toString() << "\t" << variants[i].pvalue;
       std::cout << '\n';
     }
 
-    outputPvals(variants, req.outputDir, 5);
     return variants;
-
 }
 
 std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest> simReqs) {

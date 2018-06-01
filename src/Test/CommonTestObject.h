@@ -40,10 +40,10 @@ private:
 public:
     CommonTestObject(VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G,
 		std::vector<VectorXd> &x, std::vector<VectorXd> &y, std::vector<MatrixXd> &z,
-        std::vector<int> &readDepth, VectorXd &P, std::string family) {
+        std::vector<int> &readDepth, VectorXd &P, std::string family, bool useRegular) {
 
         covariates = true;
-        regular = false;
+        regular = useRegular;
         setFamily(family);
 
 		this->x = x;
@@ -65,10 +65,10 @@ public:
 	}
 
 	CommonTestObject(std::vector<VectorXd> &x, std::vector<VectorXd> &y,
-        std::vector<int> &readDepth, VectorXd &P, std::string family) {
+        std::vector<int> &readDepth, VectorXd &P, std::string family, bool useRegular) {
 
         covariates = false;
-        regular = false;
+        regular = useRegular;
         setFamily(family);
 
 		this->x = x;

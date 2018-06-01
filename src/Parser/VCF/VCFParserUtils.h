@@ -30,7 +30,7 @@ Calculates genotype likelihood from PL or GL for a single sample.
 @throws runtime_error if column cannot be parsed
 @return A GenotypeLikelihood object.
 */
-GenotypeLikelihood getGenotypeLikelihood(std::string column, int indexPL, int indexGL, int indexGT);
+GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT);
 
 
 /*
@@ -45,6 +45,8 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 Takes the columns of a VCF line and builds a Variant object.
 
 @param columns Column values corresponding to a VCF line.
+@param onlyGT Extract genotype calls only, no likelihood.
+
 @return Variant object.
 */
-Variant constructVariant(std::vector<std::string> columns);
+Variant constructVariant(std::vector<std::string> &columns, bool onlyGT);

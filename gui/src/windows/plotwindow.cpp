@@ -36,8 +36,8 @@ void PlotWindow::initialize(QVector<Variant> variants, QString title){
 
     ui->plot_title->setText(title);
     this->setWindowTitle("Plotter - " + title);
-    //createChromosomes(variants);
-    setRandomChromosomes();
+    createChromosomes(variants);
+    //setRandomChromosomes();
     focusedChr = chrNames[0];
     buildGenomePlot();
     buildChromosomePlot(focusedChr, -1, -1);

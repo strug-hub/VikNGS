@@ -64,56 +64,7 @@ std::vector<double> runRareTestParallel(std::vector<MatrixXd> x, std::vector<Vec
                                         std::vector<int> rd, std::vector<VectorXd> ycenter,
                                         Request &req, TestInput &input, int threadID, int nthreads) {
   
-    MatrixXd P = input.P;
-    int ngroups = y.size();
 
-    //todo calpha cannot go in parallel???
-    std::string test = req.rareTest;
-    std::vector<double> pvals;
-
-  for (int k = threadID; k < input.interval.size(); k+=nthreads) {
-
-    if (k % (25) == 0) {
-      std::cout << std::endl << k;
-      std::cout << "/" << input.interval.size();
-      std::cout << " calculated." << std::endl;
-
-    }
-    
-    RareTestCollapseObject collapse(y, z, ycenter, input.hasCovariates(), input.family);
-
-    std::cout << "Collasping: ";
-    for (int i = 0; i < input.interval[k].size(); i++) {
-    	std::cout << input.interval[k][i] << " ";
-    }
-    std::cout << "\n";
-
-    try{
-        for (int i = 0; i < input.interval[k].size(); i++) {
-
-          int index = input.interval[k][i];
-
-          std::vector<VectorXd> x_i;
-          for (int j = 0; j < ngroups; j++)
-            x_i.push_back(x[j].col(index));
-
-          //VectorXd X_i = X.col(index);
-          VectorXd p = P.row(index);
-          collapse.addVariant(x_i, rd, p);
-
-        }
-
-        pvals.push_back(rareTest(collapse, req.nboot, req.stopEarly, req.rvs, test));
-
-    }catch(variant_exception){
-
-            //todo: printinfo for collapse
-            printWarning("Problem occured while running test on a variant block (...). Assigning a p-value of 1");
-            pvals.push_back(1);
-        }
-  }
-  
-  return pvals;
 }
 
 
@@ -127,6 +78,9 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
     bool covariates = input.hasCovariates();
     MatrixXd X = input.X;
     VectorXd G = input.G;
+    MatrixXd P = input.P;
+    std::string test = req.rareTest;
+
     VectorXd toRemove;
 
     if(covariates){
@@ -183,49 +137,52 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
 
   //------------------
 
-  int nthreads = req.nthreads;
-  std::vector<std::future<std::vector<double>>> pvalsFuture;
-  
-  if (nthreads <= 1){
-    std::vector<double> pvals = runRareTestParallel(x, y, z, rd, ycenter, req, input, 0, 1);
+  for (int k = 0; k < input.collapse.size(); k++) {
 
-    int counter = 0;
-    for (int i = 0; i < pvals.size(); i++){
-        for (int j = 0; j < input.interval[i].size(); j++){
-            input.variants[counter].pvalue = pvals[i];
-            counter++;
+    if (k % (25) == 0) {
+      std::cout << std::endl << k;
+      std::cout << "/" << input.collapse.size();
+      std::cout << " calculated." << std::endl;
+
+    }
+
+    RareTestCollapseObject collapse(y, z, ycenter, input.hasCovariates(), input.family);
+
+    std::cout << "Collasping: ";
+    for (int i = 0; i < input.collapse[k].size(); i++) {
+        std::cout << input.collapse[k][i] << " ";
+    }
+    std::cout << "\n";
+
+    double pval = 1;
+
+    try{
+        for (int i = 0; i < input.collapse[k].size(); i++) {
+
+          int index = input.collapse[k][i];
+
+          std::vector<VectorXd> x_i;
+          for (int j = 0; j < ngroups; j++)
+            x_i.push_back(x[j].col(index));
+
+          //VectorXd X_i = X.col(index);
+          VectorXd p = P.row(index);
+          collapse.addVariant(x_i, rd, p);
+
         }
+
+        pval = rareTest(collapse, req.nboot, req.stopEarly, req.rvs, test);
+
+    }catch(variant_exception){
+
+            //todo: printinfo for collapse
+            printWarning("Problem occured while running test on a variant block (...). Assigning a p-value of 1");
+        }
+
+    for(int j = 0; j < input.collapse[k].size(); j++)
+        input.variants[input.collapse[k][j]].pvalue = pval;
+
   }
-    return input.variants;
-  }
-  
-  for (int i = 0; i < nthreads; i++) {
-    pvalsFuture.push_back(std::async(std::launch::async,
-                                     [&,i] { return runRareTestParallel(x, y, z, rd, ycenter, req, input, i, nthreads); } ));
-  }
-  
-  std::vector<std::vector<double>> pvalsFromThread;
-  
-  for (int i = 0; i < nthreads; i++) 
-    pvalsFromThread.push_back(pvalsFuture[i].get());
-    
-  int i = 0;
-  int index = 0;
-  while (true) {
-    
-    bool flag = false;
-    for (int j = 0; j < nthreads; j++)
-      if (pvalsFromThread[j].size() > i) {
-        input.variants[index].pvalue = pvalsFromThread[j][i];
-        index++;
-        flag = true;
-      }
-      
-      i++;
-      
-      if (!flag)
-        break;
-  }
-  
+
   return input.variants;
 }

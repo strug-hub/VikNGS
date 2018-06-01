@@ -3,7 +3,7 @@
 static const std::string BED_PARSER_UTILS = "BED parser utils";
 
 
-Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int lineNumber) {
+BEDInterval getExons(std::vector<std::string> &lineSplit, BEDInterval &interval, int lineNumber) {
 
 	int nexons;
 
@@ -65,48 +65,17 @@ Interval getExons(std::vector<std::string> &lineSplit, Interval &interval, int l
 			return interval;
 		}
 
-		interval.exonStart.push_back(interval.txStart + exonStart);
-		interval.exonEnd.push_back(interval.txStart + exonStart + exonSize);
+        interval.exonStart.emplace_back(interval.txStart + exonStart);
+        interval.exonEnd.emplace_back(interval.txStart + exonStart + exonSize);
 	}
 
 	interval.valid = true;
 	return interval;
 }
 
+BEDInterval lineToBedInterval(std::vector<std::string> lineSplit, int colsExpected, int lineNumber) {
 
-std::vector<std::vector<int>> collapseVariants(std::vector<Interval> &collapse, std::vector<Variant> variants, bool collapseCoding, bool collapseExon) {
-
-	if (!collapseCoding && !collapseExon) {
-		for (int i = 0; i < variants.size(); i++)
-			for (int j = 0; j < collapse.size(); j++)
-				collapse[j].txAddIfIn(variants[i], i);
-	}
-	else if (collapseExon) {
-		for (int i = 0; i < variants.size(); i++)
-			for (int j = 0; j < collapse.size(); j++)
-				collapse[j].exonAddIfIn(variants[i], i);
-	}
-	else if (collapseCoding) {
-		for (int i = 0; i < variants.size(); i++)
-			for (int j = 0; j < collapse.size(); j++)
-				collapse[j].cdsAddIfIn(variants[i], i);
-	}
-
-	std::vector<std::vector<int>> interval;
-
-	for (int i = 0; i < collapse.size(); i++) {
-		//for debugging:
-		//collapse[i].print();
-		if (collapse[i].nIndex() > 0)
-			interval.push_back(collapse[i].getIndexes());
-	}
-
-	return interval;
-}
-
-Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, int lineNumber, bool collapseCoding) {
-
-	Interval interval;
+    BEDInterval interval;
 
 	if (lineSplit.size() < colsExpected) {
 
@@ -162,9 +131,6 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 			return interval;
 		}
 
-		//non-protein coding gene, don't consider (ex. non-coding RNA genes)
-		if (collapseCoding && interval.cdsEnd - interval.cdsStart < 1)
-			return interval;
 	}
 
 	if (colsExpected > 8) {
@@ -176,4 +142,49 @@ Interval lineToInterval(std::vector<std::string> lineSplit, int colsExpected, in
 
 	interval.valid = true;
 	return interval;
+}
+
+std::vector<Interval> toExonInterval(std::vector<BEDInterval> bed){
+
+    int index = 0;
+    std::vector<Interval> intervals;
+
+    for(int i = 0; i < bed.size(); i++){
+        for(int j = 0; j < bed[i].exonStart.size(); j++){
+
+            Interval interval;
+            interval.index = index;
+            index++;
+            interval.id = bed[i].id;
+            interval.exon = j+1;
+
+            interval.chr = bed[i].chr;
+            interval.end = bed[i].exonEnd[j];
+            interval.start = bed[i].exonStart[j];
+            intervals.push_back(interval);
+        }
+    }
+
+    return intervals;
+}
+
+
+std::vector<Interval> toInterval(std::vector<BEDInterval> bed){
+
+    std::vector<Interval> intervals;
+
+    for(int i = 0; i < bed.size(); i++){
+
+        Interval interval;
+        interval.index = i;
+        interval.id = bed[i].id;
+        interval.exon = -1;
+
+        interval.chr = bed[i].chr;
+        interval.end = bed[i].txEnd;
+        interval.start = bed[i].txStart;
+        intervals.push_back(interval);
+    }
+
+    return intervals;
 }

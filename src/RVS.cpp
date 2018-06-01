@@ -169,8 +169,8 @@ int main(int argc, char* argv[]) {
 	CLI::Option *gene = app.add_option("--gene", byGene, "Collapse variants by gene if BED file specified (default)");
 	bool byExon;
 	CLI::Option *exon = app.add_option("--exon", byExon, "Collapse variants by exon if BED file specified");
-	bool byCoding;
-	CLI::Option *coding = app.add_option("--coding", byCoding, "Collapse variants by coding if BED file specified");
+	//bool byCoding;
+	//CLI::Option *coding = app.add_option("--coding", byCoding, "Collapse variants by coding if BED file specified");
 	int collapse;
 	CLI::Option *k = app.add_option("-k,--collapse", collapse, "Collapse every k variants (rare only)");
 	k->check(CLI::Range(2, 2147483647));
@@ -199,6 +199,10 @@ int main(int argc, char* argv[]) {
 	int to = -1;
 	CLI::Option *p2 = app.add_option("--to", to, "Only include variants with POS smaller than this value");
 	p2->check(CLI::Range(0, 2147483647));
+
+	int batch = 1000;
+	CLI::Option *h = app.add_option("-h,--batch", batch, "Processes VCF in batches of this many variants");
+	h->check(CLI::Range(1, 2147483647));
 	
 	// -------------------------------------
 
@@ -308,16 +312,20 @@ int main(int argc, char* argv[]) {
 		if(exon->count() > 0){
 			setCollapseExon();
 			printInfo("Collapse variants along exons");
-		}
+		}/*
 		else if(coding->count() > 0){
 			setCollapseCoding();
 			printInfo("Collapse variants along coding regions");
-		}
+		}*/
 		else{
 			setCollapseGene();
 			printInfo("Collapse variants along genes");
 		}
 	}
+
+	if(h->count() > 0)
+       		setBatchSize(batch);
+
 
 	Request req = getRequest();
 	run(req);

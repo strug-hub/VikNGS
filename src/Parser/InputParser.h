@@ -6,6 +6,7 @@
 #include "../TestInput.h"
 #include "../Variant.h"
 #include "../Math/MathHelper.h"
+#include "BED/Interval.h"
 
 #include <iostream>  
 #include <vector>
@@ -24,14 +25,14 @@ static const int MAF_FAIL = 5;
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
 std::string extractString(MemoryMapped &charArray, int start, int end);
 std::string trim(std::string str);
-std::vector<std::string> split(std::string s, char sep);
-Variant calculateExpectedGenotypes(Variant &variants);
+std::vector<std::string> split(std::string &s, char sep);
+void calculateExpectedGenotypes(Variant &variants);
 VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p);
 VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
 std::string determineFamily(VectorXd Y);
 
 //VCFParser.cpp
-std::vector<Variant> parseVCFLines(Request &req, VectorXd &Y, std::string family);
+std::vector<Variant> parseVCFLines(TestInput &input, Request &req);
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 
 //SampleParser.cpp
@@ -39,12 +40,11 @@ void parseSampleLines(Request req, std::map<std::string, int> &IDmap,
 	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup);
 
 //BEDParser.cpp
-std::vector<std::vector<int>> parseBEDLines(std::string bedDir, std::vector<Variant> variants,
-	bool collapseCoding, bool collapseExon);
+std::vector<Interval> parseBEDLines(std::string bedDir, bool collapseExon);
 
 //VariantFilter.cpp
 int filterVariant(Request &req, Variant &variant, VectorXd &Y, std::string family);
-void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode);
+void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode, int total);
 
 std::vector<Variant> removeDuplicates(std::vector<Variant> variants);
 std::vector<Variant> filterMinorAlleleFrequency(std::vector<Variant> &variants, double mafCutoff, bool common);

@@ -284,7 +284,8 @@ HEADERS += \
     ../src/Parser/Filter/VariantFilterUtils.h \
     ../src/Test/CommonTestObject.h \
     ../src/Test/RareTestObject.h \
-    ../src/Test/RareTestCollapseObject.h
+    ../src/Test/RareTestCollapseObject.h \
+    ../src/Parser/BED/Interval.h
 
 
 FORMS += \

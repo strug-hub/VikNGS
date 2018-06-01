@@ -5,10 +5,10 @@
 
 static const int COMMON_TEST = 1;
 static const int RARE_TEST = 2;
-static const int COLLAPSE_NONE = 0;
+static const int COLLAPSE_K = 0;
 static const int COLLAPSE_GENE = 1;
 static const int COLLAPSE_EXON = 2;
-static const int COLLAPSE_CODING = 3;
+//static const int COLLAPSE_CODING = 3;
 
 struct Request {
 
@@ -36,15 +36,20 @@ struct Request {
 	std::string rareTest;
 	int collapse;	
 	bool stopEarly;
-	int nthreads;
+    int nthreads;
 
 	bool rvs;
+    bool regularTest;
+
+    int batchSize;
+    bool retainVariants;
 
 	inline bool useCommon() { return test == COMMON_TEST; }
-	inline bool shouldCollapseBed() { return collapseType != COLLAPSE_NONE && bedDir != ""; }
+    inline bool shouldCollapseBed() { return collapseType != COLLAPSE_K && bedDir != ""; }
+    inline bool shouldCollapseK() { return collapseType == COLLAPSE_K; }
 	inline bool shouldCollapseGene() { return collapseType == COLLAPSE_GENE; }
-	inline bool shouldCollapseExon() { return collapseType == COLLAPSE_EXON; }
-	inline bool shouldCollapseCoding() { return collapseType == COLLAPSE_CODING; }
+    inline bool shouldCollapseExon() { return collapseType == COLLAPSE_EXON; }
+    //inline bool shouldCollapseCoding() { return collapseType == COLLAPSE_CODING; }
 
 };
 
@@ -70,15 +75,18 @@ void setCollapseFile(std::string bedDir);
 
 void setCollapseGene();
 void setCollapseExon();
-void setCollapseCoding();
+//void setCollapseCoding();
 void setCollapse(int k);
 void setOnlySNPs(bool value);
+void setRegularTest(bool value);
 void setMustPASS(bool value); 
 void setStopEarly(bool value);
 void useRareTest(std::string type);
 void useCommonTest();
 void useBootstrap(int nboot);
 void setRVS(bool value);
+void setRetainVariants(bool value);
+void setBatchSize(int size);
 void setOutputDir(std::string outputDir);
 void setMinPos(int min);
 void setMaxPos(int max);

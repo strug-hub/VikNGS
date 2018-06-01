@@ -85,7 +85,7 @@ double commonBootstrap(CommonTestObject t, int nboot, bool stopEarly, bool rvs) 
 	return (tcount + 1) / (bootCount + 1);
 }
 
-std::vector<double> runCommonTestParallel(Request &req, TestInput &input, int threadID, int nthreads) {
+std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
 	
 	MatrixXd X = input.X;
 	VectorXd Y = input.Y;
@@ -96,8 +96,6 @@ std::vector<double> runCommonTestParallel(Request &req, TestInput &input, int th
 	MatrixXd P = input.P;
     bool hasCovariates = input.hasCovariates();
 
-    std::vector<double> pvals;
-
 	int i,j;
 
 	std::vector<MatrixXd> x;
@@ -106,7 +104,6 @@ std::vector<double> runCommonTestParallel(Request &req, TestInput &input, int th
 	std::vector<int> rd;
 
 	int ngroups = 1 + (int)G.maxCoeff();
-
 
 	for (i = 0; i < ngroups; i++) {
 		x.push_back(extractRows(X, G, i));
@@ -119,7 +116,7 @@ std::vector<double> runCommonTestParallel(Request &req, TestInput &input, int th
 		rd.push_back(readGroup[i]);
 	}
 
-	for (i = threadID; i < X.cols(); i+=nthreads) {
+    for (i = 0; i < X.cols(); i++) {
 
 		if (i % 25 == 0) {
 			std::cout << "\n";
@@ -137,75 +134,34 @@ std::vector<double> runCommonTestParallel(Request &req, TestInput &input, int th
 		VectorXd X_i = X.col(i);
 		VectorXd P_i = P.row(i);
 
+        double pval = 1;
+
         try{
             if (hasCovariates) {
-                CommonTestObject t(X_i, Y, Z, G, x_i, y, z, rd, P_i, input.family);
+                CommonTestObject t(X_i, Y, Z, G, x_i, y, z, rd, P_i, input.family, req.regularTest);
 
                 if (req.useBootstrap)
-                    pvals.push_back(commonBootstrap(t, req.nboot, req.stopEarly, req.rvs));
+                    pval = commonBootstrap(t, req.nboot, req.stopEarly, req.rvs);
                 else
-                    pvals.push_back(commonAsymptotic(t, req.rvs));
+                    pval = commonAsymptotic(t, req.rvs);
             }
             else {
-                CommonTestObject t(x_i, y, rd, P_i, input.family);
+                CommonTestObject t(x_i, y, rd, P_i, input.family, req.regularTest);
 
                 if (req.useBootstrap)
-                    pvals.push_back(commonBootstrap(t, req.nboot, req.stopEarly, req.rvs));
+                    pval = commonBootstrap(t, req.nboot, req.stopEarly, req.rvs);
                 else
-                    pvals.push_back(commonAsymptotic(t, req.rvs));
+                    pval = commonAsymptotic(t, req.rvs);
             }
         }catch(variant_exception){
             printWarning("Problem occured while running test on a variant (" +
                          input.variants[i].info() + "). Assigning a p-value of 1");
-            pvals.push_back(1);
         }
-	}
 
-    return pvals;
-}
-
-std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
-
-	int nthreads = req.nthreads;
-	std::vector<std::future<std::vector<double>>> pvalsFuture;
-
-    if (nthreads <= 1){
-        std::vector<double> pvals = runCommonTestParallel(req, input, 0, 1);
-        for (int i = 0; i < pvals.size(); i++)
-            input.variants[i].pvalue = pvals[i];
-        return input.variants;
-    }
-	
-	for (int i = 0; i < nthreads; i++) {
-		pvalsFuture.push_back(std::async(std::launch::async,
-		[&,i] { return runCommonTestParallel(req, input, i, nthreads); } ));
-	}
-
-	std::vector<std::vector<double>> pvalsFromThread;
-
-	for (int i = 0; i < nthreads; i++) 
-		pvalsFromThread.push_back(pvalsFuture[i].get());
-	
-	int i = 0;
-    int index = 0;
-	while (true) {
-
-		bool flag = false;
-		for (int j = 0; j < nthreads; j++)
-			if (pvalsFromThread[j].size() > i) {
-                input.variants[index].pvalue = pvalsFromThread[j][i];
-                index++;
-				flag = true;
-			}
-
-		i++;
-
-		if (!flag)
-			break;
+        input.variants[i].pvalue = pval;
 	}
 
     return input.variants;
 }
-
 
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include "Eigen/Dense"
+#include "Parser/BED/Interval.h"
+
 using Eigen::VectorXd;
 
 struct GenotypeLikelihood {
@@ -23,6 +25,8 @@ struct Variant {
     std::vector<GenotypeLikelihood> likelihood;
     VectorXd P;
     VectorXd expectedGenotype;
+
+    Interval interval;
 
     bool valid = true;
     std::string errorMessage;
@@ -45,6 +49,13 @@ struct Variant {
 
     inline void print() {
         std::cout << toString() + "\n";
+    }
+
+    inline void reduceSize() {
+        likelihood.clear();
+        VectorXd empty;
+        P = empty;
+        expectedGenotype = empty;
     }
 
     inline bool operator<(Variant& line) {

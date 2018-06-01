@@ -31,9 +31,27 @@ int filterVariant(Request &req, Variant &variant, VectorXd &Y, std::string famil
     return PASS;
 }
 
-void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode) {
+std::string percent(int num, int denom){
 
-    std::vector<std::string> codeMap(6);
+    std::string pcnt = std::to_string(std::round(1000.0*num/denom)/10.0);
+    std::string cut = "";
+    for(int i =0; i<pcnt.size(); i++){
+        cut += pcnt[i];
+        if (pcnt[i] == '.' && pcnt.size() > (i+1)){
+            cut += pcnt[i+1];
+            break;
+        }
+    }
+
+    return " (" + cut + "%) ";
+}
+
+void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode, int total){
+
+    int ncodes = 6;
+    int nfiltered = variantInfo.size();
+
+    std::vector<std::string> codeMap(ncodes);
     codeMap[PASS] = "PASS";
     codeMap[SNP_FAIL] = "Filtered for REF/ALT";
     codeMap[FILTER_FAIL] = "No PASS in FILTER";
@@ -41,29 +59,42 @@ void printFilterResults(Request &req, std::vector<std::string> variantInfo, std:
     codeMap[HOMOZYGOUS_FAIL] = "No sample variability";
     codeMap[MAF_FAIL] = "Filtered for MAF";
 
+    std::vector<int> codeCount(ncodes);
+
+    printInfo(std::to_string(nfiltered) + "/" + std::to_string(total) +
+              percent(nfiltered, total) + "variants were filtered.");
+
+    for(int i = 0; i< failCode.size(); i++)
+        codeCount[failCode[i]]++;
+
+    for(int i = 0; i< codeMap.size(); i++){
+
+        std::string s = codeCount[i] > 1 ? "s" : "";
+        if(codeCount[i] < 1)
+            continue;
+
+        if(i == SNP_FAIL)
+            printInfo(std::to_string(codeCount[i]) + " variant" + s + percent(codeCount[i],nfiltered) + "filtered by ALT and REF column (SNPs were retained).");
+        if(i == FILTER_FAIL)
+            printInfo(std::to_string(codeCount[i]) + " variant" + s + percent(codeCount[i],nfiltered) + "filtered by FILTER column (do not PASS).");
+        if(i == HOMOZYGOUS_FAIL)
+            printInfo(std::to_string(codeCount[i]) + " variant" + s + percent(codeCount[i],nfiltered) + "filtered due to homozygous call in samples (no variability).");
+        if(i == MISSING_FAIL)
+            printInfo(std::to_string(codeCount[i]) + " variant" + s + percent(codeCount[i],nfiltered) + "filtered by due to missing information (threshold = " + std::to_string(req.missingThreshold) + ").");
+        if(i == MAF_FAIL){
+
+            if (req.useCommon())
+                 printInfo(std::to_string(codeCount[i]) + percent(codeCount[i],nfiltered) + "rare variant" + s +
+                     " filtered (minor allele frequency less than " + std::to_string(req.mafCutoff) + ").");
+
+             else
+                 printInfo(std::to_string(codeCount[i]) + percent(codeCount[i],nfiltered) + "common variant" + s +
+                     " filtered (minor allele frequency greater than " + std::to_string(req.mafCutoff) + ").");
+        }
+
+    }
+
     outputFiltered(variantInfo, failCode, codeMap, req.outputDir);
 }
 
 
-//    std::string s = nremoved > 1 ? "s" : "";
-
-    //printInfo(std::to_string(nremoved) + " variant" + s + " were filtered by ALT and REF column (SNPs were retained).");
-    //printInfo(std::to_string(nremoved) + " variant" + s + " were filtered by FILTER column (do not PASS).");
-    //printInfo(std::to_string(nremoved) + " variant" + s + " filtered due to homozygous call in all samples.");
-
-   /* if (keepCommon) {
-        printInfo(std::to_string(nremoved) + " rare variant" + s +
-            " filtered (minor allele frequency less than " + std::to_string(mafCutoff) + ").");
-    }
-    else {
-        printInfo(std::to_string(nremoved) + " common variant" + s +
-            " filtered (minor allele frequency greater than " + std::to_string(mafCutoff) + ").");
-
-
-
-
-        printInfo(std::to_string(nremoved) + " variant" + s +
-            " filtered by due to missing information (threshold = " + std::to_string(missingThreshold) + ").");
-    }
-    outputFiltered(removedVariants, "Filtered by missing data", outputDir);
-    */

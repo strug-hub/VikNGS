@@ -29,7 +29,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::printOutput(QString str, QColor c){
 
+
     QString oldOut = ui->outputBox->toHtml();
+    oldOut = oldOut.right(50000);
+    int close = oldOut.indexOf("<");
+    oldOut = oldOut.right(50000 - close);
+
     QString newOut = "<font color=\"" + c.name() + "\">" + str + "</font>";
 
     //avoid having the first line blank
@@ -126,35 +131,6 @@ void MainWindow::on_main_runBtn_clicked()
 
         initializeRequest(vcfDir, sampleDir);
 
-        std::string bedDir = ui->main_bedDirTxt->text().toStdString();
-
-        bool collapseGene = ui->main_bedCollapseGeneBtn->isChecked();
-        bool collapseCoding = ui->main_bedCollapseCodingBtn->isChecked();
-        bool collapseExon = ui->main_bedCollapseCodingBtn->isChecked();
-
-        if(bedDir.size() > 0){
-
-            setCollapseFile(bedDir);
-            printInfo("BED file: " + bedDir);
-            //commands.push_back("-b " + bedDir);
-            commands.push_back("-b [...]");
-
-            if(collapseGene){
-                setCollapseGene();
-                printInfo("Collapse variants along genes");
-            }
-            else if(collapseCoding){
-                setCollapseCoding();
-                printInfo("Collapse variants along coding regions");
-            }
-            else if(collapseExon){
-                setCollapseExon();
-                printInfo("Collapse variants along exons");
-            }
-
-        }
-
-
         std::string mafCutOff = ui->main_vcfMafTxt->text().toStdString();
         double maf = toDouble("Minor allele frequency threshold", mafCutOff);
         setMAFCutoff(maf);
@@ -163,7 +139,7 @@ void MainWindow::on_main_runBtn_clicked()
         printInfo("Minor allele frequency threshold: " + mafCutOff);
 
         std::string highLowCutOff = ui->main_sampleDepthTxt->text().toStdString();
-        int depth = std::stoi(highLowCutOff);
+        int depth = toInt("Read depth threshold", highLowCutOff);
         setHighLowCutOff(depth);
         highLowCutOff = toString(depth);
         commands.push_back("-d " + highLowCutOff);
@@ -176,6 +152,28 @@ void MainWindow::on_main_runBtn_clicked()
         commands.push_back("-x " + missingThreshold);
         printInfo("Missing data threshold: " + missingThreshold);
 
+        if(!ui->main_vcfWholeFileChk->isChecked()){
+
+            //todo chromosome filter!!!
+
+            std::string fromPos = ui->main_vcfFromPosTxt->text().toStdString();
+            if(fromPos.size() > 0){
+                int from = toInt("Filter from position", fromPos);
+                setMinPos(from);
+                fromPos = toString(from);
+                commands.push_back("--from " + fromPos);
+                printInfo("Start from POS: " + fromPos);
+            }
+            std::string toPos = ui->main_vcfToPosTxt->text().toStdString();
+            if(toPos.size() > 0){
+                int to = toInt("Filter to position", toPos);
+                setMaxPos(to);
+                toPos = toString(to);
+                commands.push_back("--to " + toPos);
+                printInfo("End at POS: " + toPos);
+            }
+        }
+
         bool mustPass = ui->main_vcfPassChk->isChecked();
         setMustPASS(mustPass);
         if(!mustPass){
@@ -184,6 +182,9 @@ void MainWindow::on_main_runBtn_clicked()
         }
         else
             printInfo("Remove variants which do not PASS");
+
+        //not available on command line
+        setRetainVariants(ui->main_plotChk->isChecked());
 
         std::string test = "common";
         if(ui->main_testRareCastBtn->isChecked())
@@ -207,6 +208,44 @@ void MainWindow::on_main_runBtn_clicked()
           commands.push_back("-r cast");
         }
 
+        std::string bedDir = ui->main_bedDirTxt->text().toStdString();
+
+        bool collapseGene = ui->main_bedCollapseGeneBtn->isChecked();
+        //bool collapseCoding = ui->main_bedCollapseCodingBtn->isChecked();
+        bool collapseExon = ui->main_bedCollapseExonBtn->isChecked();
+        bool collapseK = ui->main_bedCollapseKBtn->isChecked();
+
+        if(bedDir.size() > 0){
+
+            setCollapseFile(bedDir);
+            printInfo("BED file: " + bedDir);
+            //commands.push_back("-b " + bedDir);
+            commands.push_back("-b [...]");
+
+            if(collapseGene){
+                setCollapseGene();
+                printInfo("Collapse variants along genes");
+            }
+           /* else if(collapseCoding){
+                setCollapseCoding();
+                printInfo("Collapse variants along coding regions");
+            } */
+            else if(collapseExon){
+                setCollapseExon();
+                printInfo("Collapse variants along exons");
+            }
+        }
+
+        if(ui->main_testRareCastBtn->isChecked() && collapseK){
+            std::string everyk = ui->main_bedCollapseKTxt->text().toStdString();
+            int k = toInt("Collapse k value", everyk);
+            setCollapse(k);
+            everyk = toString(k);
+            commands.push_back("-k " + everyk);
+            printInfo("Collapse every " + everyk + " variants");
+        }
+
+
         std::string nboot = ui->main_testBootTxt->text().toStdString();
         bool stopEarly = ui->main_testStopChk->isChecked();
 
@@ -227,6 +266,13 @@ void MainWindow::on_main_runBtn_clicked()
             commands.push_back("-n " + nboot);
         }
 
+        std::string batchSize = ui->main_batchSizeTxt->text().toStdString();
+        int batch = toInt("Batch size", batchSize);
+        setBatchSize(batch);
+        batchSize = toString(batch);
+        commands.push_back("-h " + batchSize);
+        printInfo("Batch size: " + batchSize);
+
         std::string nthreads = ui->main_threadsTxt->text().toStdString();
         int threads = toInt("Number of threads", nthreads);
         nthreads = toString(threads);
@@ -236,37 +282,8 @@ void MainWindow::on_main_runBtn_clicked()
             commands.push_back("-t " + nthreads);
         }
 
-        /*
-
-        //TODO:
-        //if(k->count() > 0 && b->count() < 1){
-        //  setCollapse(collapse);
-        //  printInfo("Collapsing every " + std::to_string(collapse) + " variants");
-        //}
-
-        //TODO:
-        //  if(from != -1 && to != -1){
-        //    setMinPos(from);
-        //    setMaxPos(to);
-        //    printInfo("Analyzing variants between POS " + std::to_string(from) + " and " + std::to_string(to));
-        //  }
-        //  else if(from != -1){
-        //    setMinPos(from);
-        //    printInfo("Analyzing variants with POS greater than " + std::to_string(from));
-        //  }
-        //  else if(to != -1){
-        //    setMinPos(to);
-        //    printInfo("Analyzing variants with POS less than " + std::to_string(to));
-        //  }
-
-
-
-
-
-
-
-
-*/
+    //todo comment out
+    setRVS(false);
     Request req = getRequest();
 
     QString command = "";
@@ -317,6 +334,17 @@ void MainWindow::on_main_testBootChk_toggled(bool checked){
         ui->main_testBootChk->setChecked(true);
         ui->main_testStopChk->setEnabled(true);
     }
+}
+
+void MainWindow::on_main_vcfWholeFileChk_toggled(bool checked){
+
+    //ui->main_vcfChrLbl->setEnabled(!checked);
+    //ui->main_vcfChromFilterTxt->setEnabled(!checked);
+    ui->main_vcfFromPosLbl->setEnabled(!checked);
+    ui->main_vcfToPosLbl->setEnabled(!checked);
+    ui->main_vcfFromPosTxt->setEnabled(!checked);
+    ui->main_vcfToPosTxt->setEnabled(!checked);
 
 }
+
 

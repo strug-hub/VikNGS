@@ -31,34 +31,26 @@ Output params:
 
 @return TestInput object holding all the output parameters.
 */
-TestInput parseAndFilter(Request req) {
+TestInput parseInfo(Request req) {
 	
 	VectorXd Y, G; MatrixXd Z;
 	std::map<int, int> readGroup;
-	std::vector<std::vector<int>> interval;
 
     std::map<std::string, int> IDmap = getSampleIDMap(req.vcfDir);
 	parseSampleLines(req, IDmap, Y, Z, G, readGroup);
 
     std::string family = determineFamily(Y);
-
-    std::vector<Variant> variants = parseVCFLines(req, Y, family);
-
-	if (variants.size() <= 0) 
-		throwError(INPUT_PARSER, "No variants left after filtering step. No results to display.");
 	
+    std::vector<Interval> intervals;
 	if (req.shouldCollapseBed())
-		interval = parseBEDLines(req.bedDir, variants, req.shouldCollapseCoding(), req.shouldCollapseExon());
-	else if (!req.useCommon())
-		interval = collapseEveryK(req.collapse, variants.size());
+        intervals = parseBEDLines(req.bedDir, req.shouldCollapseExon());
 
-	MatrixXd X(variants[0].likelihood.size(), variants.size());
-	for (int i = 0; i < variants.size(); i++)
-		X.col(i) = variants[i].expectedGenotype;
-
-	MatrixXd P(variants.size(), 3);
-	for (int i = 0; i < variants.size(); i++)
-		P.row(i) = variants[i].P;
-
-    return buildTestInput(X, Y, Z, G, P, readGroup, interval, variants, family);
+    return buildTestInput(Y, Z, G, readGroup, intervals, family);
 }
+
+std::vector<Variant> processVCF(TestInput input, Request req) {
+
+    return parseVCFLines(input, req);
+
+}
+

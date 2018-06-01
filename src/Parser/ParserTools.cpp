@@ -86,12 +86,12 @@ the sep character
 @param sep Character to split the string at.
 @return Split string.
 */
-std::vector<std::string> split(std::string s, char sep) {
+std::vector<std::string> split(std::string &s, char sep) {
 	std::vector<std::string> split;
 	int start = 0;
 	for (int i = 0; i <= s.length(); i++) {
 		if (s[i] == sep || i == s.length()) {
-			split.push_back(s.substr(start, i - start));
+            split.emplace_back(s.substr(start, i - start));
 			start = i + 1;
 		}
 	}
@@ -211,11 +211,11 @@ and then use it to calculate the expected genotype probabilities E(G_ij | D_ij) 
 Variants with homozygous call in the whole sample (standard deviation of their E(G_ij | D_ij) < 10^4) are removed.
 
 @param variants Variant from VCF file
-@return Input variant with calculated value P.
+@return none
+@effect Expected genotypes are added to variant object
 */
-Variant calculateExpectedGenotypes(Variant &variant) {
+void calculateExpectedGenotypes(Variant &variant) {
 
     variant.P = calcEM(variant.likelihood);
     variant.expectedGenotype = calcEG(variant.likelihood, variant.P);
-    return variant;
 }

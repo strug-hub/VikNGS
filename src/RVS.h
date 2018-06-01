@@ -25,9 +25,12 @@ using Eigen::DiagonalMatrix;
 //========================================================
 
 std::vector<Variant> startVikNGS(Request req);
+std::vector<Variant> runTest(TestInput &input, Request &req);
 
 //InputParser
-TestInput parseAndFilter(Request req);
+TestInput parseSampleLines(Request req);
+std::vector<Variant> processVCF(TestInput input, Request req);
+TestInput parseInfo(Request req);
 
 //CommonTest.cpp
 std::vector<Variant> runCommonTest(Request &req, TestInput &input);
