@@ -152,17 +152,22 @@ void MainWindow::on_main_runBtn_clicked()
         commands.push_back("-x " + missingThreshold);
         printInfo("Missing data threshold: " + missingThreshold);
 
+
         if(!ui->main_vcfWholeFileChk->isChecked()){
 
-            //todo chromosome filter!!!
-
+            std::string chrFilter = ui->main_vcfChromFilterTxt->text().toStdString();
+            if(chrFilter.size() > 0){
+                setFilterChr(chrFilter);
+                commands.push_back("--chr " + chrFilter);
+                printInfo("Analyzing variants on chromosome " + chrFilter);
+            }
             std::string fromPos = ui->main_vcfFromPosTxt->text().toStdString();
             if(fromPos.size() > 0){
                 int from = toInt("Filter from position", fromPos);
                 setMinPos(from);
                 fromPos = toString(from);
                 commands.push_back("--from " + fromPos);
-                printInfo("Start from POS: " + fromPos);
+                printInfo("Analyzing variants with POS greater than " + fromPos);
             }
             std::string toPos = ui->main_vcfToPosTxt->text().toStdString();
             if(toPos.size() > 0){
@@ -170,7 +175,7 @@ void MainWindow::on_main_runBtn_clicked()
                 setMaxPos(to);
                 toPos = toString(to);
                 commands.push_back("--to " + toPos);
-                printInfo("End at POS: " + toPos);
+                printInfo("Analyzing variants with POS less than " + toPos);
             }
         }
 
@@ -245,25 +250,27 @@ void MainWindow::on_main_runBtn_clicked()
             printInfo("Collapse every " + everyk + " variants");
         }
 
+        if(ui->main_testBootChk->isChecked()){
 
-        std::string nboot = ui->main_testBootTxt->text().toStdString();
-        bool stopEarly = ui->main_testStopChk->isChecked();
+            std::string nboot = ui->main_testBootTxt->text().toStdString();
+            bool stopEarly = ui->main_testStopChk->isChecked();
 
-        int n = toInt("Bootstrap iterations", nboot);
-        nboot = toString(n);
+            int n = toInt("Bootstrap iterations", nboot);
 
-        if(n > 1 && ui->main_testBootChk->isChecked()){
-            useBootstrap(n);
+            if(n > 1){
+                nboot = toString(n);
+                useBootstrap(n);
 
-            setStopEarly(stopEarly);
-            if(stopEarly){
-                printInfo("Using " + nboot + " bootstrap iterations and early stopping");
-                commands.push_back("-s");
+                setStopEarly(stopEarly);
+                if(stopEarly){
+                    printInfo("Using " + nboot + " bootstrap iterations and early stopping");
+                    commands.push_back("-s");
+                }
+                else
+                    printInfo("Using " + nboot + " bootstrap iterations");
+
+                commands.push_back("-n " + nboot);
             }
-            else
-                printInfo("Using " + nboot + " bootstrap iterations");
-
-            commands.push_back("-n " + nboot);
         }
 
         std::string batchSize = ui->main_batchSizeTxt->text().toStdString();
@@ -282,8 +289,10 @@ void MainWindow::on_main_runBtn_clicked()
             commands.push_back("-t " + nthreads);
         }
 
-    //todo comment out
-    setRVS(false);
+    //todo remove?
+    setRegularTest(ui->main_gtChk->isChecked());
+    setRVS(ui->main_rvsChk->isChecked());
+
     Request req = getRequest();
 
     QString command = "";
@@ -325,7 +334,6 @@ void MainWindow::on_main_testBootChk_stateChanged(int arg1)
 {
     ui->main_testBootTxt->setEnabled(ui->main_testBootChk->isChecked());
     ui->main_testStopChk->setEnabled(ui->main_testBootChk->isChecked());
-
 }
 
 void MainWindow::on_main_testBootChk_toggled(bool checked){

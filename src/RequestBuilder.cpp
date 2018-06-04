@@ -17,6 +17,8 @@ Request setDefaultParameters() {
 
 	r.minPos = -1;
 	r.maxPos = -1;
+    request.filterChr = "";
+
 	r.test = COMMON_TEST;
 	r.useBootstrap = false;
 	r.collapse = 5;
@@ -91,7 +93,6 @@ void setOutputDir(std::string outputDir) {
 		throwError(REQUEST_BUILDER, "Output directory is invalid.", outputDir);
 }
 
-
 void setCollapseGene() {
 	request.collapseType = COLLAPSE_GENE;
 }
@@ -105,6 +106,10 @@ void setCollapseCoding() {
 
 void setOnlySNPs(bool value) {
 	request.onlySNPs = value;
+}
+
+void setRVS(bool value) {
+    request.rvs = value;
 }
 
 void setRegularTest(bool value){
@@ -137,10 +142,6 @@ void useCommonTest() {
 	request.test = COMMON_TEST;
 }
 
-void setRVS(bool value) {
-	request.rvs = value;
-}
-
 void setMinPos(int min){
     if (min < 0)
         throwError(REQUEST_BUILDER, "Filter from POS should be greater than or equal to 0.",
@@ -155,6 +156,10 @@ void setMaxPos(int max){
             std::to_string(max));
 
 	request.maxPos = max;
+}
+
+void setFilterChr(std::string chr){
+    request.filterChr = chr;
 }
 
 void setNumberThreads(int nthreads) {

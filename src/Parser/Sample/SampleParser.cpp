@@ -113,7 +113,7 @@ void parseSampleLines(Request req, std::map<std::string, int> &IDmap,
 	std::vector<std::string> missingSample;
 	for (auto it = IDmap.begin(); it != IDmap.end(); ++it) {
 		std::string id = it->first;
-		
+
 		if (ID[id] != 1)
 			missingSample.push_back(id);
 	}

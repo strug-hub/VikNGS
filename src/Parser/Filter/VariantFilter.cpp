@@ -61,8 +61,8 @@ void printFilterResults(Request &req, std::vector<std::string> variantInfo, std:
 
     std::vector<int> codeCount(ncodes);
 
-    printInfo(std::to_string(nfiltered) + "/" + std::to_string(total) +
-              percent(nfiltered, total) + "variants were filtered.");
+    printInfo(std::to_string(total - nfiltered) + "/" + std::to_string(total) +
+              percent(total - nfiltered, total) + "variants remain after filtering.");
 
     for(int i = 0; i< failCode.size(); i++)
         codeCount[failCode[i]]++;
@@ -96,5 +96,86 @@ void printFilterResults(Request &req, std::vector<std::string> variantInfo, std:
 
     outputFiltered(variantInfo, failCode, codeMap, req.outputDir);
 }
+
+bool isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr){
+
+    std::string vcfChr = "";
+    std::string vcfPos = "";
+    bool tab = false;
+
+    for(int i = 0; i < vcfLine.size(); i++){
+
+        if(vcfLine[i] == VCF_SEPARATOR){
+            if(tab)
+                break;
+
+            tab = true;
+            if (chr.size() > 0 && vcfChr != chr)
+                return false;
+
+            continue;
+        }
+
+        if(!tab)
+            vcfChr += vcfLine[i];
+        else
+            vcfPos += vcfLine[i];
+    }
+
+    //possibility of throwing error
+    int vcfPosValue = std::stoi(vcfPos);
+
+    if((minPos > -1 && vcfPosValue < minPos) || (maxPos > -1 && vcfPosValue > maxPos))
+        return false;
+}
+
+int isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr, std::vector<Interval> &intervals){
+
+    std::string vcfChr = "";
+    std::string vcfPos = "";
+    bool tab = false;
+
+    for(int i = 0; i < vcfLine.size(); i++){
+
+        if(vcfLine[i] == VCF_SEPARATOR){
+            if(tab)
+                break;
+
+            tab = true;
+            if (chr.size() > 0 && vcfChr != chr)
+                return false;
+
+            continue;
+        }
+
+        if(!tab)
+            vcfChr += vcfLine[i];
+        else
+            vcfPos += vcfLine[i];
+    }
+
+    //possibility of throwing error
+    int vcfPosValue = std::stoi(vcfPos);
+
+    if(vcfPosValue < minPos || vcfPosValue > maxPos)
+        return false;
+}
+
+
+
+
+int findInterval(std::vector<Interval> &intervals, Variant &variant){
+
+    //todo: optimize!@!!!!!
+    for(int i = 0; i < intervals.size(); i++){
+
+        if(intervals[i].start <= variant.pos && intervals[i].end >= variant.pos
+                && intervals[i].chr == variant.chr)
+            return i;
+    }
+    return -1;
+}
+
+
 
 

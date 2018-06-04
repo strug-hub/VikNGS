@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/home/scott/chr22.merged.vcf</string>
+                  <string>D:/chr22.merged.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -201,7 +201,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/home/scott/vikNGS/vcf/chr22.info</string>
+                  <string>D:/chr22.info</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -328,7 +328,7 @@
                      <string>Entire gene</string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -338,7 +338,7 @@
                      <string>Every k </string>
                     </property>
                     <property name="checked">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -371,7 +371,7 @@
                   <string>Common</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -381,7 +381,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -398,11 +398,14 @@
               <layout class="QVBoxLayout" name="verticalLayout_4">
                <item>
                 <widget class="QCheckBox" name="main_testBootChk">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -411,10 +414,10 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>1000</string>
+                    <string/>
                    </property>
                   </widget>
                  </item>
@@ -430,7 +433,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -473,7 +476,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>100</string>
+                  <string>10000</string>
                  </property>
                 </widget>
                </item>
@@ -491,6 +494,20 @@
                  </property>
                  <property name="checked">
                   <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QCheckBox" name="main_rvsChk">
+                 <property name="text">
+                  <string>RVS</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QCheckBox" name="main_gtChk">
+                 <property name="text">
+                  <string>Use GT</string>
                  </property>
                 </widget>
                </item>

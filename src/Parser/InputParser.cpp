@@ -1,4 +1,7 @@
 #include "InputParser.h"
+#include <future>
+#include <thread>
+#include <chrono>
 
 static const std::string INPUT_PARSER = "input parser";
 
@@ -48,9 +51,253 @@ TestInput parseInfo(Request req) {
     return buildTestInput(Y, Z, G, readGroup, intervals, family);
 }
 
+std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::string> &lines, int startVariantNumber, int startLineNumber){
+
+    std::vector<Variant> variants;
+    std::vector<std::string> filterInfo;
+    std::vector<int> filterCode;
+    int total = lines.size();
+
+    auto myid = std::this_thread::get_id();
+    std::stringstream ss;
+    ss << myid;
+    std::string mystring = ss.str();
+
+     printInfo("welcome to thread " +mystring  );
+
+    //contruct variants
+    for(int i = 0; i < total; i++){
+
+        std::vector<std::string> columns = split(lines[i], VCF_SEPARATOR);
+
+        variants.emplace_back(constructVariant(columns, req.regularTest));
+        if(!variants.back().isValid()){
+            std::string lineNumber = std::to_string(startLineNumber + i);
+            printWarning(INPUT_PARSER, "Skipping line " + lineNumber + " of VCF file - " + variants.back().getErrorMessage());
+            variants.pop_back();
+            continue;
+        }
+
+        calculateExpectedGenotypes(variants.back());
+        int code = filterVariant(req, variants.back(), input.Y, input.family);
+
+        if(code > 0){
+            filterInfo.emplace_back(variants.back().toString());
+            filterCode.emplace_back(code);
+            variants.pop_back();
+        }
+    }
+    printInfo("====================================");
+    printInfo("Read variants " + std::to_string(startVariantNumber) + " to " + std::to_string(startVariantNumber + total));
+    printFilterResults(req, filterInfo, filterCode, total);
+    printInfo("Starting batch of tests");
+    printInfo("====================================");
+
+    if(variants.size() < 0)
+        return variants;
+
+    std::vector<std::vector<int>> collapse;
+
+    if(req.shouldCollapseK())
+        collapse = collapseEveryK(req.collapse, variants.size());
+    else if(req.shouldCollapseBed())
+        collapse = collapseEveryK(req.collapse, variants.size());
+
+    TestInput in = addVariants(input, variants, collapse);
+
+    //todo: remove
+    printInfo("rvs = " + std::to_string(req.rvs) + " --- useGT = " + std::to_string(req.regularTest));
+
+    std::vector<Variant> results = runTest(in, req);
+    outputPvals(results, req.outputDir);
+
+    return results;
+}
+
+class ParallelProcess
+{
+    TestInput input;
+    Request req;
+
+    int startVariantNumber;
+    int startLineNumber;
+    std::vector<std::string> lines;
+
+    bool initialized;
+    std::future<std::vector<Variant>> futureResults;
+
+public:
+
+    ParallelProcess(TestInput ti, Request r) : input(ti), req(r) { initialized = false;}
+
+    inline bool isDone(){
+        return initialized && futureResults.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    }
+
+    inline bool isInitialized(){
+        return initialized;
+    }
+
+    inline std::vector<Variant> getResults(){
+        initialized = false;
+        return futureResults.get();
+    }
+
+    void copyValues(TestInput input, Request req){
+        this->input = input;
+        this->req = req;
+    }
+
+    void begin(int startVariantNum, int startLineNum, std::vector<std::string> lns){
+        initialized = true;
+        this->lines = lns;
+        this->startLineNumber = startLineNum;
+        this->startVariantNumber = startVariantNum;
+
+        futureResults = std::async(std::launch::async,
+                [this] { return runBatch(input, req, lines, startVariantNumber, startLineNumber); }) ;
+    }
+};
+
 std::vector<Variant> processVCF(TestInput input, Request req) {
 
-    return parseVCFLines(input, req);
+    std::string vcfDir = req.vcfDir;
+    std::string filterChr = req.filterChr;
+    int minPos = req.minPos;
+    int maxPos = req.maxPos;
+    int nthreads = req.nthreads - 1;
+    int waitTime = 500; //miliseconds
 
+    File vcf;
+    vcf.open(vcfDir);
+
+    int lineCount = 0;
+    int firstLineInBatch = 0;
+    int batchCout = 0;
+    std::vector<std::string> lines;
+    std::vector<Variant> output;
+
+    std::vector<ParallelProcess> threads;
+    for(int i =0; i< nthreads; i++)
+        threads.emplace_back(input, req);
+
+    //skips header
+    extractHeader(vcf);
+
+
+    while (vcf.hasNext()) {
+
+        if(lineCount % 5000 == 0){
+            if(lineCount == 0)
+                printInfo("Parsing VCF file...");
+            else
+                printInfo(std::to_string(lineCount) + " variant lines have been parsed so far");
+        }
+
+        lines.emplace_back(vcf.nextLine());
+        lineCount++;
+
+        try{
+            if(!isIn(lines.back(), minPos, maxPos, filterChr)){
+                lines.pop_back();
+                continue;
+            }
+        } catch(...){
+                printWarning(INPUT_PARSER, "Error while parsing line " + std::to_string(vcf.lineNumber) +
+                             " of VCF file. Ensure CHR and POS columns are formatted correctly. Skipping variant.");
+        }
+
+        if(req.shouldCollapseBed()){
+
+            /*int index = findInterval(input.intervals, variants.back());
+            if(index < 0){
+                variants.pop_back();
+                continue;
+            }
+            else
+                variants.back().interval = input.intervals[index];
+*///todo
+        }
+
+        if(lines.size() >= req.batchSize || !vcf.hasNext()){
+
+            bool printWait = true;
+            while(true){
+
+                bool stopLooping = false;
+
+                //check if threads are done
+                for(int m = 0; m < nthreads; m++){
+                    if(threads[m].isDone()){
+                        std::vector<Variant> results = threads[m].getResults();
+
+                        if(req.retainVariants){
+                            for(int l = 0; l < results.size(); l++){
+                                results[l].reduceSize();
+                                output.push_back(results[l]);
+                            }
+                        }
+                    }
+                }
+
+                //start new thread
+                for(int m = 0; m < nthreads; m++){
+                    if(!threads[m].isInitialized()){
+                        threads[m].begin(firstLineInBatch, vcf.lineNumber-lines.size(), lines);
+                        batchCout++;
+                        firstLineInBatch = lineCount+1;
+                        lines.clear();
+                        stopLooping = true;
+                        break;
+                    }
+                }
+
+                if(stopLooping)
+                    break;
+
+                if(printWait)
+                    printInfo("Waiting for available thread to start next batch of tests");
+
+                printWait = false;
+                std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
+            }
+        }
+    }
+
+    printInfo( std::to_string(lineCount) + " variants identified in VCF file");
+    vcf.close();
+
+    bool printWait = true;
+    while(true){
+
+        bool stopLooping = true;
+
+        for(int m = 0; m < nthreads; m++){
+            if(threads[m].isDone()){
+                std::vector<Variant> results = threads[m].getResults();
+
+                if(req.retainVariants){
+                    for(int l = 0; l < results.size(); l++){
+                        results[l].reduceSize();
+                        output.push_back(results[l]);
+                    }
+                }
+                printWait=true;
+            }
+            else if(threads[m].isInitialized())
+                stopLooping = false;
+        }
+
+        if(stopLooping)
+            break;
+
+        if(printWait)
+            printInfo("Waiting for final threads to finish");
+
+        printWait = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
+
+    }
+    return output;
 }
 

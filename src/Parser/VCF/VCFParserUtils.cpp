@@ -4,20 +4,20 @@ static const std::string VCF_PARSER_UTILS = "VCF parser utils";
 
 std::vector<std::string> extractHeader(File &vcf) {
 
-	std::string line;
+    std::string line;
 
-	while (vcf.hasNext()) {
-		line = vcf.nextLine();
+    while (vcf.hasNext()) {
+        line = vcf.nextLine();
 
-		if (line.substr(0, 2) == "##")
-			continue;
-		else if (line.substr(0, 1) == "#")
-			break;
-		else
-			throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
-	}
+        if (line.substr(0, 2) == "##")
+            continue;
+        else if (line.substr(0, 1) == "#")
+            break;
+        else
+            throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
+    }
 
-	return split(line, VCF_SEPARATOR);
+    return split(line, VCF_SEPARATOR);
 }
 
 GenotypeLikelihood getGT(std::string gt, GenotypeLikelihood gl) {
@@ -240,10 +240,10 @@ Variant constructVariant(std::vector<std::string> &columns, bool onlyGT) {
 
     }
 
-	//get genotype likelihood for every sample
+    //get genotype likelihood for every sample
 	for (int i = FORMAT + 1; i < columns.size(); i++) {		
         variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT));
     }
 
-	return variant;
+    return variant;
 }

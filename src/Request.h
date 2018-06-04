@@ -27,6 +27,8 @@ struct Request {
 	bool mustPASS;
 	int minPos;
 	int maxPos;
+    //filterChr = "" means no filter
+    std::string filterChr;
 
 	std::string outputDir;
 
@@ -90,6 +92,7 @@ void setBatchSize(int size);
 void setOutputDir(std::string outputDir);
 void setMinPos(int min);
 void setMaxPos(int max);
+void setFilterChr(std::string chr);
 
 void setNumberThreads(int nthreads);
 void setHighLowCutOff(int highLowCutOff);

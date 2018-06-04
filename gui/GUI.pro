@@ -45,7 +45,6 @@ SOURCES += \
     ../src/Math/CompQuadForm.cpp \
     ../src/Math/VectorHelper.cpp \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
-    ../src/Parser/VCF/VCFParser.cpp \
     ../src/Parser/VCF/VCFParserUtils.cpp \
     ../src/Parser/Filter/VariantFilter.cpp \
     ../src/Parser/Sample/SampleParserUtils.cpp \
@@ -282,6 +281,7 @@ HEADERS += \
     ../src/Parser/Sample/SampleParserUtils.h \
     ../src/Parser/BED/BEDParserUtils.h \
     ../src/Parser/Filter/VariantFilterUtils.h \
+    ../src/Parser/File.h \
     ../src/Test/CommonTestObject.h \
     ../src/Test/RareTestObject.h \
     ../src/Test/RareTestCollapseObject.h \

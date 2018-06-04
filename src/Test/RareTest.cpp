@@ -60,14 +60,6 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
     return (tcount + 1) / (bootCount + 1) ;
 }
 
-std::vector<double> runRareTestParallel(std::vector<MatrixXd> x, std::vector<VectorXd> y, std::vector<MatrixXd> z,
-                                        std::vector<int> rd, std::vector<VectorXd> ycenter,
-                                        Request &req, TestInput &input, int threadID, int nthreads) {
-  
-
-}
-
-
 std::vector<Variant> runRareTest(Request req, TestInput input) {
 
     //preprocessing

@@ -1,4 +1,5 @@
 #include "MathHelper.h"
+#include <random>
 
 static const std::string STATISTICS_HELPER = "statistics helper";
 
@@ -58,7 +59,7 @@ double calcRobustVar(VectorXd &p) {
 }
 
 std::random_device rd;
-std::mt19937 generate(random());
+std::mt19937 generate(rd());
 
 int randomInt(int from, int to) {
 	std::uniform_int_distribution<> sample(from, to);

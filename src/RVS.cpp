@@ -192,6 +192,9 @@ int main(int argc, char* argv[]) {
 	bool all = false;
 	CLI::Option *a = app.add_flag("-a,--all", all, "Include variants which do not have PASS in the FILTER column");
 	
+        int chrChr = -1;
+        CLI::Option *chr = app.add_option("--chr", to, "Only include variants on this chromosome");
+
 	int from = -1;
 	CLI::Option *p1 = app.add_option("--from", from, "Only include variants with POS larger than this value");
 	p1->check(CLI::Range(0, 2147483647));
@@ -247,19 +250,24 @@ int main(int argc, char* argv[]) {
 	else
 		printInfo("Remove variants which do not PASS");
 	
-	  if(from != -1 && to != -1){
-	    setMinPos(from);
-	    setMaxPos(to);
-	    printInfo("Analyzing variants between POS " + std::to_string(from) + " and " + std::to_string(to));
-	  }
-	  else if(from != -1){
-	    setMinPos(from);
-	    printInfo("Analyzing variants with POS greater than " + std::to_string(from));
-	  }
-	  else if(to != -1){
-	    setMinPos(to);
-	    printInfo("Analyzing variants with POS less than " + std::to_string(to));
-	  }
+        if(chr->count() > 0){
+            printInfo("Analyzing variants on chromosome " + std::to_string(chrFilter));
+            setFilterChr(chrFilter);
+        }
+
+        if(from != -1 && to != -1){
+        setMinPos(from);
+        setMaxPos(to);
+        printInfo("Analyzing variants between POS " + std::to_string(from) + " and " + std::to_string(to));
+        }
+        else if(from != -1){
+        setMinPos(from);
+        printInfo("Analyzing variants with POS greater than " + std::to_string(from));
+        }
+        else if(to != -1){
+        setMinPos(to);
+        printInfo("Analyzing variants with POS less than " + std::to_string(to));
+        }
 
 	if(r->count() > 0){
 

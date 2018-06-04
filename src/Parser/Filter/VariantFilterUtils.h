@@ -157,4 +157,3 @@ inline bool missingTest(Variant &variant, VectorXd &Y, double missingThreshold, 
 
 
 
-
