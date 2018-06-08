@@ -12,6 +12,7 @@ private:
     //----------------------
 	std::vector<int> readDepth;
     std::vector<VectorXd> mu;
+
 	std::vector<VectorXd> ycenter;
 	double robustVar;
 
@@ -53,9 +54,28 @@ public:
 
         filterNAN();
 
+        /*
+        //removes empty groups
+        int index = 0;
+        int end = x.size();
+        for(int i = 0; i < end; i++ ){
+
+            if(this->x[i].rows() < 1){
+                this->x.erase(this->x.begin() + index);
+                this->y.erase(this->y.begin() + index);
+                this->z.erase(this->z.begin() + index);
+                this->readDepth.erase(this->readDepth.begin() + index);
+
+                index--;
+                end--;
+            }
+            index++;
+        }
+        */
+
         VectorXd beta = getBeta(X, Y, Z, family);
         this->mu = fitModel(beta, this->y, this->z, family);
-        for (int i = 0; i < y.size(); i++)
+        for (int i = 0; i < this->y.size(); i++)
             ycenter.push_back(this->y[i] - mu[i]);
 
         if(useHatMatrix)
@@ -77,10 +97,28 @@ public:
 
         filterNAN();
 
+        /*
+        //removes empty groups
+        int index = 0;
+        int end = x.size();
+        for(int i = 0; i < end; i++ ){
+
+            if(this->x[i].rows() < 1){
+                this->x.erase(this->x.begin() + index);
+                this->y.erase(this->y.begin() + index);
+                this->readDepth.erase(this->readDepth.begin() + index);
+
+                index--;
+                end--;
+            }
+            index++;
+        }
+        */
+
         double ybar = average(this->y);
 
         for (int i = 0; i < size(); i++){
-            VectorXd temp = VectorXd::Constant(y[i].rows(), ybar);
+            VectorXd temp = VectorXd::Constant(this->y[i].rows(), ybar);
             mu.push_back(temp);
             ycenter.push_back(this->y[i].array() - ybar);
         }
@@ -98,8 +136,11 @@ public:
 
     double getVarianceBinomial(bool rvs);
     double getVarianceNormal(bool rvs);
+    double getVarianceRegular();
 
     inline double getVariance(bool rvs){
+        if(regular)
+            return getVarianceRegular();
         if(binomial)
             return getVarianceBinomial(rvs);
         if(normal)

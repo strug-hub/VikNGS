@@ -47,6 +47,6 @@ std::vector<Interval> parseBEDLines(std::string bedDir, bool collapseExon);
 //VariantFilter.cpp
 int filterVariant(Request &req, Variant &variant, VectorXd &Y, std::string family);
 void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode, int total);
-bool isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr);
-int isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr, std::vector<Interval> &intervals);
+bool isIn(std::string &vcfLine, int minPos, int maxPos, std::string &chr);
+int isIn(std::string &vcfLine, int minPos, int maxPos, std::string &chr, std::vector<Interval> &intervals);
 

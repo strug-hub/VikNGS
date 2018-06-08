@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>D:/chr22.merged.vcf</string>
+                  <string>/home/scott/chr22.merged.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -201,7 +201,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>D:/chr22.info</string>
+                  <string>/home/scott/vikNGS/vcf/chr22_normal_cov.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -371,7 +371,7 @@
                   <string>Common</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -381,7 +381,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -399,13 +399,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testBootChk">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -414,10 +414,10 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
-                    <string/>
+                    <string>100</string>
                    </property>
                   </widget>
                  </item>
@@ -433,7 +433,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -459,7 +459,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>4</string>
+                  <string>2</string>
                  </property>
                 </widget>
                </item>
@@ -502,12 +502,18 @@
                  <property name="text">
                   <string>RVS</string>
                  </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
                 </widget>
                </item>
                <item row="4" column="0">
                 <widget class="QCheckBox" name="main_gtChk">
                  <property name="text">
                   <string>Use GT</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -567,7 +573,7 @@
                  <item>
                   <widget class="QLineEdit" name="sim_oddsRatioTxt">
                    <property name="text">
-                    <string>1.5</string>
+                    <string>1.0</string>
                    </property>
                   </widget>
                  </item>
@@ -621,21 +627,21 @@
                  <item>
                   <widget class="QLineEdit" name="sim_variantSizeTxt">
                    <property name="text">
-                    <string>100</string>
+                    <string>1000</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="sim_variantMafMinTxt">
                    <property name="text">
-                    <string>0.05</string>
+                    <string>0.00001</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="sim_variantMafMaxTxt">
                    <property name="text">
-                    <string>0.1</string>
+                    <string>0.05</string>
                    </property>
                   </widget>
                  </item>
@@ -696,7 +702,7 @@
                     <string>Common</string>
                    </property>
                    <property name="checked">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>
@@ -704,6 +710,9 @@
                   <widget class="QRadioButton" name="sim_testRareCastBtn">
                    <property name="text">
                     <string>Rare (CAST)</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -723,6 +732,9 @@
                    <property name="text">
                     <string>Bootstrap</string>
                    </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -730,7 +742,7 @@
                    <item>
                     <widget class="QLineEdit" name="sim_testBootTxt">
                      <property name="enabled">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                      <property name="text">
                       <string>100</string>
@@ -749,7 +761,7 @@
                  <item>
                   <widget class="QCheckBox" name="sim_testStopChk">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
                     <string>Stop Early</string>
@@ -794,6 +806,23 @@
                 </property>
                 <property name="text">
                  <string>5</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="sim_rvsChk">
+                <property name="text">
+                 <string>RVS</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="sim_gtChk">
+                <property name="text">
+                 <string>Use GT</string>
                 </property>
                </widget>
               </item>
@@ -1011,6 +1040,21 @@
                <attribute name="verticalHeaderStretchLastSection">
                 <bool>false</bool>
                </attribute>
+               <row>
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </row>
+               <row>
+                <property name="text">
+                 <string>3</string>
+                </property>
+               </row>
                <column>
                 <property name="text">
                  <string># Individuals</string>
@@ -1036,6 +1080,81 @@
                  <string>Error Rate</string>
                 </property>
                </column>
+               <item row="0" column="0">
+                <property name="text">
+                 <string>100:200</string>
+                </property>
+               </item>
+               <item row="0" column="1">
+                <property name="text">
+                 <string>control</string>
+                </property>
+               </item>
+               <item row="0" column="2">
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item row="0" column="3">
+                <property name="text">
+                 <string>2</string>
+                </property>
+               </item>
+               <item row="0" column="4">
+                <property name="text">
+                 <string>0.01</string>
+                </property>
+               </item>
+               <item row="1" column="0">
+                <property name="text">
+                 <string>100:200</string>
+                </property>
+               </item>
+               <item row="1" column="1">
+                <property name="text">
+                 <string>control</string>
+                </property>
+               </item>
+               <item row="1" column="2">
+                <property name="text">
+                 <string>6</string>
+                </property>
+               </item>
+               <item row="1" column="3">
+                <property name="text">
+                 <string>1</string>
+                </property>
+               </item>
+               <item row="1" column="4">
+                <property name="text">
+                 <string>0.05</string>
+                </property>
+               </item>
+               <item row="2" column="0">
+                <property name="text">
+                 <string>100</string>
+                </property>
+               </item>
+               <item row="2" column="1">
+                <property name="text">
+                 <string>case</string>
+                </property>
+               </item>
+               <item row="2" column="2">
+                <property name="text">
+                 <string>32</string>
+                </property>
+               </item>
+               <item row="2" column="3">
+                <property name="text">
+                 <string>5</string>
+                </property>
+               </item>
+               <item row="2" column="4">
+                <property name="text">
+                 <string>0.01</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>

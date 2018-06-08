@@ -97,7 +97,7 @@ void printFilterResults(Request &req, std::vector<std::string> variantInfo, std:
     outputFiltered(variantInfo, failCode, codeMap, req.outputDir);
 }
 
-bool isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr){
+bool isIn(std::string &vcfLine, int minPos, int maxPos, std::string &chr){
 
     std::string vcfChr = "";
     std::string vcfPos = "";
@@ -127,6 +127,8 @@ bool isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr){
 
     if((minPos > -1 && vcfPosValue < minPos) || (maxPos > -1 && vcfPosValue > maxPos))
         return false;
+
+    return true;
 }
 
 int isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr, std::vector<Interval> &intervals){
@@ -159,6 +161,8 @@ int isIn(std::string vcfLine, int minPos, int maxPos, std::string &chr, std::vec
 
     if(vcfPosValue < minPos || vcfPosValue > maxPos)
         return false;
+
+    return true;
 }
 
 

@@ -87,6 +87,9 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
             variants.pop_back();
         }
     }
+
+    lines.clear();
+
     printInfo("====================================");
     printInfo("Read variants " + std::to_string(startVariantNumber) + " to " + std::to_string(startVariantNumber + total));
     printFilterResults(req, filterInfo, filterCode, total);
@@ -102,6 +105,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
         collapse = collapseEveryK(req.collapse, variants.size());
     else if(req.shouldCollapseBed())
         collapse = collapseEveryK(req.collapse, variants.size());
+    //todo
 
     TestInput in = addVariants(input, variants, collapse);
 
@@ -182,10 +186,12 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
         threads.emplace_back(input, req);
 
     //skips header
-    extractHeader(vcf);
+    extractHeaderLine(vcf);
 
 
-    while (vcf.hasNext()) {
+    int maxVariants = 50000;
+
+    while (vcf.hasNext() && lineCount < maxVariants) {
 
         if(lineCount % 5000 == 0){
             if(lineCount == 0)
@@ -202,6 +208,7 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
                 lines.pop_back();
                 continue;
             }
+
         } catch(...){
                 printWarning(INPUT_PARSER, "Error while parsing line " + std::to_string(vcf.lineNumber) +
                              " of VCF file. Ensure CHR and POS columns are formatted correctly. Skipping variant.");
@@ -241,7 +248,7 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
                 }
 
                 //start new thread
-                for(int m = 0; m < nthreads; m++){
+               for(int m = 0; m < nthreads; m++){
                     if(!threads[m].isInitialized()){
                         threads[m].begin(firstLineInBatch, vcf.lineNumber-lines.size(), lines);
                         batchCout++;
@@ -271,7 +278,7 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
     while(true){
 
         bool stopLooping = true;
-
+        int threadCount = 0;
         for(int m = 0; m < nthreads; m++){
             if(threads[m].isDone()){
                 std::vector<Variant> results = threads[m].getResults();
@@ -284,15 +291,17 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
                 }
                 printWait=true;
             }
-            else if(threads[m].isInitialized())
+            else if(threads[m].isInitialized()){
                 stopLooping = false;
+                threadCount++;
+            }
         }
 
         if(stopLooping)
             break;
 
         if(printWait)
-            printInfo("Waiting for final threads to finish");
+            printInfo("Waiting for " + std::to_string(threadCount) + " threads to finish");
 
         printWait = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));

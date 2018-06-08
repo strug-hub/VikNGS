@@ -75,21 +75,23 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
 
         //empty variables
         MatrixXd z;
-        std::vector<std::vector<int>> interval;
-
-        if(simReq.isRare()){
-
-            std::vector<int> inv;
-            for(int i = 0; i < nsnp; i++){
-                if(i%simReq.collapse == 0 && i > 0){
-                    interval.push_back(inv);
-                    inv.clear();
-                }
-                inv.push_back(i);
-            }
-        }
 
         TestInput t = buildTestInput(EG, y, z, g, p, readGroup, variants, "binomial");
+
+        if(simReq.isRare()){
+            std::vector<std::vector<int>> collapse;
+            std::vector<int> c;
+            for(int i = 0; i < nsnp; i++){
+                if(i%simReq.collapse == 0 && i > 0){
+                    collapse.push_back(c);
+                    c.clear();
+                }
+                c.push_back(i);
+            }
+
+            t = addCollapse(t, collapse);
+        }
+
         inputs.push_back(t);
     }
 

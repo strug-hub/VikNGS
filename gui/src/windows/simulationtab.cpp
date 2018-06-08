@@ -65,6 +65,15 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
         request.collapse = ui->sim_collapseTxt->text().toInt();
     }
 
+    if(ui->sim_rvsChk->isChecked())
+        request.rvs = true;
+    else
+        request.rvs = false;
+
+    if(ui->sim_gtChk->isChecked())
+        request.regular = true;
+    else
+        request.regular = false;
 
     request.useBootstrap = ui->sim_testBootChk->isChecked();
     request.stopEarly = false;

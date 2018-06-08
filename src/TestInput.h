@@ -77,3 +77,9 @@ inline TestInput addVariants(TestInput t, std::vector<Variant> &variants, std::v
         t.collapse = collapse;
         return t;
 }
+
+inline TestInput addCollapse(TestInput t,  std::vector<std::vector<int>> collapse) {
+
+        t.collapse = collapse;
+        return t;
+}

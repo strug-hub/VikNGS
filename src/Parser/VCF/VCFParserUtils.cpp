@@ -3,6 +3,11 @@
 static const std::string VCF_PARSER_UTILS = "VCF parser utils";
 
 std::vector<std::string> extractHeader(File &vcf) {
+    std::string header = extractHeaderLine(vcf);
+    return split(header, VCF_SEPARATOR);
+}
+
+std::string extractHeaderLine(File &vcf) {
 
     std::string line;
 
@@ -17,8 +22,9 @@ std::vector<std::string> extractHeader(File &vcf) {
             throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
     }
 
-    return split(line, VCF_SEPARATOR);
+    return line;
 }
+
 
 GenotypeLikelihood getGT(std::string gt, GenotypeLikelihood gl) {
 

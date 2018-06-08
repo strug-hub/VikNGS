@@ -53,6 +53,13 @@ void SimPlotWindow::buildPlot2(int index){
     //highlight layer
     ui->simplot_plot2->addGraph();
 
+    QPen dpen = QPen(Qt::DashDotLine);
+    dpen.setColor( QColor::fromRgb(210, 80, 80));
+    auto diagonal = new QCPItemLine(ui->simplot_plot2);
+    diagonal->setPen(dpen);
+    diagonal->start->setCoords(-1,-1);
+    diagonal->end->setCoords(100,100);
+
     ui->simplot_plot2->replot();
 }
 

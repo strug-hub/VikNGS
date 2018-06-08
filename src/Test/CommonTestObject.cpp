@@ -32,60 +32,128 @@ void CommonTestObject::setFamily(std::string fam){
     }
 }
 
-double CommonTestObject::getVarianceBinomial(bool rvs) {
+double CommonTestObject::getVarianceRegular() {
 
-    if(regular){
+    VectorXd MU = concatenate(mu);
 
-        std::vector<VectorXd> hess1;
+    VectorXd var1;
+
+    if(binomial){
+        var1 = MU.array() * (1 - MU.array());
+    }
+    else{
+       VectorXd Y = concatenate(y);
+       double var = ((Y - MU).array().pow(2).sum())/MU.rows();
+       var1 = VectorXd::Constant(MU.rows(), var);
+    }
+
+    double sum1 = 0;
+    int index = 0;
+
+    if(covariates){
+
+        int ncov = z[0].cols();
+        VectorXd sum2 = VectorXd::Constant(ncov, 0);
+        MatrixXd sum3 = MatrixXd::Constant(ncov, ncov, 0);
+
+        for(int i = 0; i < size(); i++){
+            for(int j = 0; j < x[i].rows(); j++){
+
+                sum1 += var1[index] * x[i][j] * x[i][j];
+
+                VectorXd two = (var1[index] * x[i][j]) * z[i].row(j).array();
+                sum2 += two;
+
+                MatrixXd three = var1[index] * (z[i].row(j).transpose() * z[i].row(j)).array();
+                sum3 += three;
+
+                index++;
+            }
+        }
+
+        double var = (sum2.transpose() * sum3.inverse() * sum2)(0);
+        return sum1 - var;
+    }
+    else{
+
+        double sum2 = 0;
+        double sum3 = 0;
+        for(int i = 0; i < size(); i++){
+            for(int j = 0; j < x[i].rows(); j++){
+
+                sum1 += var1[index] * (x[i].row(j) * x[i].row(j).transpose())(0);
+                sum2 += var1[index] * x[i].row(j).sum();
+                sum3 += var1[index];
+
+                index++;
+            }
+        }
+
+        double var = (sum2 * (1.0/sum3) * sum2);
+        return sum1 - var;
+    }
+
+    //should never happen
+    return -1;
+
+    /* todo for later
+
+    std::vector<VectorXd> hess1;
+    for (int i = 0; i < size(); i++) {
+        VectorXd h;
+        h = (this->mu[i].array() * (1 - mu[i].array()) );
+        hess1.push_back(h);
+    }
+
+    if(covariates){
+
+        int ncov = z[0].cols();
+        MatrixXd aaRegular = MatrixXd::Constant(ncov, ncov, 0);
+        VectorXd abRegular = VectorXd::Constant(ncov, 0);
+        double bbRegular=0;
+
         for (int i = 0; i < size(); i++) {
-            VectorXd h;
-            h = (this->mu[i].array() * (1 - mu[i].array()) );
-            hess1.push_back(h);
-        }
+            for (int j = 0; j < hess1[i].rows(); j++) {
 
-        if(covariates){
+                VectorXd zrow = z[i].row(j);
+                MatrixXd aa =  zrow * zrow.transpose();
+                aa = aa.array() * hess1[i][j];
+                aaRegular = aaRegular + aa;
 
-            int ncov = z[0].cols();
-            MatrixXd aaRegular = MatrixXd::Constant(ncov, ncov, 0);
-            VectorXd abRegular = VectorXd::Constant(ncov, 0);
-            double bbRegular=0;
+                VectorXd ab = zrow.array() * (hess1[i][j] * x[i][j]);
+                abRegular = abRegular + ab;
 
-            for (int i = 0; i < size(); i++) {
-                for (int j = 0; j < hess1[i].rows(); j++) {
-
-                    VectorXd zrow = z[i].row(j);
-                    MatrixXd aa =  zrow * zrow.transpose();
-                    aa = aa.array() * hess1[i][j];
-                    aaRegular = aaRegular + aa;
-
-                    VectorXd ab = zrow.array() * (hess1[i][j] * x[i][j]);
-                    abRegular = abRegular + ab;
-
-                    bbRegular += hess1[i][j] * x[i][j] * x[i][j];
-                }
+                bbRegular += hess1[i][j] * x[i][j] * x[i][j];
             }
-
-            double var = (abRegular.transpose() * aaRegular.inverse() * abRegular)(0);
-            return bbRegular - var;
-
         }
-        else{
-            double aaRegular = 0;
-            double abRegular = 0;
-            double bbRegular = 0;
 
-            for (int i = 0; i < size(); i++) {
-                for (int j = 0; j < hess1[i].rows(); j++) {
-                    aaRegular += hess1[i][j];
-                    abRegular += hess1[i][j] * x[i][j];
-                    bbRegular += hess1[i][j] * x[i][j] * x[i][j];
-                }
-            }
-            double var = bbRegular - abRegular * (1.0/aaRegular) * abRegular;
-            return var;
-        }
+        double var = (abRegular.transpose() * aaRegular.inverse() * abRegular)(0);
+        return bbRegular - var;
 
     }
+    else{
+        double aaRegular = 0;
+        double abRegular = 0;
+        double bbRegular = 0;
+
+        for (int i = 0; i < size(); i++) {
+            for (int j = 0; j < hess1[i].rows(); j++) {
+                aaRegular += hess1[i][j];
+                abRegular += hess1[i][j] * x[i][j];
+                bbRegular += hess1[i][j] * x[i][j] * x[i][j];
+            }
+        }
+        double var = bbRegular - abRegular * (1.0/aaRegular) * abRegular;
+        return var;
+    }
+
+    */
+
+    return 0;
+
+}
+
+double CommonTestObject::getVarianceBinomial(bool rvs) {
 
     if(useHatMatrix && covariates){
         double var = covariateVarianceCalculation(rvs);

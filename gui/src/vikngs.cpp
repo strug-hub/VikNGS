@@ -73,6 +73,9 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
             setStopEarly(simReq.stopEarly);
         }
 
+        setRegularTest(simReq.regular);
+        setRVS(simReq.rvs);
+
         //todo
         setNumberThreads(1);
 

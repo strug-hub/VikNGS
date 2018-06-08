@@ -55,6 +55,75 @@ VectorXd RareTestCollapseObject::getScore(){
     return score;
 }
 
+MatrixXd RareTestCollapseObject::getVarianceRegular(){
+
+    std::vector<MatrixXd> x = getX();
+    VectorXd MU = concatenate(mu);
+
+    VectorXd var1;
+
+    if(binomial){
+        var1 = MU.array() * (1 - MU.array());
+    }
+    else{
+       VectorXd Y = concatenate(y);
+       double var = ((Y - MU).array().pow(2).sum())/MU.rows();
+       var1 = VectorXd::Constant(MU.rows(), var);
+    }
+
+    int nsnp = x[0].cols();
+    MatrixXd sum1 = MatrixXd::Constant(nsnp, nsnp, 0);
+    int index = 0;
+
+    if(covariates){
+
+        int ncov = z[0].cols();
+        MatrixXd sum2 = MatrixXd::Constant(nsnp, ncov, 0);
+        MatrixXd sum3 = MatrixXd::Constant(ncov, ncov, 0);
+
+        for(int i = 0; i < size(); i++){
+            for(int j = 0; j < x[i].rows(); j++){
+
+                MatrixXd one = var1[index] * (x[i].row(j).transpose() * x[i].row(j)).array();
+                sum1 += one;
+
+                MatrixXd two = var1[index] * (x[i].row(j).transpose() * z[i].row(j));
+                sum2 += two;
+
+                MatrixXd three = var1[index] * (z[i].row(j).transpose() * z[i].row(j)).array();
+                sum3 += three;
+
+                index++;
+            }
+        }
+
+        MatrixXd var = sum2 * sum3.inverse() * sum2.transpose();
+        return sum1 - var;
+    }
+    /*
+    else{
+
+        double sum2 = 0;
+        double sum3 = 0;
+        for(int i = 0; i < size(); i++){
+            for(int j = 0; j < x[i].rows(); j++){
+
+                sum1 += var1[index] * (x[i].row(j) * x[i].row(j).transpose())(0);
+                sum2 += var1[index] * x[i].row(j).sum();
+                sum3 += var1[index];
+
+                index++;
+            }
+        }
+
+        double var = (sum2 * (1.0/sum3) * sum2);
+        return sum1 - var;
+    }
+    */
+
+}
+
+
 MatrixXd RareTestCollapseObject::getVarianceBinomial(bool rvs){
     int i, j;
     int nsnp = size();

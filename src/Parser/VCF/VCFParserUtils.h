@@ -18,6 +18,7 @@ Extracts the last header row from a VCF file
 @return The names of each column in the last header row from vcf.
 */
 std::vector<std::string> extractHeader(File &vcf);
+std::string extractHeaderLine(File &vcf);
 
 
 /*

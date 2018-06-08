@@ -7,12 +7,15 @@
 
 inline void createFile(std::string outputDir){
 
+    std::string dfile = outputDir + "/debug.txt";
     std::string pfile = outputDir + "/pvalues3.txt";
     std::string ffile = outputDir + "/filtered3.txt";
 
+    std::ofstream debug(dfile);
+    debug.close();
+
 	std::ofstream pvals(pfile);	
 	pvals.close();
-
 
 	std::ofstream filtered(ffile);	
 	filtered.close();
@@ -64,6 +67,18 @@ inline void outputFiltered(std::vector<Variant> variants, std::string explain, s
             filtered << explain << '\n';
         }
         filtered.close();
+    }
+}
+
+inline void outputDebug(std::string line, std::string outputDir) {
+
+    std::string dfile = outputDir + "/debug.txt";
+    std::ofstream debug(dfile, std::ios_base::app);
+
+    if (debug.is_open())
+    {
+        debug << line << std::endl;
+        debug.close();
     }
 }
 

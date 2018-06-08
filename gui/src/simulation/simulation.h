@@ -56,6 +56,8 @@ struct SimulationRequest {
     int nboot;
     int collapse;
     bool stopEarly;
+    bool rvs;
+    bool regular;
 
     void validate(){
 

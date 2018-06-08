@@ -1,6 +1,7 @@
 #include "../Math/MathHelper.h"
 #include "../Request.h"
 #include "../TestInput.h"
+#include "../Output/OutputHandler.h"
 #include "RareTestObject.h"
 #include "RareTestCollapseObject.h"
 
@@ -11,24 +12,28 @@ double getTestStatistic(RareTestCollapseObject &collapse, bool rvs, std::string 
     MatrixXd diagS = collapse.getVariance(rvs);
     VectorXd score = collapse.getScore();
 
-	VectorXd e = diagS.eigenvalues().real();
-	std::vector<double> eigenvals(e.data(), e.data() + e.size());
-
 	double tstat = 0;
 
 	//CAST -> linear test
-	if(test == "cast")
-		tstat = pnorm(score.sum() / sqrt(diagS.sum()));
+    if(test == "cast"){
+        //tstat = score.sum() / sqrt(diagS.sum());
+        tstat = pnorm(score.sum() / sqrt(diagS.sum()));
+    }
 	//C-alpha -> quadratic test
-	else if(test == "calpha")
-		tstat = qfc(eigenvals, score.array().pow(2).sum(), score.rows());
-
+    else if(test == "calpha"){
+        VectorXd e = diagS.eigenvalues().real();
+        std::vector<double> eigenvals(e.data(), e.data() + e.size());
+        tstat = qfc(eigenvals, score.array().pow(2).sum(), score.rows());
+    }
 	return tstat;
 }
 
 double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, bool rvs, std::string test) {
     int h;
     double tobs = getTestStatistic(collapse, rvs, test);
+
+  //  outputDebug("tobs = " + std::to_string(tobs),
+   //             "/home/scott/vikNGS/build-GUI-Desktop_Qt_5_11_0_GCC_64bit-Release/");
 
 	//start bootstrapping!
 
@@ -41,8 +46,11 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
 
         tsamp = getTestStatistic(collapse, false, test);
 
-		if (tsamp <= tobs)
+        if (std::abs(tsamp) <= std::abs(tobs))
 			tcount++;
+
+       // outputDebug(std::to_string(tsamp),
+     //               "/home/scott/vikNGS/build-GUI-Desktop_Qt_5_11_0_GCC_64bit-Release/");
 
 		bootCount++;
 
@@ -106,20 +114,17 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
       rd.push_back(readGroup[i]);
     }
 
-    std::vector<VectorXd> ycenter;
+    std::vector<VectorXd> mu;
 
   try{
       if(covariates){
           VectorXd beta = getBeta(Y, Z, input.family);
-          std::vector<VectorXd> ybar = fitModel(beta, y, z, input.family);
-
-          for (int i = 0; i < y.size(); i++)
-              ycenter.push_back(y[i].array() - ybar[i].array());
+          mu = fitModel(beta, y, z, input.family);
       }
       else{
           double ybar = average(y);
           for (int i = 0; i < y.size(); i++)
-              ycenter.push_back(y[i].array() - ybar);
+              mu.push_back(VectorXd::Constant(y[i].rows(), ybar));
       }
 
   }catch(...){
@@ -138,7 +143,7 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
 
     }
 
-    RareTestCollapseObject collapse(y, z, ycenter, input.hasCovariates(), input.family);
+    RareTestCollapseObject collapse(y, z, mu, input.hasCovariates(), input.family, req.regularTest);
 
     std::cout << "Collasping: ";
     for (int i = 0; i < input.collapse[k].size(); i++) {

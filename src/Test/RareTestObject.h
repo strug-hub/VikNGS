@@ -38,6 +38,7 @@ public:
 	inline bool isHRG(int i) { return readDepth[i] == 1; }
 	inline VectorXd getX(int i) { return x[i]; }
 	inline int size() { return x.size(); }
+    inline int xSize(int i) { return x[i].size(); }
 
     void bootstrap();
 

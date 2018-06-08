@@ -34,19 +34,22 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
 			printWarning(message);
 		}
 
-		MatrixXd z(covariate.size(), covIDMap.size());
+        MatrixXd z(covariate.size(), covIDMap.size() - 1);
 		z = z.setZero();
 
 		int col;
 		for (int i = 0; i < covariate.size(); i++) {
 
 			if (covariate[i] == "NA" || covariate[i] == "") {
-				for (int j = 0; j < covIDMap.size(); j++)
+                for (int j = 0; j < covIDMap.size() - 1; j++)
 					z(i, j) = NAN;
 			}
 			else {
 				col = covIDMap[covariate[i]];
-				z(i, col) = 1;
+
+                //don't include last categorical covariate
+                if(col < id-1)
+                    z(i, col) = 1;
 			}
 		}
 		return z;
