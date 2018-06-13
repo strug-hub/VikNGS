@@ -51,7 +51,7 @@ public:
 
         QVector<double> pvals;
         for(int i = 0; i < variants.size(); i++)
-            pvals.push_back(-log10(variants[i].pvalue));
+            pvals.push_back(-log10(variants[i].getPval(0)));
 
         return pvals;
     }

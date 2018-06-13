@@ -81,13 +81,13 @@ MatrixXd RareTestCollapseObject::getVarianceRegular(){
         MatrixXd sum2 = MatrixXd::Constant(nsnp, ncov, 0);
         MatrixXd sum3 = MatrixXd::Constant(ncov, ncov, 0);
 
-        for(int i = 0; i < size(); i++){
+        for(int i = 0; i < x.size(); i++){
             for(int j = 0; j < x[i].rows(); j++){
 
                 MatrixXd one = var1[index] * (x[i].row(j).transpose() * x[i].row(j)).array();
                 sum1 += one;
 
-                MatrixXd two = var1[index] * (x[i].row(j).transpose() * z[i].row(j));
+                MatrixXd two = var1[index] * (x[i].row(j).transpose() * z[i].row(j)).array();
                 sum2 += two;
 
                 MatrixXd three = var1[index] * (z[i].row(j).transpose() * z[i].row(j)).array();
@@ -100,27 +100,29 @@ MatrixXd RareTestCollapseObject::getVarianceRegular(){
         MatrixXd var = sum2 * sum3.inverse() * sum2.transpose();
         return sum1 - var;
     }
-    /*
     else{
 
-        double sum2 = 0;
-        double sum3 = 0;
-        for(int i = 0; i < size(); i++){
+        VectorXd sum2 = VectorXd::Constant(nsnp, 0);
+        MatrixXd sum3 = MatrixXd::Constant(1, 1, 0);
+        for(int i = 0; i < x.size(); i++){
             for(int j = 0; j < x[i].rows(); j++){
 
-                sum1 += var1[index] * (x[i].row(j) * x[i].row(j).transpose())(0);
-                sum2 += var1[index] * x[i].row(j).sum();
-                sum3 += var1[index];
+
+                MatrixXd one = var1[index] * (x[i].row(j).transpose() * x[i].row(j)).array();
+                sum1 += one;
+
+                VectorXd two = var1[index] * x[i].row(j).transpose().array();
+                sum2 += two;
+
+                sum3(0,0) += var1[index];
 
                 index++;
             }
         }
 
-        double var = (sum2 * (1.0/sum3) * sum2);
+        MatrixXd var = sum2 * sum3.inverse() * sum2.transpose();
         return sum1 - var;
     }
-    */
-
 }
 
 
@@ -197,12 +199,28 @@ MatrixXd RareTestCollapseObject::getVarianceNormal(bool rvs){
 
 void RareTestCollapseObject::bootstrap() {
 
-    if(normal)
+    if(regular)
+        regularBootstrap();
+    else if(normal)
         normalBootstrap();
     else if (binomial)
         binomialBootstrap();
 
     return;
+}
+
+void RareTestCollapseObject::regularBootstrap() {
+
+    for(int i = 0; i< size(); i++)
+        t[i].regularBootstrap();
+
+    if(covariates){
+        z = shuffleWithoutReplacement(z_original);
+        MatrixXd shuffleZ = concatenate(z);
+
+        VectorXd beta = getBeta(Y, shuffleZ, "binomial");
+        ycenter = fitModel(beta, y, z, "binomial");
+    }
 }
 
 void RareTestCollapseObject::binomialBootstrap() {
@@ -211,7 +229,7 @@ void RareTestCollapseObject::binomialBootstrap() {
         t[i].bootstrap();
 
     if(covariates){
-        z = shuffleWithReplacement(z_original);
+        z = groupwiseShuffleWithReplacement(z_original);
         MatrixXd shuffleZ = concatenate(z);
 
         VectorXd beta = getBeta(Y, shuffleZ, "binomial");
@@ -226,7 +244,7 @@ void RareTestCollapseObject::normalBootstrap() {
         y.clear();
         ycenter.clear();
 
-        std::vector<VectorXd> residuals = shuffleWithoutReplacement(ycenter_original);
+        std::vector<VectorXd> residuals = groupwiseShuffleWithoutReplacement(ycenter_original);
 
         for (int i = 0; i < residuals.size(); i++)
             y.push_back(y_original[i] - ycenter_original[i] + residuals[i]);
@@ -241,7 +259,7 @@ void RareTestCollapseObject::normalBootstrap() {
     }
     else{
 
-        y = shuffleWithoutReplacement(y_original);
+        y = groupwiseShuffleWithoutReplacement(y_original);
 
         double ybar = average(y);
         ycenter.clear();

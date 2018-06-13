@@ -228,11 +228,11 @@ double chiSquareOneDOF(double statistic) {
 
 	double p = sum * sc;
 	if (std::isnan(p) || std::isinf(p) || p <= 1e-8)
-		return 1e-14;
+        return 1;
 
 	p /= tgamma(0.5);
 
-	return std::max(1 - p, 1e-14);
+    return std::max(1 - p, 1e-14);
 }
 
 
@@ -325,7 +325,7 @@ VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
 }
 
 
-std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v){
+std::vector<VectorXd> groupwiseShuffleWithoutReplacement(std::vector<VectorXd> &v){
 
     std::vector<VectorXd> shuffled;
 
@@ -341,7 +341,7 @@ std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v){
     return shuffled;
 }
 
-std::vector<VectorXd> shuffleWithReplacement(std::vector<VectorXd> &v){
+std::vector<VectorXd> groupwiseShuffleWithReplacement(std::vector<VectorXd> &v){
 
     std::vector<VectorXd> shuffled;
     int n, j;
@@ -360,7 +360,7 @@ std::vector<VectorXd> shuffleWithReplacement(std::vector<VectorXd> &v){
 
 }
 
-std::vector<MatrixXd> shuffleWithReplacement(std::vector<MatrixXd> &m){
+std::vector<MatrixXd> groupwiseShuffleWithReplacement(std::vector<MatrixXd> &m){
 
     std::vector<MatrixXd> shuffled;
     int n, ncol, j, k;
@@ -381,3 +381,44 @@ std::vector<MatrixXd> shuffleWithReplacement(std::vector<MatrixXd> &m){
 
 }
 
+std::vector<MatrixXd> shuffleWithoutReplacement(std::vector<MatrixXd> &m){
+
+    MatrixXd cat = concatenate(m);
+
+    VectorXi indices = VectorXi::LinSpaced(cat.rows(), 0, cat.rows());
+    std::random_shuffle(indices.data(), indices.data() + cat.rows());
+    MatrixXd s = indices.asPermutation() * cat;
+
+    std::vector<MatrixXd> shuffled;
+    int startRow = 0;
+
+    for(int i = 0; i < m.size(); i++){
+        MatrixXd m_i = s.block(0, startRow, m[i].rows(), m[i].cols());
+        startRow += m[i].rows();
+        shuffled.push_back(m_i);
+    }
+
+    return shuffled;
+
+}
+
+std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v){
+
+    VectorXd cat = concatenate(v);
+
+    VectorXi indices = VectorXi::LinSpaced(cat.rows(), 0, cat.rows());
+    std::random_shuffle(indices.data(), indices.data() + cat.rows());
+    VectorXd s = indices.asPermutation() * cat;
+
+    std::vector<VectorXd> shuffled;
+    int startRow = 0;
+
+    for(int i = 0; i < v.size(); i++){
+        VectorXd v_i = s.segment(startRow, v[i].rows());
+        startRow += v[i].rows();
+        shuffled.push_back(v_i);
+    }
+
+    return shuffled;
+
+}

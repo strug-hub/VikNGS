@@ -70,7 +70,7 @@ Variant PlotWindow::findClosestVariant(double x, double y, double maxDist){
     for(int i = 0; i < chromosomes[focusedChr].size(); i++){
         Variant v = chromosomes[focusedChr].getVariant(i);
 
-        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(-log10(v.pvalue)) - y, 2) +
+        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(-log10(v.getPval(0))) - y, 2) +
                 pow(ui->plot_chrPlt->xAxis->coordToPixel(v.pos) - x, 2);
         if(dist < minDist){
             minDist = dist;

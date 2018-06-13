@@ -81,8 +81,8 @@ double CommonTestObject::getVarianceRegular() {
         for(int i = 0; i < size(); i++){
             for(int j = 0; j < x[i].rows(); j++){
 
-                sum1 += var1[index] * (x[i].row(j) * x[i].row(j).transpose())(0);
-                sum2 += var1[index] * x[i].row(j).sum();
+                sum1 += var1[index] * (x[i].row(j) * x[i].row(j))[0];
+                sum2 += var1[index] * x[i].row(j)[0];
                 sum3 += var1[index];
 
                 index++;

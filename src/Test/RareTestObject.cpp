@@ -28,5 +28,10 @@ double RareTestObject::getYm(std::vector<VectorXd> & ycenter) {
 
 void RareTestObject::bootstrap() {
 
-    x = shuffleWithReplacement(xcenter);
+    x = groupwiseShuffleWithReplacement(xcenter);
+}
+
+void RareTestObject::regularBootstrap() {
+
+    x = shuffleWithoutReplacement(xcenter);
 }

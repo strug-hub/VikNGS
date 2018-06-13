@@ -32,6 +32,7 @@ Calculates genotype likelihood from PL or GL for a single sample.
 @return A GenotypeLikelihood object.
 */
 GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT);
+double getGenotypeCall(std::string &column, int indexGT);
 
 
 /*
@@ -50,4 +51,4 @@ Takes the columns of a VCF line and builds a Variant object.
 
 @return Variant object.
 */
-Variant constructVariant(std::vector<std::string> &columns, bool onlyGT);
+Variant constructVariant(std::vector<std::string> &columns);

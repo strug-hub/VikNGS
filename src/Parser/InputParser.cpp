@@ -70,7 +70,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
 
         std::vector<std::string> columns = split(lines[i], VCF_SEPARATOR);
 
-        variants.emplace_back(constructVariant(columns, req.regularTest));
+        variants.emplace_back(constructVariant(columns));
         if(!variants.back().isValid()){
             std::string lineNumber = std::to_string(startLineNumber + i);
             printWarning(INPUT_PARSER, "Skipping line " + lineNumber + " of VCF file - " + variants.back().getErrorMessage());

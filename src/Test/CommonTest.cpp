@@ -87,13 +87,13 @@ double commonBootstrap(CommonTestObject t, int nboot, bool stopEarly, bool rvs) 
 
 std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
 	
-	MatrixXd X = input.X;
+    MatrixXd X = input.getX(req.regularTest, req.useTrueGenotypes);
 	VectorXd Y = input.Y;
 	MatrixXd Z = input.Z;
 
 	VectorXd G = input.G;
 	std::map<int, int> readGroup = input.readGroup;
-	MatrixXd P = input.P;
+    MatrixXd P = input.getP();
     bool hasCovariates = input.hasCovariates();
 
 	int i,j;
@@ -158,7 +158,24 @@ std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
                          input.variants[i].info() + "). Assigning a p-value of 1");
         }
 
-        input.variants[i].pvalue = pval;
+        std::string testType;
+
+        if(req.regularTest){
+            if(req.useTrueGenotypes)
+                testType = "True Genotypes";
+            else
+                testType = "Regular Test";
+        }
+        else{
+            if(req.rvs)
+                testType = "RVS Genotype Likelihoods";
+            else
+                testType = "Genotype Likelihoods";
+        }
+
+        testType = testType + " - common";
+
+        input.variants[i].addPval(pval, testType);
 	}
 
     return input.variants;

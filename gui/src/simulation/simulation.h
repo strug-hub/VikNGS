@@ -42,9 +42,8 @@ struct SimulationRequestGroup {
 
 struct SimulationRequest {
 
-    int nsnp;  //Integer.The number of variants or bases.
-
-    double oddsRatio;  //Under H0
+    int nsnp;
+    double oddsRatio;
     double mafMin;
     double mafMax;
     int intervalSize;
@@ -58,6 +57,11 @@ struct SimulationRequest {
     bool stopEarly;
     bool rvs;
     bool regular;
+
+    inline bool underNull(){
+        return oddsRatio == 1;
+    }
+
 
     void validate(){
 
@@ -164,7 +168,7 @@ VectorXd simulateY(SimulationRequest simReq);
 MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf);
 MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf, int collapse);
 
-Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant);
+Variant generateSeqData(VectorXd x, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant);
 
 std::vector<char> baseCall(std::vector<char> trueGenotype, double error, int readDepth);
 

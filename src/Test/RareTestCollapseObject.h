@@ -27,6 +27,8 @@ private:
     MatrixXd getVarianceRegular();
     MatrixXd getVarianceNormal(bool rvs);
     MatrixXd getVarianceBinomial(bool rvs);
+
+    void regularBootstrap();
     void normalBootstrap();
     void binomialBootstrap();
 
@@ -87,7 +89,7 @@ public:
         std::vector<MatrixXd> x;
 
         for(int i = 0; i < t[0].size(); i++){
-            MatrixXd x_i(t[0].xSize(i), size());
+            MatrixXd x_i(t[0].xRows(i), size());
 
             for(int j = 0; j < size(); j++)
                 x_i.col(j) = t[j].getX(i);

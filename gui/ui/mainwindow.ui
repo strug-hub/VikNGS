@@ -27,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="movable">
        <bool>true</bool>
@@ -559,14 +559,7 @@
                  <item>
                   <widget class="QLineEdit" name="sim_powerStepTxt">
                    <property name="text">
-                    <string>10</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLineEdit" name="sim_powerAlphaTxt">
-                   <property name="text">
-                    <string>0.05</string>
+                    <string>5</string>
                    </property>
                   </widget>
                  </item>
@@ -588,16 +581,6 @@
                    </property>
                    <property name="text">
                     <string>Steps</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="sim_powerAlphaLbl">
-                   <property name="toolTip">
-                    <string>Odds ratio of disease</string>
-                   </property>
-                   <property name="text">
-                    <string>Alpha</string>
                    </property>
                   </widget>
                  </item>
@@ -627,21 +610,21 @@
                  <item>
                   <widget class="QLineEdit" name="sim_variantSizeTxt">
                    <property name="text">
-                    <string>1000</string>
+                    <string>100</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="sim_variantMafMinTxt">
                    <property name="text">
-                    <string>0.00001</string>
+                    <string>0.1</string>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="sim_variantMafMaxTxt">
                    <property name="text">
-                    <string>0.05</string>
+                    <string>0.45</string>
                    </property>
                   </widget>
                  </item>
@@ -702,7 +685,7 @@
                     <string>Common</string>
                    </property>
                    <property name="checked">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -712,7 +695,7 @@
                     <string>Rare (CAST)</string>
                    </property>
                    <property name="checked">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>
@@ -733,7 +716,7 @@
                     <string>Bootstrap</string>
                    </property>
                    <property name="checked">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>
@@ -815,7 +798,7 @@
                  <string>RVS</string>
                 </property>
                 <property name="checked">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -823,6 +806,9 @@
                <widget class="QCheckBox" name="sim_gtChk">
                 <property name="text">
                  <string>Use GT</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -1050,11 +1036,6 @@
                  <string>2</string>
                 </property>
                </row>
-               <row>
-                <property name="text">
-                 <string>3</string>
-                </property>
-               </row>
                <column>
                 <property name="text">
                  <string># Individuals</string>
@@ -1092,65 +1073,40 @@
                </item>
                <item row="0" column="2">
                 <property name="text">
-                 <string>5</string>
+                 <string>6</string>
                 </property>
                </item>
                <item row="0" column="3">
                 <property name="text">
-                 <string>2</string>
+                 <string>1</string>
                 </property>
                </item>
                <item row="0" column="4">
                 <property name="text">
-                 <string>0.01</string>
+                 <string>0.05</string>
                 </property>
                </item>
                <item row="1" column="0">
                 <property name="text">
-                 <string>100:200</string>
+                 <string>100</string>
                 </property>
                </item>
                <item row="1" column="1">
                 <property name="text">
-                 <string>control</string>
+                 <string>case</string>
                 </property>
                </item>
                <item row="1" column="2">
                 <property name="text">
-                 <string>6</string>
+                 <string>32</string>
                 </property>
                </item>
                <item row="1" column="3">
                 <property name="text">
-                 <string>1</string>
-                </property>
-               </item>
-               <item row="1" column="4">
-                <property name="text">
-                 <string>0.05</string>
-                </property>
-               </item>
-               <item row="2" column="0">
-                <property name="text">
-                 <string>100</string>
-                </property>
-               </item>
-               <item row="2" column="1">
-                <property name="text">
-                 <string>case</string>
-                </property>
-               </item>
-               <item row="2" column="2">
-                <property name="text">
-                 <string>32</string>
-                </property>
-               </item>
-               <item row="2" column="3">
-                <property name="text">
                  <string>5</string>
                 </property>
                </item>
-               <item row="2" column="4">
+               <item row="1" column="4">
                 <property name="text">
                  <string>0.01</string>
                 </property>

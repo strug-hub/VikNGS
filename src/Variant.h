@@ -16,15 +16,21 @@ struct GenotypeLikelihood {
 };
 
 struct Variant {
-    double pvalue;
+private:
+    std::vector<double> pvalues;
+    std::vector<std::string> psource;
+
+public:
+    std::vector<GenotypeLikelihood> likelihood;
     std::string chr;
     int pos;
     std::string ref;
     std::string alt;
     std::string filter;
-    std::vector<GenotypeLikelihood> likelihood;
     VectorXd P;
     VectorXd expectedGenotype;
+    VectorXd trueGenotype;
+    VectorXd genotypeCalls;
 
     Interval interval;
 
@@ -34,6 +40,7 @@ struct Variant {
     inline void setInvalid(std::string message) {
         valid = false;
         errorMessage = message;
+        reduceSize();
     }
     std::string getErrorMessage() { return errorMessage; }
 
@@ -57,6 +64,16 @@ struct Variant {
         P = empty;
         expectedGenotype = empty;
     }
+
+    inline void addPval(double pval, std::string psource) {
+        this->pvalues.push_back(pval);
+        this->psource.push_back(psource);
+    }
+
+    inline double getPval(int i) { return pvalues[i]; }
+    inline std::string getPvalSource(int i) { return psource[i]; }
+
+    inline int nPvals() { return this->pvalues.size(); }
 
     inline bool operator<(Variant& line) {
         if (this->chr == line.chr)

@@ -42,6 +42,7 @@ struct Request {
 
 	bool rvs;
     bool regularTest;
+    bool useTrueGenotypes;
 
     int batchSize;
     bool retainVariants;
@@ -93,7 +94,7 @@ void setOutputDir(std::string outputDir);
 void setMinPos(int min);
 void setMaxPos(int max);
 void setFilterChr(std::string chr);
-
+void useTrueGenotypes();
 void setNumberThreads(int nthreads);
 void setHighLowCutOff(int highLowCutOff);
 void setMAFCutoff(double mafCutoff);

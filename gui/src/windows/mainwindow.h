@@ -34,7 +34,6 @@ public slots:
 
 
 private slots:
-    double calculatePower(QVector<double> pval);
     std::vector<SimulationRequestGroup> constructGroups(int run, int ntests);
     SimulationRequest constructRequest(std::vector<SimulationRequestGroup> groups);
 

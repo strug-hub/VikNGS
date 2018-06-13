@@ -4,7 +4,7 @@
 class RareTestObject {
 private:
 
-    //xcenter gets randomized for bootstrap
+    //xcenter gets randomized during bootstrap
     std::vector<VectorXd> xcenter;
     std::vector<VectorXd> x;
 
@@ -18,7 +18,7 @@ public:
 		this->readDepth = readDepth;
         this->robustVar = calcRobustVar(p);
 
-		for (int i = 0; i < size(); i++)
+        for (int i = 0; i < size(); i++)
             this->xcenter.push_back(x[i].array() - x[i].mean());
 	}
 
@@ -38,8 +38,9 @@ public:
 	inline bool isHRG(int i) { return readDepth[i] == 1; }
 	inline VectorXd getX(int i) { return x[i]; }
 	inline int size() { return x.size(); }
-    inline int xSize(int i) { return x[i].size(); }
+    inline int xRows(int i) { return x[i].rows(); }
 
     void bootstrap();
+    void regularBootstrap();
 
 };

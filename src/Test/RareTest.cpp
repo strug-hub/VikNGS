@@ -56,12 +56,9 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
 
 		if (stopEarly && bootCount > 100) {
 			double pstar = 5 / ((bootCount + 0.0737224)*(1 + 0.0737224));
-			if (tcount / h > pstar) {
-				std::cout << "early stop at ";
-				std::cout << bootCount;
-				std::cout << "\n ";
+            if (tcount / (1.0*h) > pstar)
 				break;
-			}
+
 		}
 	}
 
@@ -76,9 +73,9 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
     VectorXd Y = input.Y;
     MatrixXd Z = input.Z;
     bool covariates = input.hasCovariates();
-    MatrixXd X = input.X;
+    MatrixXd X = input.getX(req.regularTest, req.useTrueGenotypes);
     VectorXd G = input.G;
-    MatrixXd P = input.P;
+    MatrixXd P = input.getP();
     std::string test = req.rareTest;
 
     VectorXd toRemove;
@@ -145,12 +142,6 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
 
     RareTestCollapseObject collapse(y, z, mu, input.hasCovariates(), input.family, req.regularTest);
 
-    std::cout << "Collasping: ";
-    for (int i = 0; i < input.collapse[k].size(); i++) {
-        std::cout << input.collapse[k][i] << " ";
-    }
-    std::cout << "\n";
-
     double pval = 1;
 
     try{
@@ -174,10 +165,27 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
 
             //todo: printinfo for collapse
             printWarning("Problem occured while running test on a variant block (...). Assigning a p-value of 1");
-        }
+    }
+
+    std::string testType;
+
+    if(req.regularTest){
+        if(req.useTrueGenotypes)
+            testType = "True Genotypes";
+        else
+            testType = "Regular Test";
+    }
+    else{
+        if(req.rvs)
+            testType = "RVS Genotype Likelihoods";
+        else
+            testType = "Genotype Likelihoods";
+    }
+
+    testType = testType + " - " + test;
 
     for(int j = 0; j < input.collapse[k].size(); j++)
-        input.variants[input.collapse[k][j]].pvalue = pval;
+        input.variants[input.collapse[k][j]].addPval(pval, testType);
 
   }
 

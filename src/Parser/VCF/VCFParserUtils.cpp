@@ -164,6 +164,34 @@ GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int i
 	return gl;
 }
 
+double getGenotypeCall(std::string &column, int indexGT) {
+
+    GenotypeLikelihood gl;
+    gl.L00 = NAN;
+    gl.L01 = NAN;
+    gl.L11 = NAN;
+    gl.missing = true;
+
+    std::vector<std::string> parts = split(column, ':');
+
+    //if GT is missing, return NAN
+    if (indexGT > -1 && parts.size() > indexGT) {
+        std::string gt = parts[indexGT];
+        if (gt[0] == '.')
+            return NAN;
+        else if (gt[0] == '0' && gt[2] == '0')
+            return 0;
+        else if (gt[0] == '0' && gt[2] == '1')
+            return 1;
+        else if (gt[0] == '1' && gt[2] == '0')
+            return 1;
+        else if (gt[0] == '1' && gt[2] == '1')
+            return 2;
+    }
+
+    return NAN;
+}
+
 std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 
 	//open VCF file and extract header
@@ -196,7 +224,7 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 	return IDmap;
 }
 
-Variant constructVariant(std::vector<std::string> &columns, bool onlyGT) {
+Variant constructVariant(std::vector<std::string> &columns) {
 
     Variant variant;
 
@@ -237,19 +265,15 @@ Variant constructVariant(std::vector<std::string> &columns, bool onlyGT) {
 		return variant;
 	}
 
-    if(onlyGT){
-        indexPL = -1;
-        indexGL = -1;
-
-        if(indexGT < 0)
-            variant.setInvalid("Genotype calls (GT) not found in FORMAT column.");
-
-    }
-
+    VectorXd genotypeCalls(columns.size() - (FORMAT + 1));
+    int index = 0;
     //get genotype likelihood for every sample
 	for (int i = FORMAT + 1; i < columns.size(); i++) {		
         variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT));
+        genotypeCalls[index] = getGenotypeCall(columns[i], indexGT);
+        index++;
     }
 
+    variant.genotypeCalls = genotypeCalls;
     return variant;
 }

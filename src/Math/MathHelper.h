@@ -115,9 +115,11 @@ double variance(std::vector<VectorXd> v);
 VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z, std::string family);
 VectorXd getBeta(VectorXd &Y, MatrixXd &Z, std::string family);
 std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, std::string distribution);
+std::vector<VectorXd> groupwiseShuffleWithoutReplacement(std::vector<VectorXd> &v);
+std::vector<MatrixXd> groupwiseShuffleWithReplacement(std::vector<MatrixXd> &m);
+std::vector<VectorXd> groupwiseShuffleWithReplacement(std::vector<VectorXd> &v);
+std::vector<MatrixXd> shuffleWithoutReplacement(std::vector<MatrixXd> &m);
 std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v);
-std::vector<MatrixXd> shuffleWithReplacement(std::vector<MatrixXd> &m);
-std::vector<VectorXd> shuffleWithReplacement(std::vector<VectorXd> &v);
 
 /*
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2

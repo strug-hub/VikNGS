@@ -1,13 +1,14 @@
 #include "simulation.h"
 
 
-Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant) {
+Variant generateSeqData(VectorXd x, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant) {
     double mean, sd, error;
     int rd;
 
     MatrixXd M(x.rows(), 3);
     std::vector<MatrixXd> mM;
     std::vector<GenotypeLikelihood> likelihoods;
+    VectorXd genotypeCalls(x.rows());
 
     for (int i = 0; i < x.rows(); i++) {
 
@@ -46,6 +47,16 @@ Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, Simula
         l.L11 = lh[2];
         likelihoods.push_back(l);
 
+        if(lh[0] > lh[1])
+            if (lh[0] > lh[2])
+                genotypeCalls[i] = 0;
+            else
+                genotypeCalls[i] = 2;
+        else if (lh[1] > lh[2])
+            genotypeCalls[i] = 1;
+        else
+            genotypeCalls[i] = 2;
+
         mM.push_back(calculateLikelihood2(bases, error));
     }
 
@@ -54,7 +65,10 @@ Variant generateSeqData(VectorXd x, VectorXd y, VectorXd g, std::map<int, Simula
 
     variant.likelihood = likelihoods;
     variant.P = p;
+
     variant.expectedGenotype = EG;
+    variant.trueGenotype = x;
+    variant.genotypeCalls = genotypeCalls;
 
     return variant;
 }
@@ -370,12 +384,12 @@ double pSingle(char base, char true1, char true2, double error) {
 	if (base == true1)
 		p1 = 1 - error;
 	else
-		p1 = error / 3.0;
+        p1 = error / 3.0;
 	
 	if (base == true2)
 		p2 = 1 - error;
 	else
-		p2 = error / 3.0;
+        p2 = error / 3.0;
 
 	return 0.5 * p1 + 0.5 * p2;
 }

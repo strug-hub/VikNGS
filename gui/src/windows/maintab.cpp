@@ -29,7 +29,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::printOutput(QString str, QColor c){
 
-
     QString oldOut = ui->outputBox->toHtml();
     oldOut = oldOut.right(50000);
     int close = oldOut.indexOf("<");

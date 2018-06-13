@@ -20,7 +20,8 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int test, int nt
             int nMin = size.split(sep).at(0).toInt();
             int nMax = size.split(sep).at(1).toInt();
 
-            n = (nMax - nMin)/ntest * test + nMin;
+            double denom = std::max(1, ntest-1);
+            n = (nMax - nMin)/denom * test + nMin;
         }
         else
             n = size.toInt();
@@ -54,7 +55,6 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
     SimulationRequest request;
     request.groups = groups;
 
-
     request.test = "common";
     if(ui->sim_testRareCalphaBtn->isChecked()){
         request.test = "calpha";
@@ -85,28 +85,11 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
         request.nboot=0;
 
     request.nsnp = ui->sim_variantSizeTxt->text().toInt();
-
     request.oddsRatio = ui->sim_oddsRatioTxt->text().toDouble();
     request.mafMin = ui->sim_variantMafMinTxt->text().toDouble();
     request.mafMax = ui->sim_variantMafMaxTxt->text().toDouble();
 
     return request;
-}
-
-double MainWindow::calculatePower( QVector<double> pval){
-
-    int total = pval.size();
-    int count = 0;
-    double alpha = ui->sim_powerAlphaTxt->text().toDouble();
-
-    for(int i = 0; i < total; i++)
-        if(pval.at(i) <= alpha)
-            count++;
-
-    std::cout << (1.0*count)/(1.0*total);
-    std::cout << "\n";
-
-    return (1.0*count)/(1.0*total);
 }
 
 void MainWindow::simulationFinished(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> reqs){

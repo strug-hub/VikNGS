@@ -23,27 +23,16 @@ std::vector<Variant> startVikNGS(Request req) {
 
 std::vector<Variant> runTest(TestInput &input, Request &req){
 
+    //common
+
     if (req.useCommon()) {
-
         std::vector<Variant> variants = runCommonTest(req, input);
-
-        for (size_t i = 0; i < variants.size(); i++) {
-            std::cout << variants[i].toString() << "\t" << variants[i].pvalue;
-            std::cout << '\n';
-        }
-
         return variants;
     }
 
-  //if (!req.useCommon())
+    //rare
 
     std::vector<Variant> variants = runRareTest(req, input);
-
-    for (size_t i = 0; i < variants.size(); i++) {
-      std::cout << variants[i].toString() << "\t" << variants[i].pvalue;
-      std::cout << '\n';
-    }
-
     return variants;
 }
 
@@ -54,7 +43,7 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
     printInfo("Starting tests...");
 
     for(int i = 0; i< simReqs.size(); i++){
-        printInfo("Running step " + std::to_string(i) + " of " + std::to_string(simReqs.size()) + ".");
+        printInfo("Running step " + std::to_string(i+1) + " of " + std::to_string(simReqs.size()) + ".");
 
         SimulationRequest simReq = simReqs[i];
         TestInput input = inputs[i];
@@ -80,6 +69,25 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
         setNumberThreads(1);
 
         Request req = getRequest();
+
+        req.regularTest = true;
+        req.useTrueGenotypes = true;
+        req.rvs = false;
+
+        if (req.useCommon())
+            input.variants = runCommonTest(req, input);
+        else
+            input.variants = runRareTest(req, input);
+
+        req.useTrueGenotypes = false;
+
+        if (req.useCommon())
+            input.variants = runCommonTest(req, input);
+        else
+            input.variants = runRareTest(req, input);
+
+        req.regularTest = false;
+        req.rvs = true;
 
         if (req.useCommon())
             results.push_back(runCommonTest(req, input));

@@ -66,7 +66,7 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
         for (int i = 0; i < EG.cols(); i++) {
 
             Variant info = variantInfo[i];
-            Variant variant = generateSeqData(x.col(i), y, g, group, info);
+            Variant variant = generateSeqData(x.col(i), g, group, info);
 
             variants.push_back(variant);
             EG.col(i) = variant.expectedGenotype;
@@ -76,7 +76,7 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
         //empty variables
         MatrixXd z;
 
-        TestInput t = buildTestInput(EG, y, z, g, p, readGroup, variants, "binomial");
+        TestInput t = buildTestInput(y, z, g, readGroup, variants, "binomial");
 
         if(simReq.isRare()){
             std::vector<std::vector<int>> collapse;
@@ -89,6 +89,7 @@ std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
                 c.push_back(i);
             }
 
+            collapse.push_back(c);
             t = addCollapse(t, collapse);
         }
 

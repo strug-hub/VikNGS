@@ -29,6 +29,7 @@ Request setDefaultParameters() {
 
 	r.rvs = true;
     r.regularTest = false;
+    r.useTrueGenotypes = false;
 
     r.batchSize = 1000;
     r.retainVariants = false;
@@ -161,6 +162,12 @@ void setMaxPos(int max){
 void setFilterChr(std::string chr){
     request.filterChr = chr;
 }
+
+void useTrueGenotypes(){
+    request.regularTest = true;
+    request.useTrueGenotypes = true;
+}
+
 
 void setNumberThreads(int nthreads) {
 	if (nthreads < 1)

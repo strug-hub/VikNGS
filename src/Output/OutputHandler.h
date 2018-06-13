@@ -31,7 +31,7 @@ inline void outputPvals(std::vector<Variant> &variants, std::string outputDir) {
         for (size_t i = 0; i < variants.size(); i++) {
 
             pvals << variants[i].toString() << '\t';
-            pvals << variants[i].pvalue << '\n';
+            pvals << variants[i].getPval(0) << '\n';
 		}
 		pvals.close();
 	}

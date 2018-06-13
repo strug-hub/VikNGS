@@ -76,11 +76,11 @@ void PlotWindow::updateVariantHighlightLayer(Variant variant){
 
     if(variant.isValid()){
         l.push_back(variant.pos);
-        p.push_back(-log10(variant.pvalue));
+        p.push_back(-log10(variant.getPval(0)));
     }
     if(focusedVar.isValid()){
         l.push_back(focusedVar.pos);
-        p.push_back(-log10(focusedVar.pvalue));
+        p.push_back(-log10(focusedVar.getPval(0)));
     }
 
     ui->plot_chrPlt->graph()->setData(l,p);
@@ -328,7 +328,7 @@ Chromosome PlotWindow::generateRandomChromosome(int n, std::string chrom, int ma
 
         s.pos = (rand() % static_cast<int>(maxPos + 1));
         s.chr = chrom;
-        s.pvalue = (float) rand()/RAND_MAX;
+        s.addPval((float) rand()/RAND_MAX, "random");
 
 
         c.addVariant(s);
