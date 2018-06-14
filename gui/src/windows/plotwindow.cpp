@@ -44,6 +44,17 @@ void PlotWindow::initialize(QVector<Variant> variants, QString title){
 
 }
 
+void PlotWindow::initialize(int nvariants, QString title){
+
+    ui->plot_title->setText(title);
+    this->setWindowTitle("Plotter - " + title);
+    setRandomChromosomes(nvariants);
+    focusedChr = chrNames[0];
+    buildGenomePlot();
+    buildChromosomePlot(focusedChr, -1, -1);
+
+}
+
 void PlotWindow::updateVariantInfo(Variant variant){
 
    if(!variant.isValid()){
@@ -87,8 +98,6 @@ void PlotWindow::updateVariantHighlightLayer(Variant variant){
     ui->plot_chrPlt->replot();
 }
 
-
-
 QCPGraph* PlotWindow::getGraphByName(QCustomPlot *plot, QString name){
     for (int i=0; i < plot->graphCount(); ++i)
       if (plot->graph(i)->name() == name)
@@ -97,13 +106,21 @@ QCPGraph* PlotWindow::getGraphByName(QCustomPlot *plot, QString name){
     return plot->graph();
 }
 
+void PlotWindow::resetColor(QString chrName){
+    getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                chromosomes[chrName].getColour(), Qt::white, 2));
+}
+
 QString PlotWindow::getChromUnderCursor(QMouseEvent *event){
 
     double x = ui->plot_genomePlt->xAxis->pixelToCoord(event->pos().x());
     double y = ui->plot_genomePlt->yAxis->pixelToCoord(event->pos().y());
 
 
-    if(y > 0 && x > 0 && y < ui->plot_genomePlt->yAxis->atTop){
+    if(y > 0 && x > 0 &&
+            y < ui->plot_genomePlt->yAxis->range().upper &&
+            x < ui->plot_genomePlt->xAxis->range().upper){
         double offset = 0;
 
         for(int i = 0; i < chrNames.size(); i++){
@@ -182,8 +199,9 @@ void PlotWindow::buildGenomePlot(){
     ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
 
     ui->plot_genomePlt->rescaleAxes();
-    if(ui->plot_genomePlt->yAxis->atTop < 7.5)
-        ui->plot_genomePlt->yAxis->setRange(0, 7.5);
+    ui->plot_genomePlt->yAxis->setRangeLower(0);
+    if(ui->plot_genomePlt->yAxis->range().upper < 7.5)
+        ui->plot_genomePlt->yAxis->setRangeUpper(7.5);
 
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor( QColor::fromRgb(210, 80, 80));
@@ -200,12 +218,12 @@ void PlotWindow::buildGenomePlot(){
     bonferroni->end->setCoords(ui->plot_genomePlt->xAxis->range().upper,7.301);
 
     ui->plot_genomePlt->replot();
-
 }
 
 void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
     ui->plot_chrPlt->clearPlottables();
 
+    focusedVar = nullVariant;
     focusedChr = chrName;
     Chromosome chr = chromosomes[chrName];
 
@@ -246,8 +264,9 @@ void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
     ui->plot_chrPlt->plotLayout()->addElement(0,0,title);
 
     ui->plot_chrPlt->rescaleAxes();
-    if(ui->plot_chrPlt->yAxis->atTop < 7.5)
-        ui->plot_chrPlt->yAxis->setRange(0, 7.5);
+    ui->plot_chrPlt->yAxis->setRangeLower(0);
+    if(ui->plot_chrPlt->yAxis->range().upper < 7.5)
+        ui->plot_chrPlt->yAxis->setRangeUpper(7.5);
 
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor( QColor::fromRgb(210, 80, 80));
@@ -328,7 +347,8 @@ Chromosome PlotWindow::generateRandomChromosome(int n, std::string chrom, int ma
 
         s.pos = (rand() % static_cast<int>(maxPos + 1));
         s.chr = chrom;
-        s.addPval((float) rand()/RAND_MAX, "random");
+        s.addPval((float) rand()/RAND_MAX*1e-10, "random");
+
 
 
         c.addVariant(s);
@@ -337,9 +357,8 @@ Chromosome PlotWindow::generateRandomChromosome(int n, std::string chrom, int ma
     return c;
 }
 
-void PlotWindow::setRandomChromosomes(){
+void PlotWindow::setRandomChromosomes(int n){
 
-    int n=5000;
     srand( (unsigned)time( NULL ) );
 
     chromosomes["chr1"] = generateRandomChromosome(n,"chr1",248956422);

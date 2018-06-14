@@ -101,6 +101,17 @@ void MainWindow::on_main_bedDirBtn_clicked()
         ui->main_bedDirTxt->setText(fileName);
 }
 
+void MainWindow::on_main_randomBtn_pressed(){
+
+        PlotWindow *plotter = new PlotWindow();
+        QString title = "Random Plot " + QString::number(plotCount);
+        plotCount++;
+        int nvariants = ui->main_nrandomTxt->text().toInt();
+        plotter->initialize(nvariants, title);
+        printOutput("Showing random plot in " + title.toLower(), green);
+        plotter->show();
+}
+
 void MainWindow::on_main_runBtn_clicked()
 {
 

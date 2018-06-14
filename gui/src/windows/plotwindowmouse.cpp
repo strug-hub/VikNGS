@@ -11,30 +11,39 @@ void PlotWindow::mouseMoveWindow(QMouseEvent *event){
 
         if(datapoints > 1 || (!focusedVar.isValid() && datapoints > 0))
             updateVariantHighlightLayer(nullVariant);
-
     }
 
     if(!ui->plot_genomePlt->underMouse()){
-
-        for(int i = 0; i< ui->plot_genomePlt->graphCount(); i++){
-            QColor c = ui->plot_genomePlt->graph(i)->scatterStyle().pen().color();
-            if( c== highlight)
-                mouseMoveGenome(event);
+        if(highlightChr != ""){
+            for (int i = 0; i< chrNames.size(); i++)
+                resetColor(chrNames[i]);
+            highlightChr = "";
+            ui->plot_genomePlt->replot();
         }
-
     }
-
 }
 
 void PlotWindow::mouseClickGenome(QMouseEvent *event){
 
     QString chrName = getChromUnderCursor(event);
 
+    if(chrName == focusedChr)
+        return;
+
+    if(focusedChr != "")
+        resetColor(focusedChr);
+
     if(chrName != ""){
-        focusedVar = nullVariant;
+        getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
+                    QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                    focus, Qt::white, 2));
+    }
+    focusedChr = chrName;
+    ui->plot_genomePlt->replot();
+
+    if(chrName != "")
         buildChromosomePlot(chrName, -1, -1);
-        mouseMoveGenome(event);
-    }   
+
 }
 
 void PlotWindow::mouseClickChromosome(QMouseEvent *event){
@@ -86,22 +95,22 @@ Variant PlotWindow::findClosestVariant(double x, double y, double maxDist){
 
 void PlotWindow::mouseMoveGenome(QMouseEvent *event){
 
-    for(int i = 0; i < chrNames.size(); i++){
-        getGraphByName(ui->plot_genomePlt, chrNames[i])->setScatterStyle(
-                    QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                    chromosomes[chrNames[i]].getColour(), Qt::white, 2));
-    }
-
     QString chrName = getChromUnderCursor(event);
 
-    if(chrName != "")
+    if(chrName == highlightChr)
+        return;
+
+    if(highlightChr != "" && highlightChr != focusedChr)
+        resetColor(highlightChr);
+
+
+    //apply new colour
+    if(chrName != "" && chrName != focusedChr)
         getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
                     QCPScatterStyle(QCPScatterStyle::ssDisc,
                                     highlight, Qt::white, 2));
 
-    getGraphByName(ui->plot_genomePlt, focusedChr)->setScatterStyle(
-                QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                focus, Qt::white, 2));
+    highlightChr = chrName;
 
     ui->plot_genomePlt->replot();
 }

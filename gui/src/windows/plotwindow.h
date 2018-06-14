@@ -83,10 +83,11 @@ public:
 public slots:
 
     void initialize(QVector<Variant> values, QString title);
+    void initialize(int n, QString title);
     void createChromosomes(QVector<Variant> variants);
 
     //for development
-    void setRandomChromosomes();
+    void setRandomChromosomes(int n);
     Chromosome generateRandomChromosome(int n, std::string chrom, int maxPos);
     //
 
@@ -94,6 +95,7 @@ public slots:
     void mouseMoveGenome(QMouseEvent* event);
     void mouseClickGenome(QMouseEvent *event);
     QString getChromUnderCursor(QMouseEvent *event);
+    void resetColor(QString chrName);
     void mouseMoveChromosome(QMouseEvent *event);
     void mouseScrollChromosome(QWheelEvent* event);
     void mouseClickChromosome(QMouseEvent *event);
@@ -118,7 +120,10 @@ private:
     QMap<QString, Chromosome> chromosomes;
     QVector<QString> chrNames;
     QCPItemLine *horizontal;
-    QString focusedChr;
+
+    QString highlightChr = "";
+    QString focusedChr = "";
+
     Variant focusedVar;
     Variant nullVariant;
 

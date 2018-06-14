@@ -61,6 +61,8 @@ private slots:
     void on_main_testBootChk_toggled(bool checked);
     void on_main_vcfWholeFileChk_toggled(bool checked);
 
+    void on_main_randomBtn_pressed();
+
 signals:
     void sendPlotData(QVector<double> values);
 
