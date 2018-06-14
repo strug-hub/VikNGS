@@ -201,7 +201,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/home/scott/vikNGS/vcf/chr22_normal_cov.txt</string>
+                  <string>/home/scott/vikNGS/vcf/chr22.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -371,7 +371,7 @@
                   <string>Common</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -381,7 +381,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -405,7 +405,7 @@
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -414,7 +414,7 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string>100</string>
@@ -433,7 +433,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -459,7 +459,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>2</string>
+                  <string>8</string>
                  </property>
                 </widget>
                </item>
@@ -610,7 +610,7 @@
                  <item>
                   <widget class="QLineEdit" name="sim_variantSizeTxt">
                    <property name="text">
-                    <string>100</string>
+                    <string>20000</string>
                    </property>
                   </widget>
                  </item>
@@ -1063,7 +1063,7 @@
                </column>
                <item row="0" column="0">
                 <property name="text">
-                 <string>100:200</string>
+                 <string>1</string>
                 </property>
                </item>
                <item row="0" column="1">
@@ -1088,7 +1088,7 @@
                </item>
                <item row="1" column="0">
                 <property name="text">
-                 <string>100</string>
+                 <string>1</string>
                 </property>
                </item>
                <item row="1" column="1">
@@ -1098,7 +1098,7 @@
                </item>
                <item row="1" column="2">
                 <property name="text">
-                 <string>32</string>
+                 <string>6</string>
                 </property>
                </item>
                <item row="1" column="3">

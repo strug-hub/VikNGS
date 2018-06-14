@@ -6,7 +6,6 @@
 #include "../widgets/qcustomplot.h"
 #include "../simulation/simulation.h"
 
-
 namespace Ui {
 class SimPlotWindow;
 }
@@ -21,8 +20,10 @@ public:
 
 public slots:
 
-    void initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> reqs, QString title);
-    std::vector<std::vector<Variant>> filterCollapsed(std::vector<std::vector<Variant>> variants, int k);
+    void initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> &reqs, QString title);
+    void getPvalues(std::vector<std::vector<Variant>> &variants);
+
+    std::vector<std::vector<Variant>> filterCollapsed(std::vector<std::vector<Variant>> &variants, int k);
     void buildPlot();
     void buildLegend();
 
@@ -36,7 +37,6 @@ public slots:
 private slots:
 
     void on_simplot_alphaDial_valueChanged(int value);
-
     void on_simplot_alphaTxt_textChanged(const QString &arg1);
 
 private:
@@ -48,22 +48,27 @@ private:
 
     QFont axisFont = QFont("sans", 10, QFont::Bold);
 
-    std::vector<std::vector<Variant>> variants;
+    //std::vector<std::vector<Variant>> variants;
+    std::vector<std::vector<std::vector<double>>> pvalues;
+
     std::vector<SimulationRequest> requests;
     double alpha;
     int ntests;
+    int nsteps;
 
     QString yAxisLabel;
     QString xAxisLabel;
     QVector<QColor> colours;
     QColor redLine = QColor(210, 80, 80, 125);
     QVector<QString> testTypes;
-    int indexForPlot2;
-    int graphIndexForPlot2;
-    double calculatePower(int index, std::vector<Variant> run, double alpha);
-    QVector<double> calculatePower(int index, std::vector<std::vector<Variant>> variants, double alpha);
+    int stepIndexForPlot2;
+    int testIndexForPlot2;
+    QVector<double> calculatePower(int testIndex, double alpha);
     int findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex=false);
-    void buildPlot2(int index, int focusGraph = -1);
+    void buildPlot2(int stepIndex, int focusGraph = -1);
+
+    QCPItemLine *alphaLine;
+    void updateAlphaLine();
 
 
 };

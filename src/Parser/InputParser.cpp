@@ -189,9 +189,9 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
     extractHeaderLine(vcf);
 
 
-    int maxVariants = 50000;
+   // int maxVariants = 50000;
 
-    while (vcf.hasNext() && lineCount < maxVariants) {
+    while (vcf.hasNext() ){ // && lineCount < maxVariants) {
 
         if(lineCount % 5000 == 0){
             if(lineCount == 0)

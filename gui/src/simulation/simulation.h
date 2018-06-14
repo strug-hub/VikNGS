@@ -58,6 +58,9 @@ struct SimulationRequest {
     bool rvs;
     bool regular;
 
+    int ncase_cache = -1;
+    int ncontrol_cache = -1;
+
     inline bool underNull(){
         return oddsRatio == 1;
     }
@@ -126,20 +129,30 @@ struct SimulationRequest {
 
     }
 
-    int ncase(){
-        int n = 0;
-        for (int i = 0; i<groups.size(); i++)
-            if (groups[i].isCase)
-                n += groups[i].n;
-        return n;
+    inline int ncase(bool useCache=false){
+        if(!useCache || this->ncase_cache < 0){
+            int n = 0;
+            for (int i = 0; i<groups.size(); i++)
+                if (groups[i].isCase)
+                    n += groups[i].n;
+            if(useCache)
+                this->ncase_cache = n;
+            return n;
+        }
+        return ncase_cache;
     }
 
-    int ncontrol(){
-        int n = 0;
-        for (int i = 0; i<groups.size(); i++)
-            if (!groups[i].isCase)
-                n += groups[i].n;
-        return n;
+    inline int ncontrol(bool useCache=false){
+        if(!useCache || this->ncontrol_cache < 0){
+            int n = 0;
+            for (int i = 0; i<groups.size(); i++)
+                if (!groups[i].isCase)
+                    n += groups[i].n;
+            if(useCache)
+                this->ncontrol_cache = n;
+            return n;
+        }
+        return ncontrol_cache;
     }
 
     int isRare(){

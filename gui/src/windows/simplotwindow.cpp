@@ -20,15 +20,38 @@ SimPlotWindow::~SimPlotWindow()
     delete ui;
 }
 
-void SimPlotWindow::initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> reqs, QString title){
+void SimPlotWindow::getPvalues(std::vector<std::vector<Variant>> &variants){
+
+    for(int k = 0; k < ntests; k++){
+
+        std::vector<std::vector<double>> pval_i;
+
+        for(int i = 0; i < nsteps; i++){
+            std::vector<double> pval_ij;
+
+            for(int j = 0; j < variants[i].size(); j++)
+                pval_ij.push_back(variants[i][j].getPval(k));
+
+            std::sort(pval_ij.begin(), pval_ij.end());
+            pval_i.push_back(pval_ij);
+        }
+        pvalues.push_back(pval_i);
+    }
+    return;
+}
+
+void SimPlotWindow::initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> &reqs, QString title){
+
+    this->ntests = variants[0][0].nPvals();
+    this->nsteps = reqs.size();
 
     if(reqs[0].isRare())
-        this->variants = filterCollapsed(variants, reqs[0].collapse);
-    else
-        this->variants = variants;
+        variants = filterCollapsed(variants, reqs[0].collapse);
+
+    getPvalues(variants);
+
     this->requests = reqs;
     this->alpha = 0.05;
-    this->ntests = variants[0][0].nPvals();
     for(int i = 0; i < ntests; i++)
         testTypes.push_back(QString::fromStdString(variants[0][0].getPvalSource(i)));
 
@@ -39,8 +62,8 @@ void SimPlotWindow::initialize(std::vector<std::vector<Variant>> variants, std::
 
     this->xAxisLabel = "Test";
     this->setWindowTitle("Plotter - " + title);
-    this->indexForPlot2 = -1;
-    this->graphIndexForPlot2 = -1;
+    this->stepIndexForPlot2 = -1;
+    this->testIndexForPlot2 = -1;
 
     QColor blue = QColor(106, 176, 203);
     QColor orange = QColor(255, 187, 63);
@@ -59,21 +82,21 @@ void SimPlotWindow::initialize(std::vector<std::vector<Variant>> variants, std::
 void SimPlotWindow::updateSampleSize(int index){
 
     if(index < 0){
-        if(indexForPlot2 < 0){
+        if(stepIndexForPlot2 < 0){
             ui->simplot_ncontrolsDgt->display(0);
             ui->simplot_ncasesDgt->display(0);
             return;
         }
         else
-            index = indexForPlot2;
+            index = stepIndexForPlot2;
     }
 
-    ui->simplot_ncontrolsDgt->display(this->requests[index].ncase());
-    ui->simplot_ncasesDgt->display(this->requests[index].ncontrol());
+    ui->simplot_ncasesDgt->display(this->requests[index].ncase(true));
+    ui->simplot_ncontrolsDgt->display(this->requests[index].ncontrol(true));
 
 }
 
-std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std::vector<Variant>> variants, int k){
+std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std::vector<Variant>> &variants, int k){
     std::vector<std::vector<Variant>> keep;
 
     for(int i =0; i < variants.size(); i++){
@@ -100,16 +123,16 @@ std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
     int closestIndex = findClosestPoint(ui->simplot_plot1, event);
     if(closestIndex >= 0){
-        indexForPlot2 = closestIndex;
+        stepIndexForPlot2 = closestIndex;
         buildPlot2(closestIndex);
     }
 }
 
 void SimPlotWindow::mouseClickPlot2(QMouseEvent *event){
-    if(indexForPlot2 >= 0){
+    if(stepIndexForPlot2 >= 0){
         int closestIndex = findClosestPoint(ui->simplot_plot2, event, true);
-        graphIndexForPlot2 = closestIndex;
-        buildPlot2(indexForPlot2, closestIndex);
+        testIndexForPlot2 = closestIndex;
+        buildPlot2(stepIndexForPlot2, closestIndex);
     }
 }
 
@@ -151,7 +174,9 @@ void SimPlotWindow::mouseMovePlot1(QMouseEvent *event){
 void SimPlotWindow::mouseMovePlot2(QMouseEvent *event){
 
     int closestGraphIndex = findClosestPoint(ui->simplot_plot2, event, true);
-    buildPlot2(indexForPlot2, closestGraphIndex);
+
+    if(testIndexForPlot2 != closestGraphIndex)
+        buildPlot2(stepIndexForPlot2, closestGraphIndex);
 }
 
 int SimPlotWindow::findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex){
@@ -190,21 +215,19 @@ int SimPlotWindow::findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool 
     return minIndex;
 }
 
-
-double SimPlotWindow::calculatePower(int index, std::vector<Variant> run, double alpha){
-    double success = 0;
-
-    for(Variant v : run)
-        if(v.getPval(index) <= alpha)
-            success++;
-
-    return success/run.size();
-}
-
-QVector<double> SimPlotWindow::calculatePower(int index, std::vector<std::vector<Variant>> variants, double alpha){
+QVector<double> SimPlotWindow::calculatePower(int testIndex, double alpha){
     QVector<double> power;
-    for(int i = 0; i < variants.size(); i++)
-        power.push_back(calculatePower(index, variants[i], alpha));
+    for(int i = 0; i < nsteps; i++){
+
+        double success = 0;
+        for(int j = 0; j < pvalues[testIndex][i].size(); j++)
+            if(pvalues[testIndex][i][j] <= alpha)
+                success++;
+            else
+                break;
+
+        power.push_back(success/pvalues[testIndex][i].size());
+    }
 
     return power;
 }
@@ -215,15 +238,15 @@ void SimPlotWindow::buildPlot(){
     ui->simplot_plot1->addGraph();
 
     QVector<double> index;
-    for(int i = 1; i <= variants.size(); i++)
-        index.push_back(i);
+    for(int i = 1; i <= nsteps; i++)
+            index.push_back(i);
 
     for(int i = 0; i < ntests; i++){
-        ui->simplot_plot1->graph()->setData(index, calculatePower(i, variants, alpha));
-        ui->simplot_plot1->graph()->setPen(QPen(colours[i], 2));
-        ui->simplot_plot1->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
-        //last layer is highlight layer
-        ui->simplot_plot1->addGraph();
+            ui->simplot_plot1->graph()->setData(index, calculatePower(i, alpha));
+            ui->simplot_plot1->graph()->setPen(QPen(colours[i], 2));
+            ui->simplot_plot1->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
+            //last layer is highlight layer
+            ui->simplot_plot1->addGraph();
     }
     ui->simplot_plot1->rescaleAxes();
     ui->simplot_plot1->xAxis->setLabel(xAxisLabel);
@@ -259,41 +282,50 @@ void SimPlotWindow::buildLegend(){
 
 }
 
+void SimPlotWindow::updateAlphaLine(){
 
-void SimPlotWindow::buildPlot2(int index, int focusGraph){
+    if(stepIndexForPlot2 >= 0){
+        alphaLine->start->setCoords(-1, -std::log10(alpha));
+        alphaLine->end->setCoords(1e4,-std::log10(alpha));
 
-    if(index < 0)
+        ui->simplot_plot2->layer("overlay")->replot();
+    }
+}
+
+void SimPlotWindow::buildPlot2(int stepIndex, int focusGraph){
+
+    if(stepIndex < 0)
         return;
 
     if(focusGraph < 0)
-        focusGraph = graphIndexForPlot2;
+        focusGraph = testIndexForPlot2;
 
     ui->simplot_plot2->clearItems();
     ui->simplot_plot2->clearPlottables();
 
-    std::vector<Variant> toPlot = variants[index];
-
     double max = 0;
 
-    for(int j = 0; j < ntests; j++){
+    for(int testIndex = 0; testIndex < ntests; testIndex++){
 
         QVector<double> qq;
         QVector<double> p;
 
-        for(int i = 0; i< toPlot.size(); i++){
-            qq.push_back(-std::log10((i+1.0) * 1.0/(toPlot.size()*1.0)));
-            p.push_back(-std::log10(toPlot[i].getPval(j)));
-        }
+        double step = 1.0/(pvalues[testIndex][stepIndex].size()*1.0);
 
-        std::sort(p.begin(), p.end());
-        std::reverse(qq.begin(), qq.end());
+        int npvals = pvalues[testIndex][stepIndex].size();
+        for(int i = 0; i < npvals; i++){
+            qq.push_back(-std::log10(1-(i * step)));
+            p.push_back(-std::log10(pvalues[testIndex][stepIndex][npvals-(i+1)]));
+        }
 
         ui->simplot_plot2->addGraph();
         ui->simplot_plot2->graph()->setData(qq, p);
-        QPen scatterPen = QPen(colours[j], 2);
+        QPen scatterPen = QPen(colours[testIndex], 2);
 
-        if(focusGraph >= 0 && focusGraph != j)
-            scatterPen = QPen(QColor(colours[j].red(), colours[j].green(), colours[j].blue(), 40), 2);
+        if(focusGraph >= 0 && focusGraph != testIndex)
+            scatterPen = QPen(QColor(colours[testIndex].red(),
+                                     colours[testIndex].green(),
+                                     colours[testIndex].blue(), 40), 2);
 
         ui->simplot_plot2->graph()->setPen(scatterPen);
         ui->simplot_plot2->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
@@ -333,9 +365,11 @@ void SimPlotWindow::buildPlot2(int index, int focusGraph){
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor(redLine);
     auto horizontal = new QCPItemLine(ui->simplot_plot2);
+    horizontal->setLayer(ui->simplot_plot2->layer("overlay"));
     horizontal->setPen(hpen);
     horizontal->start->setCoords(-1, -std::log10(alpha));
     horizontal->end->setCoords(1e4,-std::log10(alpha));
+    alphaLine = horizontal;
 
     ui->simplot_plot2->replot();
 }
@@ -344,7 +378,7 @@ void SimPlotWindow::on_simplot_alphaDial_valueChanged(int value){
     alpha = std::pow(10, -value/1000.0);
     ui->simplot_alphaTxt->setText(QString::number(alpha));
     buildPlot();
-    buildPlot2(indexForPlot2);
+    updateAlphaLine();
 }
 
 void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
@@ -354,6 +388,6 @@ void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
     if(ok && x >= 0 && x <=1){
         alpha = x;
         buildPlot();
-        buildPlot2(indexForPlot2);
+        updateAlphaLine();
     }
 }
