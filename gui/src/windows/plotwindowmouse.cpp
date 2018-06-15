@@ -15,10 +15,11 @@ void PlotWindow::mouseMoveWindow(QMouseEvent *event){
 
     if(!ui->plot_genomePlt->underMouse()){
         if(highlightChr != ""){
-            for (int i = 0; i< chrNames.size(); i++)
-                resetColor(chrNames[i]);
+
+            moveRectangle(focusRect, focusedChr);
             highlightChr = "";
-            ui->plot_genomePlt->replot();
+            ui->plot_genomePlt->layer("overlay")->replot();
+
         }
     }
 }
@@ -27,23 +28,57 @@ void PlotWindow::mouseClickGenome(QMouseEvent *event){
 
     QString chrName = getChromUnderCursor(event);
 
-    if(chrName == focusedChr)
+    if(chrName == focusedChr || chrName == "")
         return;
 
     if(focusedChr != "")
         resetColor(focusedChr);
 
-    if(chrName != ""){
-        getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
-                    QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                    focus, Qt::white, 2));
-    }
     focusedChr = chrName;
+
+    getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
+                QCPScatterStyle(QCPScatterStyle::ssDisc,
+                                focus, Qt::white, 2));
+
+    moveRectangle(focusRect, chrName);
+
     ui->plot_genomePlt->replot();
 
     if(chrName != "")
-        buildChromosomePlot(chrName, -1, -1);
+        buildChromosomePlot(chrName);
 
+}
+
+void PlotWindow::updateChromosomeRange(const QCPRange &newRange){
+
+    QCPRange r = ui->plot_chrPlt->xAxis->range();
+    double oldSize = r.upper - r.lower;
+    double newSize = newRange.upper - newRange.lower;
+
+    bool isZoom = std::abs(newSize - oldSize) > 0.0001;
+
+    QCPRange adjusted = QCPRange();
+    adjusted.upper = newRange.upper;
+    adjusted.lower = newRange.lower;
+
+    double max = chromosomes[focusedChr].getMaxPos();
+    max = max + max * 0.01;
+
+    if(newRange.lower < 0){
+        adjusted.lower = 0;
+        if(!isZoom)
+            adjusted.upper = std::min(max, oldSize);
+    }
+    if(newRange.upper > max){
+          adjusted.upper = max;
+          if(!isZoom)
+              adjusted.lower = std::max(0.0, max-oldSize);
+    }
+
+    moveRectangle(zoomRect, focusedChr, adjusted.lower, adjusted.upper);
+    ui->plot_genomePlt->layer("overlay")->replot();
+
+    ui->plot_chrPlt->xAxis->setRange(adjusted);
 }
 
 void PlotWindow::mouseClickChromosome(QMouseEvent *event){
@@ -96,23 +131,15 @@ Variant PlotWindow::findClosestVariant(double x, double y, double maxDist){
 void PlotWindow::mouseMoveGenome(QMouseEvent *event){
 
     QString chrName = getChromUnderCursor(event);
-
-    if(chrName == highlightChr)
+    if(highlightChr == chrName)
         return;
-
-    if(highlightChr != "" && highlightChr != focusedChr)
-        resetColor(highlightChr);
-
-
-    //apply new colour
-    if(chrName != "" && chrName != focusedChr)
-        getGraphByName(ui->plot_genomePlt, chrName)->setScatterStyle(
-                    QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                    highlight, Qt::white, 2));
+    if(chrName != "")
+        moveRectangle(focusRect, chrName);
+    else
+        moveRectangle(focusRect, focusedChr);
 
     highlightChr = chrName;
-
-    ui->plot_genomePlt->replot();
+    ui->plot_genomePlt->layer("overlay")->replot();
 }
 
 void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
@@ -136,32 +163,4 @@ void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
     updateVariantHighlightLayer(closest);
 
      return;
-}
-
-void PlotWindow::mouseScrollChromosome(QWheelEvent *event){
-    double scrollSpeed = 0.1;
-
-    double x = ui->plot_chrPlt->xAxis->pixelToCoord(event->pos().x());
-    double nsnp = getGraphByName(ui->plot_chrPlt, chrGraphName)->dataCount();
-
-    double minX = ui->plot_chrPlt->xAxis->range().lower;
-    double maxX = ui->plot_chrPlt->xAxis->range().upper;
-    double range = maxX - minX;
-
-    double fraction = (x-minX)/range;
-
-    if(event->delta() > 0){
-        if(nsnp >= 0 && nsnp <=100)
-            return;
-    double newMin = minX + scrollSpeed*fraction*range;
-    double newMax = maxX - scrollSpeed*(1-fraction)*range;
-
-    buildChromosomePlot(focusedChr, newMin, newMax);
-    }
-    else if(event->delta() < 0){
-        double newMin = minX - scrollSpeed*range;
-        double newMax = maxX + scrollSpeed*range;
-
-        buildChromosomePlot(focusedChr, newMin, newMax);
-    }
 }

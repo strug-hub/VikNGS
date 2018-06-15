@@ -58,12 +58,14 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
     std::vector<int> filterCode;
     int total = lines.size();
 
+    /*
     auto myid = std::this_thread::get_id();
     std::stringstream ss;
     ss << myid;
     std::string mystring = ss.str();
 
      printInfo("welcome to thread " +mystring  );
+*/
 
     //contruct variants
     for(int i = 0; i < total; i++){
@@ -79,8 +81,8 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
         }
 
         calculateExpectedGenotypes(variants.back());
-        int code = filterVariant(req, variants.back(), input.Y, input.family);
-
+        //int code = filterVariant(req, variants.back(), input.Y, input.family);
+        int code = 0;
         if(code > 0){
             filterInfo.emplace_back(variants.back().toString());
             filterCode.emplace_back(code);
@@ -110,7 +112,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
     TestInput in = addVariants(input, variants, collapse);
 
     //todo: remove
-    printInfo("rvs = " + std::to_string(req.rvs) + " --- useGT = " + std::to_string(req.regularTest));
+    //printInfo("rvs = " + std::to_string(req.rvs) + " --- useGT = " + std::to_string(req.regularTest));
 
     std::vector<Variant> results = runTest(in, req);
     outputPvals(results, req.outputDir);

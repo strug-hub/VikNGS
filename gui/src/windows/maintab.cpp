@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<QVector<Variant> >("QVector<Variant>");
     qRegisterMetaType<std::vector<std::vector<Variant>>>("std::vector<std::vector<Variant>>");
     qRegisterMetaType<std::vector<SimulationRequest>>("std::vector<SimulationRequest>");
-
 }
 
 MainWindow::~MainWindow()

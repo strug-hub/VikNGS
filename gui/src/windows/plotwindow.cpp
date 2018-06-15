@@ -17,10 +17,11 @@ PlotWindow::PlotWindow(QWidget *parent) :
     connect(ui->plot_genomePlt, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMoveGenome(QMouseEvent*)));
     connect(ui->plot_genomePlt, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(mouseClickGenome(QMouseEvent*)));
     connect(ui->plot_chrPlt, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(mouseClickChromosome(QMouseEvent*)));
-    connect(ui->plot_chrPlt, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMoveChromosome(QMouseEvent*)));
-    connect(ui->plot_chrPlt, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseScrollChromosome(QWheelEvent*)));
-    connect(ui->plot_zoomBar, SIGNAL(rangeChanged(double,double)), this, SLOT(zoomChromosomePlot(double,double)));
+
+    connect(ui->plot_chrPlt->xAxis, SIGNAL(rangeChanged(const QCPRange&)), this, SLOT(updateChromosomeRange(const QCPRange&)));
+
     ui->plot_chrPlt->plotLayout()->insertRow(0);
+
 }
 
 PlotWindow::~PlotWindow()
@@ -28,9 +29,6 @@ PlotWindow::~PlotWindow()
     delete ui;
 }
 
-void PlotWindow::zoomChromosomePlot(double min, double max){
-    buildChromosomePlot(focusedChr, min, max);
-}
 
 void PlotWindow::initialize(QVector<Variant> variants, QString title){
 
@@ -40,7 +38,7 @@ void PlotWindow::initialize(QVector<Variant> variants, QString title){
     //setRandomChromosomes();
     focusedChr = chrNames[0];
     buildGenomePlot();
-    buildChromosomePlot(focusedChr, -1, -1);
+    buildChromosomePlot(focusedChr);
 
 }
 
@@ -51,7 +49,7 @@ void PlotWindow::initialize(int nvariants, QString title){
     setRandomChromosomes(nvariants);
     focusedChr = chrNames[0];
     buildGenomePlot();
-    buildChromosomePlot(focusedChr, -1, -1);
+    buildChromosomePlot(focusedChr);
 
 }
 
@@ -96,6 +94,25 @@ void PlotWindow::updateVariantHighlightLayer(Variant variant){
 
     ui->plot_chrPlt->graph()->setData(l,p);
     ui->plot_chrPlt->replot();
+}
+
+void PlotWindow::moveRectangle(QCPItemRect *rect, QString chrName, double lower, double upper){
+
+    double width = chromosomes[chrName].getSpan();
+    double start = chromosomes[chrName].getOffset();
+    double top = ui->plot_genomePlt->yAxis->range().upper;
+
+    double lowerShift = 0;
+    if(lower > 0)
+        lowerShift = lower;
+
+    rect->topLeft->setCoords( start + lowerShift, top );
+
+    double upperShift = 0;
+    if(upper > 0)
+        upperShift = std::max(0.0, chromosomes[chrName].getMaxPos() - upper);
+
+    rect->bottomRight->setCoords(start + width - upperShift, 0);
 }
 
 QCPGraph* PlotWindow::getGraphByName(QCustomPlot *plot, QString name){
@@ -163,6 +180,7 @@ void PlotWindow::buildGenomePlot(){
 
     for( int i = 0; i<chrNames.size(); i++ )
     {
+        chromosomes[chrNames[i]].setOffset(offset);
         Chromosome chr = chromosomes[chrNames[i]];
 
         ui->plot_genomePlt->addGraph();
@@ -189,6 +207,26 @@ void PlotWindow::buildGenomePlot(){
                                     toUse, Qt::white, 2));
         offset += chr.getSpan();       
     }
+
+    focusRect = new QCPItemRect(ui->plot_genomePlt);
+    focusRect->setLayer("overlay");
+    focusRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
+    focusRect->topLeft->setAxisRect( ui->plot_genomePlt->axisRect() );
+    focusRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
+    focusRect->bottomRight->setAxisRect( ui->plot_genomePlt->axisRect() );
+    focusRect->setPen(QPen(focus));
+    QColor transFocus = focus;
+    transFocus.setAlpha(50);
+    focusRect->setBrush(QBrush(transFocus));
+
+    zoomRect = new QCPItemRect(ui->plot_genomePlt);
+    zoomRect->setLayer("overlay");
+    zoomRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
+    zoomRect->topLeft->setAxisRect( ui->plot_genomePlt->axisRect() );
+    zoomRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
+    zoomRect->bottomRight->setAxisRect( ui->plot_genomePlt->axisRect() );
+    zoomRect->setPen(Qt::NoPen);
+    zoomRect->setBrush(QBrush(transFocus));
 
     ui->plot_genomePlt->yAxis->setLabel("-log(p)");
 
@@ -217,10 +255,14 @@ void PlotWindow::buildGenomePlot(){
     bonferroni->start->setCoords(0,7.301);
     bonferroni->end->setCoords(ui->plot_genomePlt->xAxis->range().upper,7.301);
 
+    moveRectangle(focusRect, ui->plot_genomePlt->graph(0)->name());
+    moveRectangle(zoomRect, ui->plot_genomePlt->graph(0)->name());
+
     ui->plot_genomePlt->replot();
 }
 
-void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
+
+void PlotWindow::buildChromosomePlot(QString chrName){
     ui->plot_chrPlt->clearPlottables();
 
     focusedVar = nullVariant;
@@ -236,12 +278,8 @@ void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
     QVector<double> pvals_range;
 
     for(int i =0; i<pos.size(); i++){
-
-        if(min < 0 || pos[i] > min)
-            if(max < 0 || pos[i] < max){
-                pos_range.push_back(pos[i]);
-                pvals_range.push_back(pvals[i]);
-            }
+        pos_range.push_back(pos[i]);
+        pvals_range.push_back(pvals[i]);
     }
 
     ui->plot_chrPlt->graph()->setData(pos_range,pvals_range);
@@ -265,6 +303,7 @@ void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
 
     ui->plot_chrPlt->rescaleAxes();
     ui->plot_chrPlt->yAxis->setRangeLower(0);
+
     if(ui->plot_chrPlt->yAxis->range().upper < 7.5)
         ui->plot_chrPlt->yAxis->setRangeUpper(7.5);
 
@@ -273,14 +312,14 @@ void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
     horizontal = new QCPItemLine(ui->plot_chrPlt);
     horizontal->setPen(hpen);
     horizontal->start->setCoords(0,1.301);
-    horizontal->end->setCoords(chr.getMaxPos(),1.301);
+    horizontal->end->setCoords(chr.getMaxPos()*2,1.301);
 
     QPen bpen = QPen(Qt::DashDotLine);
     bpen.setColor( QColor::fromRgb(250, 145, 145));
     QCPItemLine *bonferroni = new QCPItemLine(ui->plot_chrPlt);
     bonferroni->setPen(bpen);
     bonferroni->start->setCoords(0,7.301);
-    bonferroni->end->setCoords(chr.getMaxPos(), 7.301);
+    bonferroni->end->setCoords(chr.getMaxPos()*2, 7.301);
 
     ui->plot_chrPlt->addGraph();
     ui->plot_chrPlt->graph()->setName("annotationLayer");
@@ -291,16 +330,10 @@ void PlotWindow::buildChromosomePlot(QString chrName, double min, double max){
 
     updateVariantHighlightLayer(nullVariant);
 
-    if(min < 0)
-        ui->plot_zoomBar->updateMin(ui->plot_chrPlt->xAxis->range().lower);
-    else
-        ui->plot_zoomBar->updateZoomMin(min);
-
-    if(max < 0)
-        ui->plot_zoomBar->updateMax(ui->plot_chrPlt->xAxis->range().upper);
-    else
-        ui->plot_zoomBar->updateZoomMax(max);
-
+    ui->plot_chrPlt->setInteraction(QCP::iRangeDrag, true);
+    ui->plot_chrPlt->setInteraction(QCP::iRangeZoom, true);
+    ui->plot_chrPlt->axisRect()->setRangeDrag(Qt::Horizontal);
+    ui->plot_chrPlt->axisRect()->setRangeZoom(Qt::Horizontal);
 
      ui->plot_chrPlt->replot();
 }
@@ -347,7 +380,7 @@ Chromosome PlotWindow::generateRandomChromosome(int n, std::string chrom, int ma
 
         s.pos = (rand() % static_cast<int>(maxPos + 1));
         s.chr = chrom;
-        s.addPval((float) rand()/RAND_MAX*1e-10, "random");
+        s.addPval((float) rand()/RAND_MAX, "random");
 
 
 

@@ -12,6 +12,7 @@ private:
     QString name;
     double maxPos;
     double minPos;
+    double offset;
 
 public:
     Chromosome(){
@@ -58,10 +59,13 @@ public:
 
     Variant getVariant(int i){return variants[i];}
     void setColour(QColor c){ this->colour = c; }
+    double getOffset(){ return this->offset; }
+    void setOffset(double offset){ this->offset = offset; }
     QColor getColour(){ return this->colour; }
     int size(){ return variants.size(); }
     double getSpan(){ return maxPos - minPos; }
     double getMaxPos(){ return maxPos; }
+    double getMinPos(){ return minPos; }
     QString getName(){ return name; }
     void setName(QString n){ this->name = n; }
 
@@ -94,16 +98,18 @@ public slots:
     void mouseMoveWindow(QMouseEvent* event);
     void mouseMoveGenome(QMouseEvent* event);
     void mouseClickGenome(QMouseEvent *event);
+    void updateChromosomeRange(const QCPRange &newRange);
     QString getChromUnderCursor(QMouseEvent *event);
     void resetColor(QString chrName);
     void mouseMoveChromosome(QMouseEvent *event);
-    void mouseScrollChromosome(QWheelEvent* event);
     void mouseClickChromosome(QMouseEvent *event);
 
     void buildGenomePlot();
-    void zoomChromosomePlot(double min, double max);
-    void buildChromosomePlot(QString chrName, double min, double max);
+    void buildChromosomePlot(QString chrName);
     void updateVariantHighlightLayer(Variant variants);
+
+    void moveRectangle(QCPItemRect *rect, QString chrName, double lower=-1, double upper=-1);
+
 
     void updateVariantInfo(Variant variant);
 
@@ -120,6 +126,8 @@ private:
     QMap<QString, Chromosome> chromosomes;
     QVector<QString> chrNames;
     QCPItemLine *horizontal;
+    QCPItemRect *focusRect;
+    QCPItemRect *zoomRect;
 
     QString highlightChr = "";
     QString focusedChr = "";
