@@ -238,8 +238,13 @@ void PlotWindow::buildGenomePlot(){
 
     ui->plot_genomePlt->rescaleAxes();
     ui->plot_genomePlt->yAxis->setRangeLower(0);
-    if(ui->plot_genomePlt->yAxis->range().upper < 7.5)
+
+    double ymax = ui->plot_genomePlt->yAxis->range().upper;
+    if(ymax < 7.5){
         ui->plot_genomePlt->yAxis->setRangeUpper(7.5);
+        ymax = 7.5;
+    }
+    ui->plot_genomePlt->yAxis->setRangeUpper(ymax + ymax * 0.05);
 
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor( QColor::fromRgb(210, 80, 80));
@@ -304,8 +309,12 @@ void PlotWindow::buildChromosomePlot(QString chrName){
     ui->plot_chrPlt->rescaleAxes();
     ui->plot_chrPlt->yAxis->setRangeLower(0);
 
-    if(ui->plot_chrPlt->yAxis->range().upper < 7.5)
+    double ymax = ui->plot_chrPlt->yAxis->range().upper;
+    if(ymax < 7.5){
         ui->plot_chrPlt->yAxis->setRangeUpper(7.5);
+        ymax = 7.5;
+    }
+    ui->plot_chrPlt->yAxis->setRangeUpper(ymax + ymax * 0.05);
 
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor( QColor::fromRgb(210, 80, 80));
@@ -334,6 +343,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
     ui->plot_chrPlt->setInteraction(QCP::iRangeZoom, true);
     ui->plot_chrPlt->axisRect()->setRangeDrag(Qt::Horizontal);
     ui->plot_chrPlt->axisRect()->setRangeZoom(Qt::Horizontal);
+
 
      ui->plot_chrPlt->replot();
 }

@@ -13,7 +13,6 @@ public:
 
 public slots:
     void runVikngs() {
-
         try{
             std::vector<Variant> v = startVikNGS(request);
             QVector<Variant> variants = QVector<Variant>::fromStdVector(v);
@@ -28,14 +27,13 @@ public slots:
     }
 
     void runSimulation() {
-
         try{
-            std::vector<std::vector<Variant>> results = startSimulation(simRequests);
-            emit simulationFinished(results, simRequests);
+            std::vector<std::vector<Variant>> results = startSimulation(simRequest);
+            emit simulationFinished(results, simRequest);
         }
         catch(...){
             std::vector<std::vector<Variant>> empty;
-            emit simulationFinished(empty, simRequests);
+            emit simulationFinished(empty, simRequest);
         }
 
         emit complete();
@@ -44,17 +42,17 @@ public slots:
     void setRequest(Request request){
         this->request = request;
     }
-    void setSimulationRequests( std::vector<SimulationRequest> requests){
-        this->simRequests = requests;
+    void setSimulationRequest(SimulationRequest request){
+        this->simRequest = request;
     }
 
 signals:
     void jobFinished(QVector<Variant>);
-    void simulationFinished(std::vector<std::vector<Variant>>, std::vector<SimulationRequest>);
+    void simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest);
     void complete();
 
 private:
     Request request;
-    std::vector<SimulationRequest> simRequests;
+    SimulationRequest simRequest;
 };
 

@@ -81,13 +81,14 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
         }
 
         calculateExpectedGenotypes(variants.back());
-        //int code = filterVariant(req, variants.back(), input.Y, input.family);
-        int code = 0;
+        int code = filterVariant(req, variants.back(), input.Y, input.family);
         if(code > 0){
             filterInfo.emplace_back(variants.back().toString());
             filterCode.emplace_back(code);
             variants.pop_back();
         }
+  //      else
+  //          outputDebug(lines[i],"/home/scott/vikNGS/build-GUI-Desktop_Qt_5_11_0_GCC_64bit-Release");
     }
 
     lines.clear();

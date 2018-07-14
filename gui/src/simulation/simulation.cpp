@@ -1,97 +1,110 @@
 #include "simulation.h"
+#include "../global.h"
 
 /*
 Simulates a dataset which can be used for an association test.
 @param simReq Parameters required to simulate a dataset.
 @return TestInput with information for running association test.
 */
-std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs) {
-
-    SimulationRequest sr = simReqs[0];
+std::vector<TestInput> simulate(SimulationRequest& simReq) {
 
 	printInfo("Setting up simulation parameters.");
 
-    int nsnp = sr.nsnp;
-    double oddsRatio = sr.oddsRatio;
-    double mafMin = sr.mafMin;
-    double mafMax = sr.mafMax;
-
-    VectorXd mafs = simulateMinorAlleleFrequency(nsnp, mafMin, mafMax);
-
-    std::vector<Variant> variantInfo;
-
-    for (int i = 0; i < nsnp; i++)
-        variantInfo.push_back(randomVariant());
+    int nsnp = simReq.nsnp;
+    double oddsRatio = simReq.oddsRatio;
+    double mafMin = simReq.mafMin;
+    double mafMax = simReq.mafMax;
 
     printInfo("Simulating data.");
 
+    VectorXd mafs = simulateMinorAlleleFrequency(nsnp, mafMin, mafMax);
+
+    std::vector<Variant> variants;
+    for (int i = 0; i < nsnp; i++)
+        variants.push_back(randomVariant());
+
+    std::map<int, SimulationRequestGroup> group;
+    std::map<int, int> readGroup;
+
+    for (SimulationRequestGroup srg : simReq.groups) {
+        group[srg.index] = srg;
+        readGroup[srg.index] = srg.isHrg;
+    }
+
+    std::vector<VectorXd> G = simulateG(simReq);
+    std::vector<VectorXd> Y = simulateY(simReq);
+    //note: each matrix is nsnp x nsamp
+    std::vector<MatrixXd> X_ = simulateX(simReq, oddsRatio, mafs, simReq.collapse);
+
     std::vector<TestInput> inputs;
 
-    for(SimulationRequest simReq : simReqs){
+    VectorXd g;
+    MatrixXd x;
+    VectorXd y;
+    //empty variable
+    MatrixXd z;
 
-        int nsamp;
-        int ncase = simReq.ncase();
-        int ncont = simReq.ncontrol();
-
-        nsamp = ncase + ncont;
-
-        std::map<int, SimulationRequestGroup> group;
-        std::map<int, int> readGroup;
-        VectorXd g(nsamp);
-
-        int counter = 0;
-        for (SimulationRequestGroup srg : simReq.groups) {
-            group[srg.index] = srg;
-            readGroup[srg.index] = srg.isHrg;
-            for(int i = counter; i < counter + srg.n; i++ )
-                g[i] = srg.index;
-            counter += srg.n;
+    std::vector<std::vector<int>> collapse;
+    if(simReq.isRare()){
+        std::vector<int> c;
+        for(int i = 0; i < nsnp; i++){
+            if(i%simReq.collapse == 0 && i > 0){
+                collapse.push_back(c);
+                c.clear();
+            }
+            c.push_back(i);
         }
 
-        MatrixXd x;
+        collapse.push_back(c);
+    }
 
-        if(simReq.isRare())
-            x = simulateX(simReq, oddsRatio, mafs, simReq.collapse);
+    for(int i = 0; i < simReq.steps; i++){
 
-        else
-            x = simulateX(simReq, oddsRatio, mafs);
+        printInfo("Simulating step " + std::to_string(i+1));
+    
+        for (int j = 0; j < X_[i].cols(); j++) {
+            
+            if(STOP_RUNNING_THREAD)
+                throw std::runtime_error("terminate thread");
 
-        VectorXd y = simulateY(simReq);
-
-        MatrixXd EG(nsamp, nsnp);
-        MatrixXd p(nsnp, 3);
-
-        std::vector<Variant> variants;
-
-        for (int i = 0; i < EG.cols(); i++) {
-
-            Variant info = variantInfo[i];
-            Variant variant = generateSeqData(x.col(i), g, group, info);
-
-            variants.push_back(variant);
-            EG.col(i) = variant.expectedGenotype;
-            p.row(i) = variant.P;
+            int groupID = G[i][j];
+            VectorXd x_i = X_[i].col(j);
+            std::vector<GenotypeLikelihood> likelihoods = generateSeqData(x_i, group.at(groupID));
+            for(int k = 0; k < nsnp; k++)
+                variants[k].likelihood.emplace_back(likelihoods[k]);
         }
 
-        //empty variables
-        MatrixXd z;
+        if(i == 0){
+            x = X_[0].transpose();
+            y = Y[0];
+            g = G[0];
+
+        }
+        else{
+            MatrixXd newX(x.rows() + X_[i].cols(), x.cols());
+            newX << x, X_[i].transpose();
+            x = newX;
+
+            VectorXd newY(y.rows() + Y[i].rows());
+            newY << y, Y[i];
+            y = newY;
+
+            VectorXd newG(g.rows() + G[i].rows());
+            newG << g, G[i];
+            g = newG;
+        }
+
+        for(int k = 0; k < nsnp; k++){
+            variants[k].trueGenotype = x.col(k);
+            variants[k].calculateGenotypeFrequency();
+            variants[k].expectedGenotype = calculateExpectedGenotypes(variants[k].likelihood, variants[k].P);
+            variants[k].genotypeCalls = calculateGenotypeCalls(variants[k].likelihood);
+        }
 
         TestInput t = buildTestInput(y, z, g, readGroup, variants, "binomial");
 
-        if(simReq.isRare()){
-            std::vector<std::vector<int>> collapse;
-            std::vector<int> c;
-            for(int i = 0; i < nsnp; i++){
-                if(i%simReq.collapse == 0 && i > 0){
-                    collapse.push_back(c);
-                    c.clear();
-                }
-                c.push_back(i);
-            }
-
-            collapse.push_back(c);
-            t = addCollapse(t, collapse);
-        }
+        if(simReq.isRare())
+            t.addCollapse(collapse);
 
         inputs.push_back(t);
     }

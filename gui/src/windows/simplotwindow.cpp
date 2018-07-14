@@ -40,22 +40,22 @@ void SimPlotWindow::getPvalues(std::vector<std::vector<Variant>> &variants){
     return;
 }
 
-void SimPlotWindow::initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> &reqs, QString title){
+void SimPlotWindow::initialize(std::vector<std::vector<Variant>>& variants, SimulationRequest& req, QString title){
 
     this->ntests = variants[0][0].nPvals();
-    this->nsteps = reqs.size();
+    this->nsteps = variants.size();
 
-    if(reqs[0].isRare())
-        variants = filterCollapsed(variants, reqs[0].collapse);
+    if(req.isRare())
+        variants = filterCollapsed(variants, req.collapse);
 
     getPvalues(variants);
 
-    this->requests = reqs;
+    this->request = req;
     this->alpha = 0.05;
     for(int i = 0; i < ntests; i++)
         testTypes.push_back(QString::fromStdString(variants[0][0].getPvalSource(i)));
 
-    if(reqs[0].underNull())
+    if(req.underNull())
         this->yAxisLabel = "Type I Error";
     else
         this->yAxisLabel = "Power";
@@ -91,8 +91,8 @@ void SimPlotWindow::updateSampleSize(int index){
             index = stepIndexForPlot2;
     }
 
-    ui->simplot_ncasesDgt->display(this->requests[index].ncase(true));
-    ui->simplot_ncontrolsDgt->display(this->requests[index].ncontrol(true));
+    ui->simplot_ncasesDgt->display(this->request.ncase(stepIndexForPlot2));
+    ui->simplot_ncontrolsDgt->display(this->request.ncontrol(stepIndexForPlot2));
 
 }
 

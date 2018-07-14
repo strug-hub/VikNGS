@@ -73,6 +73,13 @@ double randomNormal(double mean, double sd) {
 	std::normal_distribution<> sample(mean, sd);
 	return sample(generate);
 }
+int randomBinomial(int trials, double success) {
+    std::binomial_distribution<> sample(trials, success);
+    return sample(generate);
+}
+
+
+
 
 //same as doing pairwise.complete.obs in R
 MatrixXd covariance(MatrixXd &M) {

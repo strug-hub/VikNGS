@@ -5,6 +5,7 @@
 #include "../src/Variant.h"
 #include "../simulation/simulation.h"
 #include "../runner.h"
+#include "../global.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -34,25 +35,30 @@ public slots:
 
 
 private slots:
-    std::vector<SimulationRequestGroup> constructGroups(int run, int ntests);
+    std::vector<SimulationRequestGroup> constructGroups(int ntests);
     SimulationRequest constructRequest(std::vector<SimulationRequestGroup> groups);
 
     void on_sim_runBtn_clicked();
+    void on_sim_stopBtn_clicked();
+
+    void addGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);
     void on_sim_groupAddBtn_clicked();
     void on_sim_groupRemoveBtn_clicked();
 
-    void on_sim_testBootChk_stateChanged(int arg1);
-    void on_sim_testBootChk_toggled(bool checked);
+    void simEnableRare(bool valid);
     void on_sim_testRareCastBtn_toggled(bool checked);
     void on_sim_testRareCalphaBtn_toggled(bool checked);
 
-    void simulationFinished(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> reqs);
+    void simulationFinished(std::vector<std::vector<Variant>> variants, SimulationRequest reqs);
 
     //--------------
+    void stopJob();
+    void enableRun();
+    void disableRun();
+
     void on_main_vcfDirBtn_clicked();
     void on_main_sampleDirBtn_clicked();
     void on_main_bedDirBtn_clicked();
-
     void on_main_runBtn_clicked();
 
     void on_main_testRareCastBtn_toggled(bool checked);
@@ -63,11 +69,29 @@ private slots:
 
     void on_main_randomBtn_pressed();
 
+    //--------------
+    std::vector<SimulationRequestGroup> qConstructGroups(int run, int ntests);
+    SimulationRequest qConstructRequest(std::vector<SimulationRequestGroup> groups);
+    void qAddGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);
+
+    void qSimEnableRare(bool value);
+
+    void on_qsim_runBtn_clicked();
+    void on_qsim_groupAddBtn_clicked();
+    void on_qsim_groupRemoveBtn_clicked();
+
+    void on_qsim_stopBtn_clicked();
+
+    void on_qsim_testRareCastBtn_toggled(bool checked);
+    void on_qsim_testRareCalphaBtn_toggled(bool checked);
+
 signals:
     void sendPlotData(QVector<double> values);
 
 private:
     Ui::MainWindow *ui;
+    QThread* jobThread;
+
     QColor green = QColor::fromRgb(82, 145, 87);
     QColor grey = QColor::fromRgb(204, 205, 209);
     int plotCount = 1;

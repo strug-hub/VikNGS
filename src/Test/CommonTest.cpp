@@ -2,6 +2,7 @@
 #include "../Math/MathHelper.h"
 #include "CommonTestObject.h"
 #include <future>
+#include "../gui/src/global.h"
 
 /*
 RVS using asymptotic distribution for score test statistic. This functions includes
@@ -86,7 +87,12 @@ double commonBootstrap(CommonTestObject t, int nboot, bool stopEarly, bool rvs) 
 }
 
 std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
-	
+
+    std::vector<Variant> output;
+
+    if(STOP_RUNNING_THREAD)
+        return output;
+
     MatrixXd X = input.getX(req.regularTest, req.useTrueGenotypes);
 	VectorXd Y = input.Y;
 	MatrixXd Z = input.Z;
@@ -117,6 +123,9 @@ std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
 	}
 
     for (i = 0; i < X.cols(); i++) {
+
+        if(STOP_RUNNING_THREAD)
+            return output;
 
 		if (i % 25 == 0) {
 			std::cout << "\n";
@@ -176,6 +185,7 @@ std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
         testType = testType + " - common";
 
         input.variants[i].addPval(pval, testType);
+        output.emplace_back(input.variants[i]);
 	}
 
     return input.variants;

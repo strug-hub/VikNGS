@@ -20,8 +20,8 @@ public:
 
 public slots:
 
-    void initialize(std::vector<std::vector<Variant>> variants, std::vector<SimulationRequest> &reqs, QString title);
-    void getPvalues(std::vector<std::vector<Variant>> &variants);
+    void initialize(std::vector<std::vector<Variant>>& variants, SimulationRequest& req, QString title);
+    void getPvalues(std::vector<std::vector<Variant>>& variants);
 
     std::vector<std::vector<Variant>> filterCollapsed(std::vector<std::vector<Variant>> &variants, int k);
     void buildPlot();
@@ -51,7 +51,7 @@ private:
     //std::vector<std::vector<Variant>> variants;
     std::vector<std::vector<std::vector<double>>> pvalues;
 
-    std::vector<SimulationRequest> requests;
+    SimulationRequest request;
     double alpha;
     int ntests;
     int nsteps;

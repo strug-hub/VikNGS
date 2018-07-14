@@ -51,6 +51,10 @@ struct TestInput {
 
             return X;
         }
+
+        inline void addCollapse(std::vector<std::vector<int>> c) {
+                collapse = c;
+        }
 };
 
 /**
@@ -92,9 +96,4 @@ inline TestInput addVariants(TestInput t, std::vector<Variant> &variants, std::v
         return t;
 }
 
-inline TestInput addCollapse(TestInput t,  std::vector<std::vector<int>> collapse) {
-
-        t.collapse = collapse;
-        return t;
-}
 

@@ -143,6 +143,8 @@ VectorXd CovariateRegression(VectorXd &Y, MatrixXd &Z);
 int randomInt(int from, int to);
 double randomDouble(double from, double to);
 double randomNormal(double mean, double sd);
+int randomBinomial(int trials, double success);
+
 MatrixXd covariance(MatrixXd &M);
 MatrixXd correlation(MatrixXd &M);
 VectorXd logisticRegression(VectorXd &Y, MatrixXd &Z);

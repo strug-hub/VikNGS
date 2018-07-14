@@ -7,6 +7,8 @@
 #include "Parser/BED/Interval.h"
 
 using Eigen::VectorXd;
+using Eigen::Vector3d;
+using Eigen::MatrixXd;
 
 struct GenotypeLikelihood {
     bool missing = false;
@@ -81,6 +83,59 @@ public:
         else
             return this->chr < line.chr;
     }
+
+    inline MatrixXd getLikelihoodMatrix() {
+
+        MatrixXd M(likelihood.size(), 3);
+        for(int i = 0; i < likelihood.size(); i++){
+            M(i,0)=likelihood[i].L00;
+            M(i,1)=likelihood[i].L01;
+            M(i,2)=likelihood[i].L11;
+        }
+
+        return M;
+    }
+
+    //Uses EM algorithm to estimate the genotype frequencies in the sample.
+    inline void calculateGenotypeFrequency() {
+
+        MatrixXd M = getLikelihoodMatrix();
+
+        double p = 0.15;
+        double q = 0.15;
+        double qn = 1;
+        double pn = 0;
+        double dn = 0;
+        double d = 0;
+
+        int k = 0;
+
+        while (pow((pn - p), 2) + pow((qn - q), 2) > 0.000001) {
+
+            d = 1 - p - q;
+            Vector3d v = { p, q, d };
+            VectorXd pD = M * v;
+            VectorXd Ep = M.col(0).array() * (p / pD.array()).array();
+            VectorXd Eq = M.col(1).array() * (q / pD.array()).array();
+            pn = p;
+            qn = q;
+            dn = 1 - q - p;
+            p = Ep.sum() / Ep.rows();
+            q = Eq.sum() / Eq.rows();
+
+            k++;
+            if (k == 1000)
+                break;
+        }
+
+        VectorXd freq(3);
+        freq[0] = std::max(0.0, p);
+        freq[1] = std::max(0.0, q);
+        freq[2] = std::max(0.0, 1 - p - q);
+
+        P=freq;
+    }
+
 };
 
 inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }

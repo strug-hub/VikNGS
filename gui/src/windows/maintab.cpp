@@ -18,7 +18,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(getQLog(), SIGNAL(pushOutput(QString, QColor)), this, SLOT(printOutput(QString, QColor)));
     qRegisterMetaType<QVector<Variant> >("QVector<Variant>");
     qRegisterMetaType<std::vector<std::vector<Variant>>>("std::vector<std::vector<Variant>>");
-    qRegisterMetaType<std::vector<SimulationRequest>>("std::vector<SimulationRequest>");
+    qRegisterMetaType<SimulationRequest>("SimulationRequest");
+
+    //simulation tab
+    addGroup("100", false, "32", "8", "0.01");
+    addGroup("100:300", true, "6", "2", "0.01");
+
 }
 
 MainWindow::~MainWindow()
@@ -57,7 +62,34 @@ void MainWindow::greyOutput(){
     ui->outputBox->setHtml(oldOut + "<br>");
     ui->outputBox->verticalScrollBar()->setValue(ui->outputBox->verticalScrollBar()->maximum());
     ui->outputBox->repaint();
+}
 
+void MainWindow::stopJob(){
+    STOP_RUNNING_THREAD=true;
+    while(!jobThread->isFinished()){
+        jobThread->quit();
+    }
+    greyOutput();
+    printInfo("Job stopped.");
+    enableRun();
+    STOP_RUNNING_THREAD=false;
+}
+
+void MainWindow::enableRun(){
+    ui->main_runBtn->setEnabled(true);
+    ui->main_stopBtn->setEnabled(false);
+    ui->qsim_runBtn->setEnabled(true);
+    ui->qsim_stopBtn->setEnabled(false);
+    ui->sim_runBtn->setEnabled(true);
+    ui->sim_stopBtn->setEnabled(false);
+}
+void MainWindow::disableRun(){
+    ui->main_runBtn->setEnabled(false);
+    ui->main_stopBtn->setEnabled(true);
+    ui->qsim_runBtn->setEnabled(false);
+    ui->qsim_stopBtn->setEnabled(true);
+    ui->sim_runBtn->setEnabled(false);
+    ui->sim_stopBtn->setEnabled(true);
 }
 
 void MainWindow::jobFinished(QVector<Variant> variants){
@@ -119,7 +151,7 @@ void MainWindow::on_main_runBtn_clicked()
     if(!ui->main_runBtn->isEnabled())
         return;
 
-    ui->main_runBtn->setEnabled(false);
+    disableRun();
 
     try{
 

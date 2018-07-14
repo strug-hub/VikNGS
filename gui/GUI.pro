@@ -55,7 +55,9 @@ SOURCES += \
     ../src/Parser/ParserTools.cpp \
     ../src/Test/CommonTestObject.cpp \
     src/windows/simulationtab.cpp \
-    ../src/Test/RareTestCollapseObject.cpp
+    ../src/Test/RareTestCollapseObject.cpp \
+    src/global.cpp \
+    src/windows/qsimulationtab.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -285,7 +287,8 @@ HEADERS += \
     ../src/Test/CommonTestObject.h \
     ../src/Test/RareTestObject.h \
     ../src/Test/RareTestCollapseObject.h \
-    ../src/Parser/BED/Interval.h
+    ../src/Parser/BED/Interval.h \
+    src/global.h
 
 
 FORMS += \

@@ -18,11 +18,33 @@ using Eigen::DiagonalMatrix;
 struct SimulationRequestGroup {
     int index;
     int n; //The number of samples in this group
+    int n_increment = 0;
     bool isHrg;
+
+    bool isCaseControl;
     bool isCase;
+
     double meanDepth;
     double sdDepth;
     double errorRate;
+
+    inline int getSampleSize(int step){ return n + n_increment*step; }
+
+    inline int getStepSize(int step){
+
+        if(step==0)
+            return n;
+        if(step>0)
+            return n_increment;
+    }
+
+    inline double generatePhenotype(){
+
+        if(isCaseControl)
+             return (isCase ? 1 : 0);
+
+         return 0;
+    }
 
     //for debugging
     void print() {
@@ -46,20 +68,19 @@ struct SimulationRequest {
     double oddsRatio;
     double mafMin;
     double mafMax;
-    int intervalSize;
+    int steps;
 
     std::vector<SimulationRequestGroup> groups;
 
     std::string test;
     bool useBootstrap;
     int nboot;
-    int collapse;
+    int collapse = 1;
     bool stopEarly;
     bool rvs;
     bool regular;
+    bool isCaseControl;
 
-    int ncase_cache = -1;
-    int ncontrol_cache = -1;
 
     inline bool underNull(){
         return oddsRatio == 1;
@@ -129,30 +150,29 @@ struct SimulationRequest {
 
     }
 
-    inline int ncase(bool useCache=false){
-        if(!useCache || this->ncase_cache < 0){
-            int n = 0;
-            for (int i = 0; i<groups.size(); i++)
-                if (groups[i].isCase)
-                    n += groups[i].n;
-            if(useCache)
-                this->ncase_cache = n;
-            return n;
-        }
-        return ncase_cache;
+    inline int stepIncrementSize(int step){
+        int n = 0;
+        for (int i = 0; i < groups.size(); i++)
+            n+=groups[i].getStepSize(step);
+
+        return n;
     }
 
-    inline int ncontrol(bool useCache=false){
-        if(!useCache || this->ncontrol_cache < 0){
-            int n = 0;
-            for (int i = 0; i<groups.size(); i++)
-                if (!groups[i].isCase)
-                    n += groups[i].n;
-            if(useCache)
-                this->ncontrol_cache = n;
-            return n;
-        }
-        return ncontrol_cache;
+    inline int ncase(int step){
+        int n = 0;
+        for (int i = 0; i < groups.size(); i++)
+            if (groups[i].isCase)
+                n += groups[i].getSampleSize(step);
+        return n;
+
+    }
+
+    inline int ncontrol(int step){
+        int n = 0;
+        for (int i = 0; i<groups.size(); i++)
+            if (!groups[i].isCase)
+                n += groups[i].getSampleSize(step);
+        return n;
     }
 
     int isRare(){
@@ -173,24 +193,20 @@ struct SimulationRequest {
     }
 };
 
-std::vector<std::vector<Variant>> startSimulation (std::vector<SimulationRequest> simReqs);
-std::vector<TestInput> simulate(std::vector<SimulationRequest> simReqs);
+std::vector<std::vector<Variant>> startSimulation (SimulationRequest& simReq);
+std::vector<TestInput> simulate(SimulationRequest& simReq);
 
 VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max);
-VectorXd simulateY(SimulationRequest simReq);
-MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf);
-MatrixXd simulateX(SimulationRequest simReq, double oddsRatio, VectorXd maf, int collapse);
+std::vector<VectorXd> simulateG(SimulationRequest& simReq);
+std::vector<VectorXd> simulateY(SimulationRequest& simReq);
+std::vector<MatrixXd> simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf, int collapse=1);
+std::vector<GenotypeLikelihood> generateSeqData(VectorXd& x, SimulationRequestGroup& group);
 
-Variant generateSeqData(VectorXd x, VectorXd g, std::map<int, SimulationRequestGroup> group, Variant &variant);
+std::vector<int> baseCalls(int trueGenotype, double error, int readDepth);
 
-std::vector<char> baseCall(std::vector<char> trueGenotype, double error, int readDepth);
+double inline generateGenotype(double prob_x0, double prob_x1);
 
-double inline generateGenotype(double prob_y, double prob_x0, double prob_x1);
-
+GenotypeLikelihood calculateLikelihood(std::vector<char> &bases, double error);
+VectorXd calculateExpectedGenotypes(std::vector<GenotypeLikelihood>& gl, VectorXd& p);
+VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl);
 Variant randomVariant();
-double pSingle(char base, char true1, char true2, double error);
-VectorXd calculateLikelihood(std::vector<char> &bases, double error);
-MatrixXd calculateLikelihood2(std::vector<char> &bases, double error);
-VectorXd calcEM(MatrixXd M);
-VectorXd calculateExpectedGenotypes(std::vector<MatrixXd> M, VectorXd p);
-

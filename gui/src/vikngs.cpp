@@ -1,5 +1,6 @@
 #include "../src/RVS.h"
 #include "simulation/simulation.h"
+#include "global.h"
 
 #include <iostream>  
 #include <string>
@@ -36,16 +37,16 @@ std::vector<Variant> runTest(TestInput &input, Request &req){
     return variants;
 }
 
-std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest> simReqs) {
+std::vector<std::vector<Variant>> startSimulation(SimulationRequest& simReq) {
 
-    std::vector<TestInput> inputs = simulate(simReqs);
+    std::vector<TestInput> inputs = simulate(simReq);
     std::vector<std::vector<Variant>> results;
+
     printInfo("Starting tests...");
 
-    for(int i = 0; i< simReqs.size(); i++){
-        printInfo("Running step " + std::to_string(i+1) + " of " + std::to_string(simReqs.size()) + ".");
+    for(int i = 0; i< simReq.steps; i++){
+        printInfo("Running step " + std::to_string(i+1) + " of " + std::to_string(simReq.steps) + ".");
 
-        SimulationRequest simReq = simReqs[i];
         TestInput input = inputs[i];
 
         initializeRequest();
@@ -61,9 +62,6 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
             useBootstrap(simReq.nboot);
             setStopEarly(simReq.stopEarly);
         }
-
-        setRegularTest(simReq.regular);
-        setRVS(simReq.rvs);
 
         //todo
         setNumberThreads(1);
@@ -90,9 +88,14 @@ std::vector<std::vector<Variant>> startSimulation(std::vector<SimulationRequest>
         req.rvs = true;
 
         if (req.useCommon())
-            results.push_back(runCommonTest(req, input));
+            input.variants = runCommonTest(req, input);
         else
-            results.push_back(runRareTest(req, input));
+            input.variants = runRareTest(req, input);
+
+        if(STOP_RUNNING_THREAD)
+            return results;
+
+        results.push_back(input.variants);
     }
 
     return results;
