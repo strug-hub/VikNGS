@@ -36,6 +36,7 @@ public slots:
 
 private slots:
 
+    void updateGenotypeTable(int index);
     void on_simplot_alphaDial_valueChanged(int value);
     void on_simplot_alphaTxt_textChanged(const QString &arg1);
 
@@ -48,7 +49,7 @@ private:
 
     QFont axisFont = QFont("sans", 10, QFont::Bold);
 
-    //std::vector<std::vector<Variant>> variants;
+    std::vector<std::vector<Variant>> variants;
     std::vector<std::vector<std::vector<double>>> pvalues;
 
     SimulationRequest request;

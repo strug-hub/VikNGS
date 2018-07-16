@@ -261,7 +261,7 @@ Variant constructVariant(std::vector<std::string> &columns) {
 	}
 
 	if (indexPL < 0 && indexGL < 0 && indexGT < 0) {
-		variant.setInvalid("Phred-scaled likelihoods (PL or GL) and genotype calls (GT) not found in FORMAT column.");
+        variant.setInvalid("Genotype likelihoods (PL or GL) and genotype calls (GT) not found in FORMAT column.");
 		return variant;
 	}
 

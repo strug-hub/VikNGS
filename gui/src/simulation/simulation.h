@@ -86,6 +86,29 @@ struct SimulationRequest {
         return oddsRatio == 1;
     }
 
+    VectorXd getCaseControlStatus(int step){
+
+        VectorXd y(nsamp(step));
+        int index = 0;
+        for (int i = 0; i < groups.size(); i++)
+            for (int j = 0; j < groups[i].getSampleSize(step); j++){
+                y[index] = groups[i].isCase;
+                index++;
+            }
+        return y;
+    }
+
+    VectorXd getGroups(int step){
+
+        VectorXd g(nsamp(step));
+        int index = 0;
+        for (int i = 0; i < groups.size(); i++)
+            for (int j = 0; j < groups[i].getSampleSize(step); j++){
+                g[index] = i;
+                index++;
+            }
+        return g;
+    }
 
     void validate(){
 
@@ -155,6 +178,13 @@ struct SimulationRequest {
         for (int i = 0; i < groups.size(); i++)
             n+=groups[i].getStepSize(step);
 
+        return n;
+    }
+
+    inline int nsamp(int step){
+        int n = 0;
+        for (int i = 0; i < groups.size(); i++)
+            n += groups[i].getSampleSize(step);
         return n;
     }
 

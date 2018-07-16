@@ -127,15 +127,15 @@ std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
         if(STOP_RUNNING_THREAD)
             return output;
 
-		if (i % 25 == 0) {
+/*		if (i % 25 == 0) {
 			std::cout << "\n";
 			std::cout << i;
 			std::cout << "/";
 			std::cout << X.cols();
 			std::cout << " calculated.";
 			std::cout << "\n";
-		}
-
+        }
+*/
 		std::vector<VectorXd> x_i;
 		for (j = 0; j < ngroups; j++) 
 			x_i.push_back(x[j].col(i));

@@ -49,6 +49,7 @@ void SimPlotWindow::initialize(std::vector<std::vector<Variant>>& variants, Simu
         variants = filterCollapsed(variants, req.collapse);
 
     getPvalues(variants);
+    this->variants = variants;
 
     this->request = req;
     this->alpha = 0.05;
@@ -120,12 +121,75 @@ std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std
     return keep;
 }
 
+void SimPlotWindow::updateGenotypeTable(int index){
+
+    ui->simplot_genoTbl->clearContents();
+
+    Variant v = variants[index][1];
+    int nrow = v.trueGenotype.rows();
+    ui->simplot_genoTbl->setRowCount(nrow);
+    ui->simplot_genoTbl->setColumnCount(4);
+    VectorXd g = request.getGroups(index);
+    VectorXd y = request.getCaseControlStatus(index);
+    QColor red = Qt::red;
+
+    Vector3d trueFrequency;
+    Vector3d calledFrequency;
+    double expectedSum;
+
+    for (int i = 0; i < nrow ; i++){
+
+        QString sampleInfo = y[i] == 1? "case":"control";
+        sampleInfo.append(" (" + QString::number(g[i]) + ")");
+        double trueGT = v.trueGenotype[i];
+        trueFrequency[trueGT]++;
+        double callGT = v.genotypeCalls[i];
+        calledFrequency[callGT]++;
+        double expectedGT = v.expectedGenotype[i];
+        expectedSum += expectedGT;
+
+        QTableWidgetItem * t = new QTableWidgetItem(QString::number(trueGT));
+        QTableWidgetItem * c = new QTableWidgetItem(QString::number(callGT));
+        red.setAlpha((std::abs(trueGT-callGT) / 2.0) * 255);
+        c->setBackgroundColor(red);
+
+        QTableWidgetItem * e = new QTableWidgetItem(QString::number(expectedGT));
+        red.setAlpha((std::abs(trueGT-expectedGT) / 2.0) * 255);
+        e->setBackgroundColor(red);
+
+
+        ui->simplot_genoTbl->setItem(i, 0,  new QTableWidgetItem(sampleInfo));
+        ui->simplot_genoTbl->setItem(i, 1, t);
+        ui->simplot_genoTbl->setItem(i, 2, c);
+        ui->simplot_genoTbl->setItem(i, 3, e);
+    }
+
+    ui->simplot_genoFreqTbl->clearContents();
+    ui->simplot_genoFreqTbl->setRowCount(3);
+    ui->simplot_genoFreqTbl->setColumnCount(4);
+
+    for (int i = 0; i < 3 ; i++){
+        ui->simplot_genoFreqTbl->setItem(0, i, new QTableWidgetItem(QString::number(trueFrequency[i])));
+        ui->simplot_genoFreqTbl->setItem(1, i, new QTableWidgetItem(QString::number(calledFrequency[i])));
+    }
+
+    double averageTrue = (trueFrequency[1] + 2*trueFrequency[2])/(nrow * 1.0);
+    double averageCalled = (calledFrequency[1] + 2*calledFrequency[2])/(nrow * 1.0);
+    double averageExpected = expectedSum/(nrow * 1.0);
+    ui->simplot_genoFreqTbl->setItem(0, 3, new QTableWidgetItem(QString::number(averageTrue)));
+    ui->simplot_genoFreqTbl->setItem(1, 3, new QTableWidgetItem(QString::number(averageCalled)));
+    ui->simplot_genoFreqTbl->setItem(2, 3, new QTableWidgetItem(QString::number(averageExpected)));
+
+}
+
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
     int closestIndex = findClosestPoint(ui->simplot_plot1, event);
     if(closestIndex >= 0){
         stepIndexForPlot2 = closestIndex;
         buildPlot2(closestIndex);
+        updateGenotypeTable(closestIndex);
     }
+
 }
 
 void SimPlotWindow::mouseClickPlot2(QMouseEvent *event){
@@ -261,25 +325,53 @@ void SimPlotWindow::buildPlot(){
 
 void SimPlotWindow::buildLegend(){
 
-    ui->simplot_legend->xAxis->setVisible(false);
-    ui->simplot_legend->yAxis->setVisible(false);
-
-    for(int i = 0; i < ntests; i++){
-        ui->simplot_legend->addGraph();
-        ui->simplot_legend->graph()->setPen(QPen(colours[i], 2));
-        ui->simplot_legend->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
-        ui->simplot_legend->graph()->setName(testTypes[i]);
+    if(ntests > 0){
+        ui->simplot_legend1Lbl->setText(testTypes[0]);
+        QPalette pal = palette();
+        pal.setColor(QPalette::Background, colours[0]);
+        ui->simplot_legend1Sqr->setAutoFillBackground(true);
+        ui->simplot_legend1Sqr->setPalette(pal);
+    }
+    else{
+        ui->simplot_legend1Lbl->hide();
+        ui->simplot_legend1Sqr->hide();
     }
 
-    QCPLegend *legend = ui->simplot_legend->legend;
-    legend->setVisible(true);
-    legend->setFillOrder(QCPLayoutGrid::FillOrder::foColumnsFirst,true);
-    legend->setFont(axisFont);
-    legend->setBorderPen(Qt::NoPen);
-    ui->simplot_legend->plotLayout()->addElement(1, 0, legend);
-    ui->simplot_legend->plotLayout()->removeAt(0);
-    ui->simplot_legend->repaint();
+    if(ntests > 1){
+        ui->simplot_legend2Lbl->setText(testTypes[1]);
+        QPalette pal = palette();
+        pal.setColor(QPalette::Background, colours[1]);
+        ui->simplot_legend2Sqr->setAutoFillBackground(true);
+        ui->simplot_legend2Sqr->setPalette(pal);
+    }
+    else{
+        ui->simplot_legend2Lbl->hide();
+        ui->simplot_legend2Sqr->hide();
+    }
 
+    if(ntests > 2){
+        ui->simplot_legend3Lbl->setText(testTypes[2]);
+        QPalette pal = palette();
+        pal.setColor(QPalette::Background, colours[2]);
+        ui->simplot_legend3Sqr->setAutoFillBackground(true);
+        ui->simplot_legend3Sqr->setPalette(pal);
+    }
+    else{
+        ui->simplot_legend3Lbl->hide();
+        ui->simplot_legend3Sqr->hide();
+    }
+
+    if(ntests > 3){
+        ui->simplot_legend4Lbl->setText(testTypes[3]);
+        QPalette pal = palette();
+        pal.setColor(QPalette::Background, colours[3]);
+        ui->simplot_legend4Sqr->setAutoFillBackground(true);
+        ui->simplot_legend4Sqr->setPalette(pal);
+    }
+    else{
+        ui->simplot_legend4Lbl->hide();
+        ui->simplot_legend4Sqr->hide();
+    }
 }
 
 void SimPlotWindow::updateAlphaLine(){

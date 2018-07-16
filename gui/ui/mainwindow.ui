@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/chr22.rare.filtered.vcf</string>
+                  <string>/media/scott/Rotom/chr2.merged.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -370,8 +370,11 @@
                  <property name="text">
                   <string>Common</string>
                  </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -381,7 +384,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -399,13 +402,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testBootChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -414,7 +417,7 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string>10000000</string>
@@ -433,7 +436,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -462,7 +465,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>5</string>
+                  <string>2</string>
                  </property>
                 </widget>
                </item>
@@ -479,7 +482,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>5000</string>
+                  <string>100</string>
                  </property>
                 </widget>
                </item>

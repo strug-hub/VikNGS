@@ -58,15 +58,6 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
     std::vector<int> filterCode;
     int total = lines.size();
 
-    /*
-    auto myid = std::this_thread::get_id();
-    std::stringstream ss;
-    ss << myid;
-    std::string mystring = ss.str();
-
-     printInfo("welcome to thread " +mystring  );
-*/
-
     //contruct variants
     for(int i = 0; i < total; i++){
 

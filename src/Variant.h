@@ -15,6 +15,12 @@ struct GenotypeLikelihood {
     double L00;
     double L01;
     double L11;
+
+    std::string toString(){
+        return "(" + std::to_string(L00) + ", " +
+                std::to_string(L01) + ", " +
+                std::to_string(L11) + ")";
+    }
 };
 
 struct Variant {

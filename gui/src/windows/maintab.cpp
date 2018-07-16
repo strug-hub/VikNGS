@@ -145,7 +145,6 @@ void MainWindow::on_main_randomBtn_pressed(){
 
 void MainWindow::on_main_runBtn_clicked()
 {
-
     greyOutput();
 
     if(!ui->main_runBtn->isEnabled())
