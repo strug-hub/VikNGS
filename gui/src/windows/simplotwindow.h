@@ -36,9 +36,9 @@ public slots:
 
 private slots:
 
-    void updateGenotypeTable(int index);
     void on_simplot_alphaDial_valueChanged(int value);
     void on_simplot_alphaTxt_textChanged(const QString &arg1);
+    void on_pushButton_pressed();
 
 private:
     Ui::SimPlotWindow *ui;
@@ -62,11 +62,12 @@ private:
     QVector<QColor> colours;
     QColor redLine = QColor(210, 80, 80, 125);
     QVector<QString> testTypes;
-    int stepIndexForPlot2;
+    int stepIndexForPlot2 = 0;
     int testIndexForPlot2;
     QVector<double> calculatePower(int testIndex, double alpha);
     int findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex=false);
     void buildPlot2(int stepIndex, int focusGraph = -1);
+    void updatePowerValues(int index);
 
     QCPItemLine *alphaLine;
     void updateAlphaLine();

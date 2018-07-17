@@ -57,7 +57,9 @@ SOURCES += \
     src/windows/simulationtab.cpp \
     ../src/Test/RareTestCollapseObject.cpp \
     src/global.cpp \
-    src/windows/qsimulationtab.cpp
+    src/windows/qsimulationtab.cpp \
+    src/windows/tabledisplaywindow.cpp \
+    src/windows/tabledisplaywindow.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -288,11 +290,14 @@ HEADERS += \
     ../src/Test/RareTestObject.h \
     ../src/Test/RareTestCollapseObject.h \
     ../src/Parser/BED/Interval.h \
-    src/global.h
+    src/global.h \
+    src/windows/tabledisplaywindow.h
 
 
 FORMS += \
     ui/mainwindow.ui \
     ui/plotwindow.ui \
-    ui/simplotwindow.ui
+    ui/simplotwindow.ui \
+    ui/tabledisplaywindow.ui
+
 

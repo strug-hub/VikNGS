@@ -1,5 +1,6 @@
 #include "simplotwindow.h"
 #include "ui_simplotwindow.h"
+#include "tabledisplaywindow.h"
 
 SimPlotWindow::SimPlotWindow(QWidget *parent) :
     QWidget(parent),
@@ -56,10 +57,15 @@ void SimPlotWindow::initialize(std::vector<std::vector<Variant>>& variants, Simu
     for(int i = 0; i < ntests; i++)
         testTypes.push_back(QString::fromStdString(variants[0][0].getPvalSource(i)));
 
-    if(req.underNull())
+    if(req.underNull()){
         this->yAxisLabel = "Type I Error";
-    else
+        ui->simplot_measureGrp->setTitle("Type I Error");
+    }
+    else{
         this->yAxisLabel = "Power";
+        ui->simplot_measureGrp->setTitle("Power");
+
+    }
 
     this->xAxisLabel = "Test";
     this->setWindowTitle("Plotter - " + title);
@@ -78,6 +84,11 @@ void SimPlotWindow::initialize(std::vector<std::vector<Variant>>& variants, Simu
 
     buildPlot();
     buildLegend();
+
+    stepIndexForPlot2 = 0;
+    buildPlot2(stepIndexForPlot2);
+    updatePowerValues(0);
+
 }
 
 void SimPlotWindow::updateSampleSize(int index){
@@ -121,65 +132,13 @@ std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std
     return keep;
 }
 
-void SimPlotWindow::updateGenotypeTable(int index){
+void SimPlotWindow::on_pushButton_pressed()
+{
 
-    ui->simplot_genoTbl->clearContents();
-
-    Variant v = variants[index][1];
-    int nrow = v.trueGenotype.rows();
-    ui->simplot_genoTbl->setRowCount(nrow);
-    ui->simplot_genoTbl->setColumnCount(4);
-    VectorXd g = request.getGroups(index);
-    VectorXd y = request.getCaseControlStatus(index);
-    QColor red = Qt::red;
-
-    Vector3d trueFrequency;
-    Vector3d calledFrequency;
-    double expectedSum;
-
-    for (int i = 0; i < nrow ; i++){
-
-        QString sampleInfo = y[i] == 1? "case":"control";
-        sampleInfo.append(" (" + QString::number(g[i]) + ")");
-        double trueGT = v.trueGenotype[i];
-        trueFrequency[trueGT]++;
-        double callGT = v.genotypeCalls[i];
-        calledFrequency[callGT]++;
-        double expectedGT = v.expectedGenotype[i];
-        expectedSum += expectedGT;
-
-        QTableWidgetItem * t = new QTableWidgetItem(QString::number(trueGT));
-        QTableWidgetItem * c = new QTableWidgetItem(QString::number(callGT));
-        red.setAlpha((std::abs(trueGT-callGT) / 2.0) * 255);
-        c->setBackgroundColor(red);
-
-        QTableWidgetItem * e = new QTableWidgetItem(QString::number(expectedGT));
-        red.setAlpha((std::abs(trueGT-expectedGT) / 2.0) * 255);
-        e->setBackgroundColor(red);
-
-
-        ui->simplot_genoTbl->setItem(i, 0,  new QTableWidgetItem(sampleInfo));
-        ui->simplot_genoTbl->setItem(i, 1, t);
-        ui->simplot_genoTbl->setItem(i, 2, c);
-        ui->simplot_genoTbl->setItem(i, 3, e);
-    }
-
-    ui->simplot_genoFreqTbl->clearContents();
-    ui->simplot_genoFreqTbl->setRowCount(3);
-    ui->simplot_genoFreqTbl->setColumnCount(4);
-
-    for (int i = 0; i < 3 ; i++){
-        ui->simplot_genoFreqTbl->setItem(0, i, new QTableWidgetItem(QString::number(trueFrequency[i])));
-        ui->simplot_genoFreqTbl->setItem(1, i, new QTableWidgetItem(QString::number(calledFrequency[i])));
-    }
-
-    double averageTrue = (trueFrequency[1] + 2*trueFrequency[2])/(nrow * 1.0);
-    double averageCalled = (calledFrequency[1] + 2*calledFrequency[2])/(nrow * 1.0);
-    double averageExpected = expectedSum/(nrow * 1.0);
-    ui->simplot_genoFreqTbl->setItem(0, 3, new QTableWidgetItem(QString::number(averageTrue)));
-    ui->simplot_genoFreqTbl->setItem(1, 3, new QTableWidgetItem(QString::number(averageCalled)));
-    ui->simplot_genoFreqTbl->setItem(2, 3, new QTableWidgetItem(QString::number(averageExpected)));
-
+    TableDisplayWindow *table = new TableDisplayWindow();
+    QString title = "Table";
+    table->initialize(title, variants[stepIndexForPlot2], request, stepIndexForPlot2);
+    table->show();
 }
 
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
@@ -187,9 +146,8 @@ void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
     if(closestIndex >= 0){
         stepIndexForPlot2 = closestIndex;
         buildPlot2(closestIndex);
-        updateGenotypeTable(closestIndex);
+        updatePowerValues(closestIndex);
     }
-
 }
 
 void SimPlotWindow::mouseClickPlot2(QMouseEvent *event){
@@ -296,6 +254,23 @@ QVector<double> SimPlotWindow::calculatePower(int testIndex, double alpha){
     return power;
 }
 
+void SimPlotWindow::updatePowerValues(int index){
+
+    ui->simplot_powerTbl->setColumnCount(2);
+    ui->simplot_powerTbl->setRowCount(ntests);
+
+    for(int i = 0; i < ntests; i++){
+        double power = ui->simplot_plot1->graph(i)->data().data()->at(index)->value;
+        ui->simplot_powerTbl->setItem(i, 1, new QTableWidgetItem(QString::number(power)));
+        QTableWidgetItem * c = new QTableWidgetItem("");
+        c->setBackgroundColor(colours[i]);
+        ui->simplot_powerTbl->setItem(i, 0, c);
+    }
+
+
+}
+
+
 void SimPlotWindow::buildPlot(){
 
     ui->simplot_plot1->clearPlottables();
@@ -306,7 +281,8 @@ void SimPlotWindow::buildPlot(){
             index.push_back(i);
 
     for(int i = 0; i < ntests; i++){
-            ui->simplot_plot1->graph()->setData(index, calculatePower(i, alpha));
+            QVector<double> power = calculatePower(i, alpha);
+            ui->simplot_plot1->graph()->setData(index, power);
             ui->simplot_plot1->graph()->setPen(QPen(colours[i], 2));
             ui->simplot_plot1->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
             //last layer is highlight layer
@@ -321,6 +297,8 @@ void SimPlotWindow::buildPlot(){
     ui->simplot_plot1->xAxis->setRange(0.95, ui->simplot_plot1->xAxis->range().upper + 0.05);
 
     ui->simplot_plot1->replot();
+
+
 }
 
 void SimPlotWindow::buildLegend(){
@@ -471,6 +449,7 @@ void SimPlotWindow::on_simplot_alphaDial_valueChanged(int value){
     ui->simplot_alphaTxt->setText(QString::number(alpha));
     buildPlot();
     updateAlphaLine();
+    updatePowerValues(stepIndexForPlot2);
 }
 
 void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
@@ -481,5 +460,8 @@ void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
         alpha = x;
         buildPlot();
         updateAlphaLine();
+        updatePowerValues(stepIndexForPlot2);
     }
 }
+
+

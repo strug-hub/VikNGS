@@ -32,6 +32,7 @@ public:
     std::vector<GenotypeLikelihood> likelihood;
     std::string chr;
     int pos;
+    double trueMaf;
     std::string ref;
     std::string alt;
     std::string filter;

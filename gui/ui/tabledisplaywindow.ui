@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TableDisplayWindow</class>
+ <widget class="QWidget" name="TableDisplayWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>721</width>
+    <height>575</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QGroupBox" name="table_variantGrp">
+     <property name="title">
+      <string>Variant - Genotype Frequency</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QTableWidget" name="table_variantTbl">
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <column>
+         <property name="text">
+          <string>MAF</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="table_genoGrp">
+     <property name="title">
+      <string>Genotypes</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QTableWidget" name="table_genoTbl">
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <column>
+         <property name="text">
+          <string>Sample</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>True GT</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>GT Call</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Expected GT</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="table_genoFreqGrp">
+     <property name="title">
+      <string>Genotype Frequency</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="QTableWidget" name="table_genoFreqTbl">
+        <column>
+         <property name="text">
+          <string>0</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>1</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Average</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

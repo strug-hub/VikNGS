@@ -20,8 +20,10 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
     VectorXd mafs = simulateMinorAlleleFrequency(nsnp, mafMin, mafMax);
 
     std::vector<Variant> variants;
-    for (int i = 0; i < nsnp; i++)
+    for (int i = 0; i < nsnp; i++){
         variants.push_back(randomVariant());
+        variants[i].trueMaf = mafs[i];
+    }
 
     std::map<int, SimulationRequestGroup> group;
     std::map<int, int> readGroup;
