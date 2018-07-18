@@ -390,8 +390,7 @@ Chromosome PlotWindow::generateRandomChromosome(int n, std::string chrom, int ma
 
         s.pos = (rand() % static_cast<int>(maxPos + 1));
         s.chr = chrom;
-        s.addPval((float) rand()/RAND_MAX, "random");
-
+        s.addPval((float) rand()/RAND_MAX, Test::NONE);
 
 
         c.addVariant(s);

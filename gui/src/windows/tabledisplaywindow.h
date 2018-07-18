@@ -2,9 +2,9 @@
 #define TABLEDISPLAYWINDOW_H
 
 #include <QWidget>
+#include "./checktree.h"
 #include "../src/Variant.h"
 #include "../simulation/simulation.h"
-
 
 namespace Ui {
 class TableDisplayWindow;
@@ -24,8 +24,8 @@ public slots:
 
 private slots:
     void fillGenotypeTable(int variantIndex);
-    void fillVariantTable();
-
+    void buildVariantTable();
+    void drawVariantCheckTree();
 
     void on_table_variantTbl_cellClicked(int row, int column);
 
@@ -35,6 +35,8 @@ private:
     SimulationRequest* request;
     VectorXd y;
     VectorXd g;
+    std::vector<CheckTree*> variantCheckTree;
+
 };
 
 #endif // TABLEDISPLAYWINDOW_H

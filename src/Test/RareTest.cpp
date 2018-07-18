@@ -167,22 +167,20 @@ std::vector<Variant> runRareTest(Request req, TestInput input) {
             printWarning("Problem occured while running test on a variant block (...). Assigning a p-value of 1");
     }
 
-    std::string testType;
+    Test testType;
 
     if(req.regularTest){
         if(req.useTrueGenotypes)
-            testType = "True Genotypes";
+            testType = Test::COMMON_REGULAR_TRUE;
         else
-            testType = "Regular Test";
+            testType = Test::COMMON_REGULAR_GTCALL;
     }
     else{
         if(req.rvs)
-            testType = "RVS Genotype Likelihoods";
+            testType = Test::COMMON_LIKELIHOOD_RVS;
         else
-            testType = "Genotype Likelihoods";
+            testType = Test::COMMON_LIKELIHOOD_NORVS;
     }
-
-    testType = testType + " - " + test;
 
     for(int j = 0; j < input.collapse[k].size(); j++)
         input.variants[input.collapse[k][j]].addPval(pval, testType);

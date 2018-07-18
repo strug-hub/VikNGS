@@ -23,10 +23,15 @@ struct GenotypeLikelihood {
     }
 };
 
+enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
+                  COMMON_REGULAR_TRUE, COMMON_REGULAR_GTCALL,
+                  RARE_LIKELIHOOD_RVS, RARE_LIKELIHOOD_NORVS,
+                  RARE_REGULAR_TRUE, RARE_REGULAR_GTCALL, NONE };
+
 struct Variant {
 private:
     std::vector<double> pvalues;
-    std::vector<std::string> psource;
+    std::vector<Test> psource;
 
 public:
     std::vector<GenotypeLikelihood> likelihood;
@@ -74,13 +79,61 @@ public:
         expectedGenotype = empty;
     }
 
-    inline void addPval(double pval, std::string psource) {
+    inline void addPval(double pval, Test psource) {
         this->pvalues.push_back(pval);
         this->psource.push_back(psource);
     }
 
     inline double getPval(int i) { return pvalues[i]; }
-    inline std::string getPvalSource(int i) { return psource[i]; }
+    inline std::string getPvalSource(int i) {
+
+        switch(psource[i])
+        {
+            case Test::COMMON_LIKELIHOOD_RVS :
+               return "RVS Genotype Likelihoods - common";
+            case Test::COMMON_LIKELIHOOD_NORVS :
+               return "Genotype Likelihoods - common";
+            case Test::COMMON_REGULAR_TRUE :
+               return "True Genotype - common";
+            case Test::COMMON_REGULAR_GTCALL :
+                return "Regular Genotype Calls - common";
+            case Test::RARE_LIKELIHOOD_RVS :
+               return "RVS Genotype Likelihoods - rare";
+            case Test::RARE_LIKELIHOOD_NORVS :
+               return "Genotype Likelihoods - rare";
+            case Test::RARE_REGULAR_TRUE :
+               return "True Genotype - rare";
+            case Test::RARE_REGULAR_GTCALL :
+                return "Regular Genotype Calls - rare";
+            default:
+                  return "???";
+         }
+    }
+
+    inline std::string getPvalSourceShort(int i) {
+
+        switch(psource[i])
+        {
+            case Test::COMMON_LIKELIHOOD_RVS :
+               return "RVS";
+            case Test::COMMON_LIKELIHOOD_NORVS :
+               return "no RVS";
+            case Test::COMMON_REGULAR_TRUE :
+               return "True GT";
+            case Test::COMMON_REGULAR_GTCALL :
+                return "GT calls";
+            case Test::RARE_LIKELIHOOD_RVS :
+                return "RVS";
+            case Test::RARE_LIKELIHOOD_NORVS :
+                return "no RVS";
+            case Test::RARE_REGULAR_TRUE :
+                return "True GT";
+            case Test::RARE_REGULAR_GTCALL :
+                return "GT calls";
+            default:
+                  return "???";
+         }
+    }
 
     inline int nPvals() { return this->pvalues.size(); }
 

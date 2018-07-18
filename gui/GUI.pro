@@ -58,7 +58,6 @@ SOURCES += \
     ../src/Test/RareTestCollapseObject.cpp \
     src/global.cpp \
     src/windows/qsimulationtab.cpp \
-    src/windows/tabledisplaywindow.cpp \
     src/windows/tabledisplaywindow.cpp
 
 HEADERS += \
@@ -291,7 +290,8 @@ HEADERS += \
     ../src/Test/RareTestCollapseObject.h \
     ../src/Parser/BED/Interval.h \
     src/global.h \
-    src/windows/tabledisplaywindow.h
+    src/windows/tabledisplaywindow.h \
+    src/windows/checktree.h
 
 
 FORMS += \

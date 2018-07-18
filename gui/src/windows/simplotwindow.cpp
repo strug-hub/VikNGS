@@ -262,12 +262,10 @@ void SimPlotWindow::updatePowerValues(int index){
     for(int i = 0; i < ntests; i++){
         double power = ui->simplot_plot1->graph(i)->data().data()->at(index)->value;
         ui->simplot_powerTbl->setItem(i, 1, new QTableWidgetItem(QString::number(power)));
-        QTableWidgetItem * c = new QTableWidgetItem("");
+        QTableWidgetItem * c = new QTableWidgetItem(QString::fromStdString(variants[index][0].getPvalSourceShort(i)));
         c->setBackgroundColor(colours[i]);
         ui->simplot_powerTbl->setItem(i, 0, c);
     }
-
-
 }
 
 

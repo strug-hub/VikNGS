@@ -167,22 +167,20 @@ std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
                          input.variants[i].info() + "). Assigning a p-value of 1");
         }
 
-        std::string testType;
+        Test testType;
 
         if(req.regularTest){
             if(req.useTrueGenotypes)
-                testType = "True Genotypes";
+                testType = Test::COMMON_REGULAR_TRUE;
             else
-                testType = "Regular Test";
+                testType = Test::COMMON_REGULAR_GTCALL;
         }
         else{
             if(req.rvs)
-                testType = "RVS Genotype Likelihoods";
+                testType = Test::COMMON_LIKELIHOOD_RVS;
             else
-                testType = "Genotype Likelihoods";
+                testType = Test::COMMON_LIKELIHOOD_NORVS;
         }
-
-        testType = testType + " - common";
 
         input.variants[i].addPval(pval, testType);
         output.emplace_back(input.variants[i]);

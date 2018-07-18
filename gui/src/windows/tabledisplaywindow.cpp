@@ -1,5 +1,4 @@
 #include "tabledisplaywindow.h"
-
 #include "ui_tabledisplaywindow.h"
 
 TableDisplayWindow::TableDisplayWindow(QWidget *parent) :
@@ -24,7 +23,7 @@ void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variant
     this->request = &request;
     this->g = request.getGroups(index);
     this->y = request.getCaseControlStatus(index);
-    fillVariantTable();
+    buildVariantTable();
 }
 
 void TableDisplayWindow::fillGenotypeTable(int variantIndex){
@@ -85,21 +84,82 @@ void TableDisplayWindow::fillGenotypeTable(int variantIndex){
     ui->table_genoFreqTbl->setItem(2, 3, new QTableWidgetItem(QString::number(averageExpected)));
 }
 
-void TableDisplayWindow::fillVariantTable(){
+
+
+void TableDisplayWindow::drawVariantCheckTree(){
+
+    for(CheckTree* tree : variantCheckTree){
+        QTreeWidgetItem* branch = tree->draw();
+        ui->table_checkTre->addTopLevelItem(branch);
+        connect(ui->table_checkTre, SIGNAL(itemSelectionChanged()),
+                tree, SLOT(updateState()));
+    }
+}
+
+
+void TableDisplayWindow::buildVariantTable(){
 
     ui->table_variantTbl->clearContents();
-
     int nrow = variants->size();
-    ui->table_variantTbl->setRowCount(nrow);
-    ui->table_variantTbl->setColumnCount(4);
+
+    QColor pvalColour = QColor(234, 183, 53, 255);
+    QColor frequencyColour = QColor(194, 214, 211);
+
+    QStringList titles;
+
+    CheckTree* info;
+    info->initalize("Variant Info");
+    info->addChild("CHROM", 0);
+    info->addChild("POS", 1);
+    info->addChild("REF", 2);
+    info->addChild("ALT", 3);
+    variantCheckTree.push_back(info);
+
+    titles.append("CHROM");
+    titles.append("POS");
+    titles.append("REF");
+    titles.append("ALT");
+    QVector<QString> chr(nrow);
+    QVector<QString> pos(nrow);
+    QVector<QString> ref(nrow);
+    QVector<QString> alt(nrow);
+
+    QVector<QVector<double>> pvals(nrow);
+    QVector<QVector<double>> maf(nrow);
+
+    for (int i = 0; i < variants->at(0).nPvals(); i++)
+        titles.append(QString::fromStdString(variants->at(0).getPvalSourceShort(i)) + " pval");
 
     for (int i = 0; i < nrow ; i++){
-
-        ui->table_variantTbl->setItem(i, 0, new QTableWidgetItem(QString::number(variants->at(i).trueMaf)));
-        ui->table_variantTbl->setItem(i, 1, new QTableWidgetItem(QString::number(variants->at(i).P[0])));
-        ui->table_variantTbl->setItem(i, 2, new QTableWidgetItem(QString::number(variants->at(i).P[1])));
-        ui->table_variantTbl->setItem(i, 3, new QTableWidgetItem(QString::number(variants->at(i).P[2])));
+        chr[i] = (QString::fromStdString(variants->at(i).chr));
+        pos[i] = (QString::number(variants->at(i).pos));
+        ref[i] = (QString::fromStdString(variants->at(i).ref));
+        alt[i] =(QString::fromStdString(variants->at(i).alt));
+        QVector<double> pval;
+        for (int j = 0; j < variants->at(i).nPvals(); j++)
+            pval.push_back(variants->at(i).getPval(j));
+        pvals[i] = pval;
     }
+
+    int ncol = 4 + pvals[0].size();
+    ui->table_variantTbl->setColumnCount(ncol);
+    ui->table_variantTbl->setRowCount(nrow);
+    for (int i = 0; i < nrow ; i++){
+
+        ui->table_variantTbl->setItem(i, 0, new QTableWidgetItem(chr[i]));
+        ui->table_variantTbl->setItem(i, 1, new QTableWidgetItem(pos[i]));
+        ui->table_variantTbl->setItem(i, 2, new QTableWidgetItem(ref[i]));
+        ui->table_variantTbl->setItem(i, 3, new QTableWidgetItem(alt[i]));
+        for (int j = 0; j < pvals[i].size(); j++){
+            pvalColour.setAlpha( (-log(pvals[i][j]+1e-14)/10)*255 );
+            QTableWidgetItem* pcell = new QTableWidgetItem(QString::number(pvals[i][j]));
+            pcell->setBackgroundColor(pvalColour);
+            ui->table_variantTbl->setItem(i, 4+j, pcell);
+        }
+    }
+
+    ui->table_variantTbl->setHorizontalHeaderLabels(titles);
+    drawVariantCheckTree();
 }
 
 
