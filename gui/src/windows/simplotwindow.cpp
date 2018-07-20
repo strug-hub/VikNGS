@@ -456,10 +456,9 @@ void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
     double x = arg1.toDouble(&ok);
     if(ok && x >= 0 && x <=1){
         alpha = x;
+
         buildPlot();
         updateAlphaLine();
         updatePowerValues(stepIndexForPlot2);
     }
 }
-
-

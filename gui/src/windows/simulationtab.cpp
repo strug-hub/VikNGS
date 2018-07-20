@@ -82,7 +82,7 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
             throw std::runtime_error("highLow");
         }
 
-        g.isHrg = g.meanDepth < highLow;
+        g.isHrg = g.meanDepth >= highLow;
         g.isCaseControl=true;
         groups.push_back(g);
     }

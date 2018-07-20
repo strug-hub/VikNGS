@@ -730,7 +730,7 @@
              <item row="1" column="0">
               <widget class="QLineEdit" name="sim_powerStepTxt">
                <property name="text">
-                <string>5</string>
+                <string>2</string>
                </property>
               </widget>
              </item>

@@ -230,13 +230,13 @@ VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max);
 std::vector<VectorXd> simulateG(SimulationRequest& simReq);
 std::vector<VectorXd> simulateY(SimulationRequest& simReq);
 std::vector<MatrixXd> simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf, int collapse=1);
-std::vector<GenotypeLikelihood> generateSeqData(VectorXd& x, SimulationRequestGroup& group);
 
-std::vector<int> baseCalls(int trueGenotype, double error, int readDepth);
+std::vector<int> generateReadDepths(VectorXd& x, double meanDepth, double depthSd);
+std::vector<std::vector<int>> generateBaseCalls(VectorXd& x, double errorRate, std::vector<int>& readDepths);
+std::vector<GenotypeLikelihood> generateLikelihoods(VectorXd& x, double errorRate, std::vector<std::vector<int>>& baseCalls);
 
 double inline generateGenotype(double prob_x0, double prob_x1);
 
-GenotypeLikelihood calculateLikelihood(std::vector<char> &bases, double error);
 VectorXd calculateExpectedGenotypes(std::vector<GenotypeLikelihood>& gl, VectorXd& p);
 VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl);
 Variant randomVariant();

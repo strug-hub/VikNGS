@@ -256,22 +256,35 @@ GenotypeLikelihood calculateLikelihood(std::vector<int> &bases, double error) {
     return gl;
 }
 
-std::vector<GenotypeLikelihood> generateSeqData(VectorXd& x, SimulationRequestGroup& group) {
-    double mean = group.meanDepth;
-    double sd = group.sdDepth;
-    double error = group.errorRate;
-    int rd;
+std::vector<int> generateReadDepths(VectorXd& x, double meanDepth, double depthSd) {
+
+    std::vector<int> readDepths;
+
+    for (int i = 0; i < x.rows(); i++) {
+        int rd = std::round(randomNormal(meanDepth, depthSd));
+        readDepths.push_back( std::max(rd, 1) );
+    }
+
+    return readDepths;
+}
+
+std::vector<std::vector<int>> generateBaseCalls(VectorXd& x, double errorRate, std::vector<int>& readDepths) {
+
+    std::vector<std::vector<int>> calls;
+
+    for (int i = 0; i < x.rows(); i++)
+        calls.push_back( baseCalls(x[i], errorRate, readDepths[i]) );
+
+    return calls;
+}
+
+
+std::vector<GenotypeLikelihood> generateLikelihoods(VectorXd& x, double errorRate, std::vector<std::vector<int>>& baseCalls) {
 
     std::vector<GenotypeLikelihood> likelihoods;
 
-    for (int i = 0; i < x.rows(); i++) {
-
-        rd = std::round(randomNormal(mean, sd));
-        rd = std::max(rd, 1);
-        std::vector<int> bases = baseCalls(x[i], error, rd);
-
-        likelihoods.emplace_back(calculateLikelihood(bases, error));
-    }
+    for (int i = 0; i < x.rows(); i++)
+        likelihoods.emplace_back(calculateLikelihood(baseCalls[i], errorRate));
 
     return likelihoods;
 }
@@ -337,19 +350,34 @@ Variant randomVariant(){
 
     Variant v;
 
-    int rref = randomInt(0,3);
-    int ralt = randomInt(0,3);
+    int refalt = randomInt(0,11);
     int rchr = randomInt(0,23);
 
-    if(rref==0) v.ref = "T";
-    if(rref==1) v.ref = "C";
-    if(rref==2) v.ref = "A";
-    if(rref==3) v.ref = "G";
+    if(refalt==0) v.ref = "A";
+    else if(refalt==1) v.ref = "A";
+    else if(refalt==2) v.ref = "A";
+    else if(refalt==3) v.ref = "T";
+    else if(refalt==4) v.ref = "T";
+    else if(refalt==5) v.ref = "T";
+    else if(refalt==6) v.ref = "C";
+    else if(refalt==7) v.ref = "C";
+    else if(refalt==8) v.ref = "C";
+    else if(refalt==9) v.ref = "G";
+    else if(refalt==10) v.ref = "G";
+    else if(refalt==11) v.ref = "G";
 
-    if(ralt==0) v.alt = "T";
-    if(ralt==1) v.alt = "C";
-    if(ralt==2) v.alt = "A";
-    if(ralt==3) v.alt = "G";
+    if(refalt==0) v.alt = "T";
+    else if(refalt==1) v.alt = "G";
+    else if(refalt==2) v.alt = "C";
+    else if(refalt==3) v.alt = "A";
+    else if(refalt==4) v.alt = "G";
+    else if(refalt==5) v.alt = "C";
+    else if(refalt==6) v.alt = "T";
+    else if(refalt==7) v.alt = "A";
+    else if(refalt==8) v.alt = "G";
+    else if(refalt==9) v.alt = "C";
+    else if(refalt==10) v.alt = "A";
+    else if(refalt==11) v.alt = "T";
 
     if(rchr==0){ v.chr = "1"; v.pos = randomInt(0, 248956422);}
     if(rchr==1){ v.chr = "2"; v.pos = randomInt(0, 242193529);}

@@ -71,9 +71,20 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
 
             int groupID = G[i][j];
             VectorXd x_i = X_[i].col(j);
-            std::vector<GenotypeLikelihood> likelihoods = generateSeqData(x_i, group.at(groupID));
-            for(int k = 0; k < nsnp; k++)
+
+            double meanDepth = group.at(groupID).meanDepth;
+            double depthSd = group.at(groupID).sdDepth;
+            double errorRate = group.at(groupID).errorRate;
+
+            std::vector<int> readDepths = generateReadDepths(x_i, meanDepth, depthSd);
+            std::vector<std::vector<int>> baseCalls = generateBaseCalls(x_i, errorRate, readDepths);
+            std::vector<GenotypeLikelihood> likelihoods = generateLikelihoods(x_i, errorRate, baseCalls);
+
+            for(int k = 0; k < nsnp; k++){
                 variants[k].likelihood.emplace_back(likelihoods[k]);
+                variants[k].readDepths.push_back(readDepths[k]);
+                variants[k].baseCalls.push_back(baseCalls[k]);
+            }
         }
 
         if(i == 0){

@@ -30,7 +30,7 @@ enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
 
 struct Variant {
 private:
-    std::vector<double> pvalues;
+    std::vector<double> pvalues;    
     std::vector<Test> psource;
 
 public:
@@ -45,6 +45,8 @@ public:
     VectorXd expectedGenotype;
     VectorXd trueGenotype;
     VectorXd genotypeCalls;
+    std::vector<int> readDepths;
+    std::vector<std::vector<int>> baseCalls;
 
     Interval interval;
 
