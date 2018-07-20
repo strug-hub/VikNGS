@@ -16,13 +16,28 @@ TableDisplayWindow::~TableDisplayWindow()
     delete ui;
 }
 
-void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variants, SimulationRequest& request, int index){
+void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variants, SimulationRequest& simRequest, int index){
+
+    simulation = true;
 
     this->setWindowTitle("Table - " + title);
     this->variants = &variants;
-    this->request = &request;
-    this->g = request.getGroups(index);
-    this->y = request.getCaseControlStatus(index);
+    this->simRequest = &simRequest;
+    this->g = simRequest.getGroups(index);
+    this->y = simRequest.getCaseControlStatus(index);
+    buildVariantTable();
+}
+
+
+void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variants, TestInput& input, int index){
+
+    simulation = false;
+    this->setWindowTitle("Table - " + title);
+    this->variants = &variants;
+    this->input = &input;
+    //todo
+    //this->g = request.getGroups(index);
+    //this->y = request.getCaseControlStatus(index);
     buildVariantTable();
 }
 
@@ -105,168 +120,229 @@ void TableDisplayWindow::drawVariantCheckTree(){
 }
 
 
+void TableDisplayWindow::addInfo(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table){
+
+    titles.append("index");
+    titles.append("CHROM");
+    titles.append("POS");
+    titles.append("REF");
+    titles.append("ALT");
+
+    //    CheckTree* info;
+    //    info->initalize("Variant Info");
+    //    info->addChild("CHROM", 0);
+     //   info->addChild("POS", 1);
+      //  info->addChild("REF", 2);
+     //   info->addChild("ALT", 3);
+     //   variantCheckTree.push_back(info);
+
+
+    QVector<QTableWidgetItem*> index(nrow);
+    QVector<QTableWidgetItem*> chr(nrow);
+    QVector<QTableWidgetItem*> pos(nrow);
+    QVector<QTableWidgetItem*> ref(nrow);
+    QVector<QTableWidgetItem*> alt(nrow);
+
+    for (int i = 0; i < nrow ; i++){
+        index[i] = new QTableWidgetItem(QString::number(i));
+        chr[i] = new QTableWidgetItem(QString::fromStdString(variants->at(i).chr));
+        pos[i] = new QTableWidgetItem(QString::number(variants->at(i).pos));
+        ref[i] = new QTableWidgetItem(QString::fromStdString(variants->at(i).ref));
+        alt[i] = new QTableWidgetItem(QString::fromStdString(variants->at(i).alt));
+    }
+
+    table.push_back(index);
+    table.push_back(chr);
+    table.push_back(pos);
+    table.push_back(ref);
+    table.push_back(alt);
+
+    return;
+}
+
+
+void TableDisplayWindow::addPvals(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table){
+
+    QColor pvalColour = QColor(234, 183, 53, 255);
+
+    for (int j = 0; j < variants->at(0).nPvals(); j++){
+        titles.append(QString::fromStdString(variants->at(0).getPvalSourceShort(j)) + " pval");
+
+        QVector<QTableWidgetItem*> pvals(nrow);
+        for (int i = 0; i < nrow ; i++){
+            double pval = variants->at(i).getPval(j);
+            pvalColour.setAlpha( std::min(255.0, (-log(pval+1e-14)/10)*255 ));
+            QTableWidgetItem* pcell = new QTableWidgetItem(QString::number(pval));
+            pcell->setBackgroundColor(pvalColour);
+            pvals[i] = pcell;
+        }
+
+        table.push_back(pvals);
+    }
+
+    return;
+}
+
+void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt, QString caseControl){
+
+    QString title = "MAF (";
+    if(gt == "true")
+        title.append("true");
+    else if(gt == "calls")
+        title.append("call");
+    else if(gt == "expected")
+        title.append("exp");
+
+    if(caseControl == "case")
+        title.append(", case)");
+    else if(gt == "control")
+        title.append(", control)");
+    else
+        title.append(")");
+
+    titles.append(title);
+
+    QVector<QTableWidgetItem*> mafs(nrow);
+    QColor mafColour = QColor(194, 214, 211);
+
+    int ncase = y.sum();
+    int ncontrol = (1-y.array()).sum();
+
+    for (int i = 0; i < nrow ; i++){
+
+        double maf;
+        if(caseControl == "case" && gt == "true")
+            maf = (variants->at(i).trueGenotype.array() * y.array()).sum() / (2*ncase);
+        else if(caseControl == "case" && gt == "expected")
+            maf = (variants->at(i).expectedGenotype.array() * y.array()).sum() / (2*ncase);
+        else if(caseControl == "case" && gt == "calls")
+            maf = (variants->at(i).genotypeCalls.array() * y.array()).sum() / (2*ncase);
+        else if(caseControl == "control" && gt == "true")
+            maf = (variants->at(i).trueGenotype.array() * (1-y.array())).sum() / (2*ncontrol);
+        else if(caseControl == "control" && gt == "calls")
+            maf = (variants->at(i).genotypeCalls.array() * (1-y.array())).sum() / (2*ncontrol);
+        else if(caseControl == "control" && gt == "expected")
+            maf = (variants->at(i).expectedGenotype.array() * (1-y.array())).sum() / (2*ncontrol);
+        else if(gt == "true")
+            maf = variants->at(i).trueGenotype.mean()/2;
+        else if (gt == "expected")
+            maf = variants->at(i).expectedGenotype.mean()/2;
+        else if (gt == "calls")
+            maf = variants->at(i).genotypeCalls.mean()/2;
+
+        mafColour.setAlpha(std::min(255.0, maf*255*2));
+        QTableWidgetItem* mcell = new QTableWidgetItem(QString::number(maf));
+        mcell->setBackgroundColor(mafColour);
+        mafs[i] = mcell;
+
+    }
+
+    table.push_back(mafs);
+
+    return;
+}
+
+
+void TableDisplayWindow::addGtFreq(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt, QString caseControl){
+
+    QString suffix = "Freq (";
+    if(gt == "true")
+        suffix.append("true");
+    else if(gt == "calls")
+        suffix.append("call");
+
+    if(caseControl == "case")
+        suffix.append(", case)");
+    else if(gt == "control")
+        suffix.append(", control)");
+    else
+        suffix.append(")");
+
+    titles.append(QString("0_").append(suffix));
+    titles.append(QString("1_").append(suffix));
+    titles.append(QString("2_").append(suffix));
+
+    QVector<QTableWidgetItem*> freq0(nrow);
+    QVector<QTableWidgetItem*> freq1(nrow);
+    QVector<QTableWidgetItem*> freq2(nrow);
+
+    for (int i = 0; i < nrow ; i++){
+
+        if(caseControl == "case" && y[i]==0)
+            continue;
+        if(caseControl == "control" && y[i]==1)
+            continue;
+
+        int _0 = 0;
+        int _1 = 0;
+        int _2 = 0;
+        double genotype = -1;
+
+        if(gt == "true"){
+            for (int j = 0; j < variants->at(i).trueGenotype.rows() ; j++){
+                genotype = variants->at(i).trueGenotype[j];
+                if(genotype == 0) _0++;
+                else if (genotype == 1) _1++;
+                else _2++;
+               }
+        }
+
+        else if(gt == "calls"){
+            for (int j = 0; j < variants->at(i).genotypeCalls.rows() ; j++){
+                genotype = variants->at(i).genotypeCalls[j];
+                if(genotype == 0) _0++;
+                else if (genotype == 1) _1++;
+                else _2++;
+            }
+        }
+
+        freq0[i] = new QTableWidgetItem(QString::number(_0));
+        freq1[i] = new QTableWidgetItem(QString::number(_1));
+        freq2[i] = new QTableWidgetItem(QString::number(_2));
+    }
+
+    table.push_back(freq0);
+    table.push_back(freq1);
+    table.push_back(freq2);
+
+    return;
+}
+
+
 void TableDisplayWindow::buildVariantTable(){
 
     ui->table_variantTbl->clearContents();
     int nrow = variants->size();
 
-    QColor pvalColour = QColor(234, 183, 53, 255);
-    QColor mafColour = QColor(194, 214, 211);
-
     QStringList titles;
+    QVector<QVector<QTableWidgetItem*>> table;
 
-//    CheckTree* info;
-//    info->initalize("Variant Info");
-//    info->addChild("CHROM", 0);
- //   info->addChild("POS", 1);
-  //  info->addChild("REF", 2);
- //   info->addChild("ALT", 3);
- //   variantCheckTree.push_back(info);
+    addInfo(nrow, titles, table);
+    addPvals(nrow, titles, table);
+    addMafs(nrow, titles, table, "true");
+    addMafs(nrow, titles, table, "calls");
+    addMafs(nrow, titles, table, "expected");
+    addMafs(nrow, titles, table, "true", "case");
+    addMafs(nrow, titles, table, "true", "control");
+    addMafs(nrow, titles, table, "calls", "case");
+    addMafs(nrow, titles, table, "calls", "control");
+    addMafs(nrow, titles, table, "expected", "case");
+    addMafs(nrow, titles, table, "expected", "control");
 
-    titles.append("index");
-    QVector<QString> index(nrow);
-
-
-    titles.append("CHROM");
-    titles.append("POS");
-    titles.append("REF");
-    titles.append("ALT");
-    QVector<QString> chr(nrow);
-    QVector<QString> pos(nrow);
-    QVector<QString> ref(nrow);
-    QVector<QString> alt(nrow);
-
-    QVector<QVector<double>> pvals(nrow);
-    QVector<QVector<double>> mafs(nrow);
-
-
-    QVector<QVector<QString>> freq(nrow);
-
-    QVector<double> miscall(nrow);
-
-    titles.append("Miscall");
-
-    for (int i = 0; i < variants->at(0).nPvals(); i++)
-        titles.append(QString::fromStdString(variants->at(0).getPvalSourceShort(i)) + " pval");
-
-
-
-    titles.append("MAF (true)");
-    titles.append("MAF (sample)");
-    titles.append("MAF (GT calls)");
-    titles.append("MAF (expected GT)");
-
-    titles.append("MAF (true, case)");
-    titles.append("MAF (true, control)");
-    titles.append("MAF (call, case)");
-    titles.append("MAF (call, control)");
-    titles.append("MAF (exp, case)");
-    titles.append("MAF (exp, control)");
-
-    titles.append("GT Freq 0");
-    titles.append("GT Freq 1");
-    titles.append("GT Freq 2");
-
-
-    for (int i = 0; i < nrow ; i++){
-        index[i] = QString::number(i);
-
-        chr[i] = (QString::fromStdString(variants->at(i).chr));
-        pos[i] = (QString::number(variants->at(i).pos));
-        ref[i] = (QString::fromStdString(variants->at(i).ref));
-        alt[i] =(QString::fromStdString(variants->at(i).alt));
-        QVector<double> pval;
-        for (int j = 0; j < variants->at(i).nPvals(); j++)
-            pval.push_back(variants->at(i).getPval(j));
-        pvals[i] = pval;
-
-        QVector<double> maf;
-
-        maf.push_back(variants->at(i).trueMaf);
-        maf.push_back(variants->at(i).trueGenotype.mean()/2);
-        maf.push_back(variants->at(i).genotypeCalls.mean()/2);
-        maf.push_back(variants->at(i).expectedGenotype.mean()/2);
-
-        int ncase = y.sum();
-        int ncontrol = (1-y.array()).sum();
-
-        maf.push_back(((variants->at(i).trueGenotype.array() * y.array()).sum()/2) / ncase);
-        maf.push_back(((variants->at(i).trueGenotype.array() * (1-y.array())).sum()/2) / ncontrol);
-        maf.push_back(((variants->at(i).genotypeCalls.array() * y.array()).sum()/2) / ncase);
-        maf.push_back(((variants->at(i).genotypeCalls.array() * (1-y.array())).sum()/2) / ncontrol);
-        maf.push_back(((variants->at(i).expectedGenotype.array() * y.array()).sum()/2 / ncase));
-        maf.push_back(((variants->at(i).expectedGenotype.array() * (1-y.array())).sum()/2 / ncontrol));
-
-
-        mafs[i] = maf;
-
-        miscall[i] =(variants->at(i).genotypeCalls.array() - variants->at(i).trueGenotype.array()).abs().sum();
-
-        QVector<QString> fq;
-        int freq0 = 0;
-        int freq1 = 0;
-        int freq2 = 0;
-
-        int freq0t = 0;
-        int freq1t = 0;
-        int freq2t = 0;
-
-        for(int j = 0; j < variants->at(i).genotypeCalls.rows(); j++){
-            freq0t +=(variants->at(i).trueGenotype[j]==0? 1:0);
-            freq1t +=(variants->at(i).trueGenotype[j]==1? 1:0);
-            freq2t +=(variants->at(i).trueGenotype[j]==2? 1:0);
-
-            freq0+=(variants->at(i).genotypeCalls[j]==0? 1:0);
-            freq1+=(variants->at(i).genotypeCalls[j]==1? 1:0);
-            freq2+=(variants->at(i).genotypeCalls[j]==2? 1:0);
-
-
-        }
-
-        fq.push_back(QString::number(freq0t).append("/").append(QString::number(freq0)));
-        fq.push_back(QString::number(freq1t).append("/").append(QString::number(freq1)));
-        fq.push_back(QString::number(freq2t).append("/").append(QString::number(freq2)));
-
-        freq[i] = fq;
-    }
+    addGtFreq(nrow, titles, table, "true");
+    addGtFreq(nrow, titles, table, "calls");
 
     int ncol = titles.size();
     ui->table_variantTbl->setColumnCount(ncol);
     ui->table_variantTbl->setRowCount(nrow);
-    for (int i = 0; i < nrow ; i++){
-        ui->table_variantTbl->setItem(i, 0, new QTableWidgetItem(index[i]));
-
-        ui->table_variantTbl->setItem(i, 1, new QTableWidgetItem(chr[i]));
-        ui->table_variantTbl->setItem(i, 2, new QTableWidgetItem(pos[i]));
-        ui->table_variantTbl->setItem(i, 3, new QTableWidgetItem(ref[i]));
-        ui->table_variantTbl->setItem(i, 4, new QTableWidgetItem(alt[i]));
-
-        ui->table_variantTbl->setItem(i, 5, new QTableWidgetItem(QString::number(miscall[i])));
-
-        int npval = pvals[i].size();
-        for (int j = 0; j < npval; j++){
-            pvalColour.setAlpha( std::min(255.0, (-log(pvals[i][j]+1e-14)/10)*255 ));
-            QTableWidgetItem* pcell = new QTableWidgetItem(QString::number(pvals[i][j]));
-            pcell->setBackgroundColor(pvalColour);
-            ui->table_variantTbl->setItem(i, 6+j, pcell);
-        }
-
-        int nmafs=mafs[i].size();
-        for (int j = 0; j < nmafs; j++){
-            mafColour.setAlpha(std::min(255.0, mafs[i][j]*255*2));
-            QTableWidgetItem* mcell = new QTableWidgetItem(QString::number(mafs[i][j]));
-            mcell->setBackgroundColor(mafColour);
-            ui->table_variantTbl->setItem(i, npval+6+j, mcell);
-        }
-
-        ui->table_variantTbl->setItem(i, nmafs+npval+6, new QTableWidgetItem(freq[i][0]));
-        ui->table_variantTbl->setItem(i, nmafs+npval+6+1, new QTableWidgetItem(freq[i][1]));
-        ui->table_variantTbl->setItem(i, nmafs+npval+6+2, new QTableWidgetItem(freq[i][2]));
-
-    }
-
     ui->table_variantTbl->setHorizontalHeaderLabels(titles);
-  //  drawVariantCheckTree();
+
+    for(int i = 0; i < table.size(); i++)
+        for(int j = 0; j < table[i].size(); j++)
+            ui->table_variantTbl->setItem(j,i,table[i][j]);
+
+
+    //  drawVariantCheckTree();*/
 }
 
 void TableDisplayWindow::displayCalls(int index){
@@ -331,6 +407,8 @@ void TableDisplayWindow::on_table_variantTbl_cellClicked(int row, int column){
 
 void TableDisplayWindow::on_table_genoTbl_currentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-    int index = ui->table_genoTbl->item(currentRow,0)->text().toInt();
-    displayCalls(index);
+    if(currentRow >= 0){
+        int index = ui->table_genoTbl->item(currentRow,0)->text().toInt();
+        displayCalls(index);
+    }
 }

@@ -134,7 +134,6 @@ std::vector<std::vector<Variant>> SimPlotWindow::filterCollapsed(std::vector<std
 
 void SimPlotWindow::on_pushButton_pressed()
 {
-
     TableDisplayWindow *table = new TableDisplayWindow();
     QString title = "Table";
     table->initialize(title, variants[stepIndexForPlot2], request, stepIndexForPlot2);

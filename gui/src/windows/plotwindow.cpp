@@ -457,3 +457,12 @@ void PlotWindow::setRandomChromosomes(int n){
 
 
 }
+
+void PlotWindow::on_plot_genotypeBtn_pressed()
+{
+    TableDisplayWindow *table = new TableDisplayWindow();
+    QString title = "Table";
+    //todo
+    //table->initialize(title, ], request, stepIndexForPlot2);
+    //table->show();
+}

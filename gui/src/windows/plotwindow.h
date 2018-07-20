@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "../src/Variant.h"
 #include "../widgets/qcustomplot.h"
+#include "./tabledisplaywindow.h"
 
 class Chromosome{
 private:
@@ -115,6 +116,9 @@ public slots:
 
     QCPGraph* getGraphByName(QCustomPlot *plot, QString name);
     Variant findClosestVariant(double x, double y, double maxDist);
+
+private slots:
+    void on_plot_genotypeBtn_pressed();
 
 private:
     Ui::PlotWindow *ui;  

@@ -1,7 +1,7 @@
 #ifndef TABLEDISPLAYWINDOW_H
 #define TABLEDISPLAYWINDOW_H
 
-#include <QWidget>
+#include <QTableWidgetItem>
 #include "./checktree.h"
 #include "../src/Variant.h"
 #include "../simulation/simulation.h"
@@ -20,7 +20,8 @@ public:
 
 public slots:
 
-    void initialize(QString title, std::vector<Variant>& variants, SimulationRequest& request, int index);
+    void initialize(QString title, std::vector<Variant>& variants, SimulationRequest& simRequest, int index);
+    void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variants, TestInput& input, int index);
 
 private slots:
     void fillGenotypeTable(int variantIndex);
@@ -36,7 +37,11 @@ private:
     std::vector<Variant>* variants;
     int selectedVariantIndex = 0;
 
-    SimulationRequest* request;
+    SimulationRequest* simRequest;
+    TestInput* input;
+
+    bool simulation = true;
+
     VectorXd y;
     VectorXd g;
     std::vector<CheckTree*> variantCheckTree;
@@ -45,6 +50,11 @@ private:
     QColor colourT = QColor(255,0,43);
     QColor colourC = QColor(0,37,248);
     QColor colourG = QColor(222,111,47);
+
+    void addInfo(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
+    void addPvals(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
+    void addMafs(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt="expected", QString caseControl="no");
+    void addGtFreq(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt="expected", QString caseControl="no");
 
     QString basePair(QString b){
         QString html = "<font color=\"";

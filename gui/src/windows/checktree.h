@@ -71,6 +71,8 @@ public slots:
             checked=false;
             treeItem->setCheckState(0, Qt::Unchecked);
         }
+
+        return false;
     }
 } ;
 
