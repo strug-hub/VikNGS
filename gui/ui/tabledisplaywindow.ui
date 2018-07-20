@@ -36,7 +36,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Tab 1</string>
+       <string>Variant Table</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -101,7 +101,7 @@
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Tab 2</string>
+       <string>Genotype Table</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
@@ -185,46 +185,6 @@
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>Page</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QGroupBox" name="table_genoFreqGrp">
-         <property name="title">
-          <string>Genotype Frequency</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QTableWidget" name="table_genoFreqTbl">
-            <column>
-             <property name="text">
-              <string>0</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>1</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>2</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Average</string>
-             </property>
-            </column>
            </widget>
           </item>
          </layout>

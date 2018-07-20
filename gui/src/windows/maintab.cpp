@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowIcon(QIcon(":icon.svg"));
     //required to push log updates to textbox
     connect(getQLog(), SIGNAL(pushOutput(QString, QColor)), this, SLOT(printOutput(QString, QColor)));
-    qRegisterMetaType<QVector<Variant> >("QVector<Variant>");
+    qRegisterMetaType<Result>("Result");
     qRegisterMetaType<std::vector<std::vector<Variant>>>("std::vector<std::vector<Variant>>");
     qRegisterMetaType<SimulationRequest>("SimulationRequest");
 
@@ -92,14 +92,14 @@ void MainWindow::disableRun(){
     ui->sim_stopBtn->setEnabled(true);
 }
 
-void MainWindow::jobFinished(QVector<Variant> variants){
+void MainWindow::jobFinished(Result result){
     ui->main_runBtn->setEnabled(true);
 
-    if(variants.size() > 0){
+    if(result.size() > 0){
         PlotWindow *plotter = new PlotWindow();
         QString title = "Plot " + QString::number(plotCount);
         plotCount++;
-        plotter->initialize(variants, title);
+        plotter->initialize(result, title);
         printOutput("Displaying results in " + title.toLower(), green);
         plotter->show();
     }
@@ -351,7 +351,7 @@ void MainWindow::on_main_runBtn_clicked()
     connect(thread, SIGNAL(started()), runner, SLOT(runVikngs()));
     connect(runner, SIGNAL(complete()), thread, SLOT(quit()));
     connect(runner, SIGNAL(complete()), runner, SLOT(deleteLater()));
-    connect(runner, SIGNAL(jobFinished(QVector<Variant>)), this, SLOT(jobFinished(QVector<Variant>)));
+    connect(runner, SIGNAL(jobFinished(Result)), this, SLOT(jobFinished(Result)));
 
     thread->start();
 

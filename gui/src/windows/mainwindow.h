@@ -29,7 +29,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void jobFinished(QVector<Variant> variants);
+    void jobFinished(Result result);
     void printOutput(QString string, QColor c);
     void greyOutput();
 

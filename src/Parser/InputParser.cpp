@@ -90,7 +90,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
     printInfo("Starting batch of tests");
     printInfo("====================================");
 
-    if(variants.size() < 0)
+    if(variants.size() <= 0)
         return variants;
 
     std::vector<std::vector<int>> collapse;
@@ -183,9 +183,14 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
     extractHeaderLine(vcf);
 
 
-   // int maxVariants = 50000;
-
+    int maxVariants = 20000;
+    int counter= 0;
     while (vcf.hasNext() ){ // && lineCount < maxVariants) {
+
+        counter++;
+
+        if(counter > maxVariants)
+            break;
 
         if(lineCount % 5000 == 0){
             if(lineCount == 0)
@@ -232,11 +237,10 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
                     if(threads[m].isDone()){
                         std::vector<Variant> results = threads[m].getResults();
 
-                        if(req.retainVariants){
+                        if(req.retainVariants)
                             for(int l = 0; l < results.size(); l++){
-                                results[l].reduceSize();
                                 output.push_back(results[l]);
-                            }
+
                         }
                     }
                 }
@@ -278,10 +282,9 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
                 std::vector<Variant> results = threads[m].getResults();
 
                 if(req.retainVariants){
-                    for(int l = 0; l < results.size(); l++){
-                        results[l].reduceSize();
+                    for(int l = 0; l < results.size(); l++)
                         output.push_back(results[l]);
-                    }
+
                 }
                 printWait=true;
             }

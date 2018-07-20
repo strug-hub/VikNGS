@@ -47,6 +47,9 @@ public:
     VectorXd genotypeCalls;
     std::vector<int> readDepths;
     std::vector<std::vector<int>> baseCalls;
+    std::vector<std::string> vcfCalls;
+    std::string format;
+    std::vector<std::string> columnUsed;
 
     Interval interval;
 

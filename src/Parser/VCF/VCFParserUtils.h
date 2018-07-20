@@ -31,7 +31,7 @@ Calculates genotype likelihood from PL or GL for a single sample.
 @throws runtime_error if column cannot be parsed
 @return A GenotypeLikelihood object.
 */
-GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT);
+GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT, Variant& variant);
 double getGenotypeCall(std::string &column, int indexGT);
 
 

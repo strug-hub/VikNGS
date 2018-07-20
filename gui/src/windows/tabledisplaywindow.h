@@ -4,6 +4,7 @@
 #include <QTableWidgetItem>
 #include "./checktree.h"
 #include "../src/Variant.h"
+#include "../src/RVS.h"
 #include "../simulation/simulation.h"
 
 namespace Ui {
@@ -21,7 +22,7 @@ public:
 public slots:
 
     void initialize(QString title, std::vector<Variant>& variants, SimulationRequest& simRequest, int index);
-    void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variants, TestInput& input, int index);
+    void initialize(QString title, Result* result);
 
 private slots:
     void fillGenotypeTable(int variantIndex);
@@ -38,7 +39,6 @@ private:
     int selectedVariantIndex = 0;
 
     SimulationRequest* simRequest;
-    TestInput* input;
 
     bool simulation = true;
 
@@ -55,6 +55,12 @@ private:
     void addPvals(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
     void addMafs(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt="expected", QString caseControl="no");
     void addGtFreq(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, QString gt="expected", QString caseControl="no");
+    void addSampleInfo(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant);
+    void addSampleGenotypes(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant);
+    void addVCFData(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant);
+    void addAlleleProbability(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant);
+
+    double calculateMaf(VectorXd& gt, bool caseOnly=false, bool controlOnly=false);
 
     QString basePair(QString b){
         QString html = "<font color=\"";

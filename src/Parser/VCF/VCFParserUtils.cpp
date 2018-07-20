@@ -106,7 +106,7 @@ GenotypeLikelihood getPL(std::vector<std::string> l, GenotypeLikelihood gl) {
 	return gl;
 }
 
-GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT) {
+GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, int indexGT, Variant& variant) {
 
 	GenotypeLikelihood gl;
 	gl.L00 = NAN;
@@ -120,6 +120,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int i
 	if (indexGT > -1 && parts.size() > indexGT) {
 		std::string gt = parts[indexGT];
 		if (gt[0] == '.') {
+            variant.columnUsed.push_back("none");
 			return gl;
 			//todo print warning?
 		}
@@ -133,11 +134,12 @@ GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int i
 			gl = getGL(l, gl);
 
 			if (!gl.missing){
-			  return gl;
+                variant.columnUsed.push_back("GL");
+              return gl;
 			}
 			//else
 				//printWarning(VCF_PARSER_UTILS, "Expected GL at index " + std::to_string(indexGL) + " but parsing failed.", column);
-		}
+        }
 	}
 
 	//try to get PL
@@ -148,17 +150,21 @@ GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int i
 			gl = getPL(l, gl);
 
 			if (!gl.missing){
-			  return gl;
+                variant.columnUsed.push_back("PL");
+              return gl;
 			}
 			//else
 			//	printWarning(VCF_PARSER_UTILS, "Expected PL at index " + std::to_string(indexPL) + " but parsing failed.", column);
-		}
+
+        }
 	}
 
 	//try to get GT
 	if (indexGT > -1 && parts.size() > indexGT) {
 		std::string gt = parts[indexGT];
 		gl = getGT(gt, gl);
+        variant.columnUsed.push_back("GT");
+
 	}
 	
 	return gl;
@@ -242,6 +248,9 @@ Variant constructVariant(std::vector<std::string> &columns) {
 	//finds the index of "PL" and "GL" from the FORMAT column
 	std::string fmt = columns[FORMAT];
 
+    //todo: remove? memory?
+    variant.format = fmt;
+
 	int indexPL = -1;
 	int indexGL = -1;
 	int indexGT = -1;
@@ -269,7 +278,10 @@ Variant constructVariant(std::vector<std::string> &columns) {
     int index = 0;
     //get genotype likelihood for every sample
 	for (int i = FORMAT + 1; i < columns.size(); i++) {		
-        variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT));
+        variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT, variant));
+
+        //todo: remove? memory?
+        variant.vcfCalls.push_back(columns[i]);
         genotypeCalls[index] = getGenotypeCall(columns[i], indexGT);
         index++;
     }

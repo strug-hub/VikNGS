@@ -58,7 +58,8 @@ SOURCES += \
     ../src/Test/RareTestCollapseObject.cpp \
     src/global.cpp \
     src/windows/qsimulationtab.cpp \
-    src/windows/tabledisplaywindow.cpp
+    src/windows/tabledisplaywindow.cpp \
+    src/windows/tabledisplaywindowcolumns.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \

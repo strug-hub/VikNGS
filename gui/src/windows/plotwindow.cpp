@@ -30,16 +30,20 @@ PlotWindow::~PlotWindow()
 }
 
 
-void PlotWindow::initialize(QVector<Variant> variants, QString title){
+void PlotWindow::initialize(Result& result, QString title){
 
     ui->plot_title->setText(title);
     this->setWindowTitle("Plotter - " + title);
-    createChromosomes(variants);
+    createChromosomes(result.variants);
     //setRandomChromosomes();
     focusedChr = chrNames[0];
     buildGenomePlot();
     buildChromosomePlot(focusedChr);
 
+    this->result = result;
+
+    QString table_title = "Table";
+    tableView->initialize(table_title, &this->result);
 }
 
 void PlotWindow::initialize(int nvariants, QString title){
@@ -149,11 +153,9 @@ QString PlotWindow::getChromUnderCursor(QMouseEvent *event){
     return "";
 }
 
-void PlotWindow::createChromosomes(QVector<Variant> variants){
+void PlotWindow::createChromosomes(std::vector<Variant>& variants){
 
-    QVectorIterator<Variant> it(variants);
-    while (it.hasNext()){
-        Variant v = it.next();
+    for(Variant v : variants){
         QString chr = QString::fromStdString(v.chr);
         if(chromosomes.contains(chr))
             chromosomes[chr].addVariant(v);
@@ -455,14 +457,11 @@ void PlotWindow::setRandomChromosomes(int n){
 
     qSort(chrNames.begin(), chrNames.end(), chrCompare);
 
-
 }
 
 void PlotWindow::on_plot_genotypeBtn_pressed()
 {
-    TableDisplayWindow *table = new TableDisplayWindow();
-    QString title = "Table";
-    //todo
-    //table->initialize(title, ], request, stepIndexForPlot2);
-    //table->show();
+    if(!tableView->isVisible())
+        tableView->show();
 }
+

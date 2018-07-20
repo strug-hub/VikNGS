@@ -8,33 +8,57 @@
 #include <fstream>
 #include <iomanip>
 
-std::vector<Variant> startVikNGS(Request req) {
+Result startVikNGS(Request req) {
+
+    Result result;
 
     createFile(req.outputDir);
 
     printInfo("Parsing files...");
     TestInput input = parseInfo(req);
-
     if(input.hasCovariates())
         printInfo(std::to_string(input.countCovariates()) + " covariates parsed");
 
-    std::vector<Variant> variants = processVCF(input, req);
-    return variants;
+    result.variants = processVCF(input, req);
+    result.input = input;
+
+    return result;
 }
 
 std::vector<Variant> runTest(TestInput &input, Request &req){
 
+    /*
     //common
 
     if (req.useCommon()) {
         std::vector<Variant> variants = runCommonTest(req, input);
         return variants;
     }
+    */
+
+
+    if (req.useCommon()) {
+
+        req.regularTest=false;
+        req.rvs=true;
+        input.variants = runCommonTest(req, input);
+
+        req.regularTest=true;
+        req.rvs=false;
+        return runCommonTest(req, input);
+
+    }
+
+
+
+
 
     //rare
 
     std::vector<Variant> variants = runRareTest(req, input);
     return variants;
+
+
 }
 
 std::vector<std::vector<Variant>> startSimulation(SimulationRequest& simReq) {

@@ -87,9 +87,9 @@ public:
 
 public slots:
 
-    void initialize(QVector<Variant> values, QString title);
+    void initialize(Result& result, QString title);
     void initialize(int n, QString title);
-    void createChromosomes(QVector<Variant> variants);
+    void createChromosomes(std::vector<Variant>& variants);
 
     //for development
     void setRandomChromosomes(int n);
@@ -119,13 +119,16 @@ public slots:
 
 private slots:
     void on_plot_genotypeBtn_pressed();
-
 private:
     Ui::PlotWindow *ui;  
+    TableDisplayWindow *tableView = new TableDisplayWindow();
+
     QColor grey1 = QColor::fromRgb(190, 190, 190);
     QColor grey2 = QColor::fromRgb(169, 169, 169);
     QColor highlight = QColor::fromRgb(255, 127, 80);
     QColor focus = QColor::fromRgb(102, 204, 204);
+
+    Result result;
 
     QMap<QString, Chromosome> chromosomes;
     QVector<QString> chrNames;

@@ -19,12 +19,18 @@ using Eigen::VectorXi;
 using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
+struct Result {
+    std::vector<Variant> variants;
+    TestInput input;
+
+    inline int size(){ return variants.size(); }
+};
 
 //========================================================
 // functions
 //========================================================
 
-std::vector<Variant> startVikNGS(Request req);
+Result startVikNGS(Request req);
 std::vector<Variant> runTest(TestInput &input, Request &req);
 
 //InputParser

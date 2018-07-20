@@ -111,12 +111,14 @@ void setOnlySNPs(bool value) {
 
 void setRVS(bool value) {
     request.rvs = value;
+    if(!value)
+        request.regularTest = false;
 }
 
 void setRegularTest(bool value){
     request.regularTest = value;
     if(!value)
-        setRVS(false);
+        request.rvs=false;
 }
 
 void setMustPASS(bool value) {

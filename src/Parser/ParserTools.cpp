@@ -190,12 +190,13 @@ VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p) {
 	for (int i = 0; i < likelihood.size(); i++) {
 
 		if (!likelihood[i].missing) {
-			m0 = likelihood[i].L00 * p[0];
-			m1 = likelihood[i].L01 * p[1];
-			m2 = likelihood[i].L11 * p[2];
+
+            m0 = likelihood[i].L00 * p[0];
+            m1 = likelihood[i].L01 * p[1];
+            m2 = likelihood[i].L11 * p[2];
 			m = 1 / (m0 + m1 + m2);
 
-			EG[i] = m1*m + 2 * m2*m;
+            EG[i] = m1*m + (2 * m2*m);
 		}
 		else
 			EG[i] = NAN;

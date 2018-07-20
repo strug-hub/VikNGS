@@ -14,12 +14,11 @@ public:
 public slots:
     void runVikngs() {
         try{
-            std::vector<Variant> v = startVikNGS(request);
-            QVector<Variant> variants = QVector<Variant>::fromStdVector(v);
-            emit jobFinished(variants);
+            Result result = startVikNGS(request);
+            emit jobFinished(result);
         }
         catch(...){
-            QVector<Variant> empty;
+            Result empty;
             emit jobFinished(empty);
         }
 
@@ -47,7 +46,7 @@ public slots:
     }
 
 signals:
-    void jobFinished(QVector<Variant>);
+    void jobFinished(Result);
     void simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest);
     void complete();
 
