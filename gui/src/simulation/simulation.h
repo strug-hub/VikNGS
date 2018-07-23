@@ -90,11 +90,16 @@ struct SimulationRequest {
 
         VectorXd y(nsamp(step));
         int index = 0;
-        for (int i = 0; i < groups.size(); i++)
-            for (int j = 0; j < groups[i].getSampleSize(step); j++){
-                y[index] = groups[i].isCase;
-                index++;
+        for (int i = 0; i <= step; i++){
+            for (int j = 0; j < groups.size(); j++){
+                for (int k = 0; k < groups[j].getStepSize(i); k++){
+                    y[index] = groups[j].isCase;
+                    index++;
+                }
             }
+        }
+
+
         return y;
     }
 
@@ -102,11 +107,14 @@ struct SimulationRequest {
 
         VectorXd g(nsamp(step));
         int index = 0;
-        for (int i = 0; i < groups.size(); i++)
-            for (int j = 0; j < groups[i].getSampleSize(step); j++){
-                g[index] = i;
-                index++;
+        for (int i = 0; i <= step; i++){
+            for (int j = 0; j < groups.size(); j++){
+                for (int k = 0; k < groups[j].getStepSize(i); k++){
+                    g[index] = j;
+                    index++;
+                }
             }
+        }
         return g;
     }
 

@@ -110,12 +110,12 @@ std::vector<VectorXd> simulateG(SimulationRequest& simReq) {
     for(int i = 0; i < simReq.steps; i++){
 
         VectorXd g(simReq.stepIncrementSize(i));
-        int counter = 0;
+        int index = 0;
         for (SimulationRequestGroup srg : simReq.groups) {
-            for(int j = counter; j < counter + srg.getStepSize(i); j++)
-                g[j] = srg.index;
-            counter += srg.getStepSize(i);
-
+            for(int j = 0; j < srg.getStepSize(i); j++){
+                g[index] = srg.index;
+                index++;
+            }
         }
 
         G.emplace_back(g);

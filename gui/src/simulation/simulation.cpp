@@ -63,7 +63,6 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
     for(int i = 0; i < simReq.steps; i++){
 
         printInfo("Simulating step " + std::to_string(i+1));
-    
         for (int j = 0; j < X_[i].cols(); j++) {
             
             if(STOP_RUNNING_THREAD)

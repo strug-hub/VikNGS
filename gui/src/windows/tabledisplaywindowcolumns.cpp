@@ -227,7 +227,7 @@ void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<
 
     if(caseControl == "case")
         title.append(", case)");
-    else if(gt == "control")
+    else if(caseControl == "control")
         title.append(", control)");
     else
         title.append(")");
@@ -244,7 +244,7 @@ void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<
         if(gt == "true")
             maf = calculateMaf(variants->at(i).trueGenotype, caseControl=="case", caseControl=="control");
         else if (gt == "calls")
-            maf = calculateMaf(variants->at(i).trueGenotype, caseControl=="case", caseControl=="control");
+            maf = calculateMaf(variants->at(i).genotypeCalls, caseControl=="case", caseControl=="control");
         else if(gt == "expected")
             maf = calculateMaf(variants->at(i).expectedGenotype, caseControl=="case", caseControl=="control");
 

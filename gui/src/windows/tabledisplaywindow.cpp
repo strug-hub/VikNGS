@@ -25,6 +25,7 @@ void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variant
     this->simRequest = &simRequest;
     this->g = simRequest.getGroups(index);
     this->y = simRequest.getCaseControlStatus(index);
+
     buildVariantTable();
 }
 
@@ -93,10 +94,10 @@ void TableDisplayWindow::buildVariantTable(){
     addMafs(nrow, titles, table, "calls");
     addMafs(nrow, titles, table, "expected");
     addMafs(nrow, titles, table, "true", "case");
-    addMafs(nrow, titles, table, "true", "control");
     addMafs(nrow, titles, table, "calls", "case");
-    addMafs(nrow, titles, table, "calls", "control");
     addMafs(nrow, titles, table, "expected", "case");
+    addMafs(nrow, titles, table, "true", "control");
+    addMafs(nrow, titles, table, "calls", "control");
     addMafs(nrow, titles, table, "expected", "control");
 
     addGtFreq(nrow, titles, table, "true");
