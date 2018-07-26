@@ -326,18 +326,21 @@ Generates the genotype calls using simple bayesian genotyper (maximum likelihood
 
 @return Vector of genotype calls.
 */
-VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl){
+VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl, VectorXd& p){
 
     VectorXd GC(gl.size());
 
     for (int i = 0; i < gl.size(); i++) {
+        double L00 = gl[i].L00*p[0];
+        double L01 = gl[i].L01*p[1];
+        double L11 = gl[i].L11*p[2];
 
-        if(gl[i].L00 > gl[i].L01)
-             if (gl[i].L00 > gl[i].L11)
+        if(L00 > L01)
+             if (L00 > L11)
                  GC[i] = 0;
              else
                  GC[i] = 2;
-         else if (gl[i].L01 > gl[i].L11)
+         else if (L01 > L11)
              GC[i] = 1;
          else
         GC[i] = 2;

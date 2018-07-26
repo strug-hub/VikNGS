@@ -72,6 +72,8 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
         }
 
         calculateExpectedGenotypes(variants.back());
+        variants.back().genotypeCalls = calculateGTCalls(variants.back().likelihood, variants.back().P);
+
         int code = filterVariant(req, variants.back(), input.Y, input.family);
         if(code > 0){
             filterInfo.emplace_back(variants.back().toString());
@@ -183,16 +185,16 @@ std::vector<Variant> processVCF(TestInput input, Request req) {
     extractHeaderLine(vcf);
 
 
-    int maxVariants = 20000;
-    int counter= 0;
+   // int maxVariants = 20000;
+ //   int counter= 0;
     while (vcf.hasNext() ){ // && lineCount < maxVariants) {
 
-        counter++;
+   //     counter++;
 
-        if(counter > maxVariants)
-            break;
+  //     if(counter > maxVariants)
+  //          break;
 
-        if(lineCount % 5000 == 0){
+        if(lineCount % 10000 == 0){
             if(lineCount == 0)
                 printInfo("Parsing VCF file...");
             else

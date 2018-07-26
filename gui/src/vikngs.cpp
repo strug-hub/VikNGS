@@ -27,17 +27,8 @@ Result startVikNGS(Request req) {
 
 std::vector<Variant> runTest(TestInput &input, Request &req){
 
-    /*
-    //common
-
     if (req.useCommon()) {
-        std::vector<Variant> variants = runCommonTest(req, input);
-        return variants;
-    }
-    */
-
-
-    if (req.useCommon()) {
+        if(req.retainVariants){
 
         req.regularTest=false;
         req.rvs=true;
@@ -45,19 +36,22 @@ std::vector<Variant> runTest(TestInput &input, Request &req){
 
         req.regularTest=true;
         req.rvs=false;
-        return runCommonTest(req, input);
+        }
+         return runCommonTest(req, input);
 
     }
 
 
 
-
-
     //rare
-
-    std::vector<Variant> variants = runRareTest(req, input);
-    return variants;
-
+   if(req.retainVariants){
+    req.regularTest=false;
+    req.rvs=true;
+    input.variants = runRareTest(req, input);
+    req.regularTest=true;
+   req.rvs=false;
+   }
+     return runRareTest(req, input);
 
 }
 

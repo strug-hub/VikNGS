@@ -230,6 +230,55 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 	return IDmap;
 }
 
+
+int maxValue(double zero, double one, double two){
+
+    if(zero > one){
+        if (zero > two)
+            return 0;
+        else if(two > zero)
+            return 2;
+    }
+    else{
+        if (one > two)
+            return 1;
+        else if(two > one)
+            return 2;
+    }
+
+    return -1;
+}
+
+/*
+Generates the genotype calls using simple bayesian genotyper (maximum likelihood).
+
+@param  gl A vector of genotype likelihoods, one per individual.
+@param  p Population genotype frequency.
+
+@return Vector of genotype calls.
+*/
+VectorXd calculateGTCalls(std::vector<GenotypeLikelihood>& gl, VectorXd P){
+
+    VectorXd GC(gl.size());
+
+    int call;
+    for (int i = 0; i < gl.size(); i++) {
+        if(gl[i].missing){
+            GC[i]=NAN;
+            continue;
+        }
+        call = maxValue(gl[i].L00 * P[0], gl[i].L01* P[1], gl[i].L11 * P[2]);
+
+        if(call < 0)
+            GC[i]=NAN;
+        else
+            GC[i] = call;
+    }
+
+    return GC;
+}
+
+
 Variant constructVariant(std::vector<std::string> &columns) {
 
     Variant variant;
@@ -282,10 +331,10 @@ Variant constructVariant(std::vector<std::string> &columns) {
 
         //todo: remove? memory?
         variant.vcfCalls.push_back(columns[i]);
-        genotypeCalls[index] = getGenotypeCall(columns[i], indexGT);
+ //       genotypeCalls[index] = getGenotypeCall(columns[i], indexGT);
         index++;
     }
 
-    variant.genotypeCalls = genotypeCalls;
+  //  variant.genotypeCalls = genotypeCalls;
     return variant;
 }

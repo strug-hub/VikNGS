@@ -8,7 +8,7 @@
 inline void createFile(std::string outputDir){
 
     std::string dfile = outputDir + "/debug.txt";
-    std::string pfile = outputDir + "/pvalues.txt";
+    std::string pfile = outputDir + "/pvalues_.txt";
     std::string ffile = outputDir + "/filtered.txt";
 
     std::ofstream debug(dfile);
@@ -23,7 +23,7 @@ inline void createFile(std::string outputDir){
 
 inline void outputPvals(std::vector<Variant> &variants, std::string outputDir) {
 	
-    std::string pfile = outputDir + "/pvalues.txt";
+    std::string pfile = outputDir + "/pvalues_.txt";
 	std::ofstream pvals(pfile, std::ios_base::app);
 
 	if (pvals.is_open())
@@ -31,7 +31,9 @@ inline void outputPvals(std::vector<Variant> &variants, std::string outputDir) {
         for (size_t i = 0; i < variants.size(); i++) {
 
             pvals << variants[i].toString() << '\t';
-            pvals << variants[i].getPval(0) << '\n';
+            pvals << variants[i].getPval(0) << '\t';
+            pvals << variants[i].getPvalSourceShort(0) << '\n';
+
 		}
 		pvals.close();
 	}

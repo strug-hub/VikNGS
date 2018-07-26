@@ -52,3 +52,4 @@ Takes the columns of a VCF line and builds a Variant object.
 @return Variant object.
 */
 Variant constructVariant(std::vector<std::string> &columns);
+VectorXd calculateGTCalls(std::vector<GenotypeLikelihood>& gl, VectorXd P);

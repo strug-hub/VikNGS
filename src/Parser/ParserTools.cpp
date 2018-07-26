@@ -160,9 +160,9 @@ VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood) {
 	}
 
 	VectorXd freq(3);
-	freq[0] = p;
-	freq[1] = q;
-	freq[2] = 1 - p - q;
+    freq[0] = std::max(1e-14, p);
+    freq[1] = std::max(1e-14, q);
+    freq[2] = std::max(1e-14, 1 - p - q);
 
 	return freq;
 }

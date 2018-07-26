@@ -246,5 +246,5 @@ std::vector<GenotypeLikelihood> generateLikelihoods(VectorXd& x, double errorRat
 double inline generateGenotype(double prob_x0, double prob_x1);
 
 VectorXd calculateExpectedGenotypes(std::vector<GenotypeLikelihood>& gl, VectorXd& p);
-VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl);
+VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl, VectorXd& p );
 Variant randomVariant();

@@ -110,7 +110,7 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
             variants[k].trueGenotype = x.col(k);
             variants[k].calculateGenotypeFrequency();
             variants[k].expectedGenotype = calculateExpectedGenotypes(variants[k].likelihood, variants[k].P);
-            variants[k].genotypeCalls = calculateGenotypeCalls(variants[k].likelihood);
+            variants[k].genotypeCalls = calculateGenotypeCalls(variants[k].likelihood, variants[k].P);
         }
 
         TestInput t = buildTestInput(y, z, g, readGroup, variants, "binomial");
