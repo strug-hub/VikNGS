@@ -22,7 +22,7 @@ public:
 public slots:
 
     void initialize(QString title, std::vector<Variant>& variants, SimulationRequest& simRequest, int index);
-    void initialize(QString title, Result* result);
+    void initialize(QString title, Data* result);
 
 private slots:
     void fillGenotypeTable(int variantIndex);

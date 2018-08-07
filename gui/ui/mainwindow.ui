@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/chr2.merged.vcf</string>
+                  <string>/media/scott/Rotom/vcf/chr2.pruned.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -377,7 +377,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -387,7 +387,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -405,13 +405,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testBootChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -420,7 +420,7 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string>10000</string>
@@ -439,13 +439,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -502,7 +502,7 @@
                   <string>Plot results</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>

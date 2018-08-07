@@ -87,7 +87,7 @@ public:
 
 public slots:
 
-    void initialize(Result& result, QString title);
+    void initialize(Data& result, QString title);
     void initialize(int n, QString title);
     void createChromosomes(std::vector<Variant>& variants);
 
@@ -128,7 +128,7 @@ private:
     QColor highlight = QColor::fromRgb(255, 127, 80);
     QColor focus = QColor::fromRgb(102, 204, 204);
 
-    Result result;
+    Data result;
 
     QMap<QString, Chromosome> chromosomes;
     QVector<QString> chrNames;

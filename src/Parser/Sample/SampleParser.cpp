@@ -60,9 +60,14 @@ void parseSampleLines(Request req, std::map<std::string, int> &IDmap,
 			Y[index] = std::stod(lineSplit[1]);
 		}
 		catch (...) {
-			std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
-			" in sample information file - Unexpected value non-numeric value in second column.";
-			throwError(SAMPLE_PARSER, message, lineSplit[1]);
+
+            if(lineSplit[1]=="NA")
+                Y[index] = NAN;
+            else{
+                std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
+                " in sample information file - Unexpected value non-numeric value in second column. Use NA if missing.";
+                throwError(SAMPLE_PARSER, message, lineSplit[1]);
+            }
 		}
 
 		std::string groupID = lineSplit[2];

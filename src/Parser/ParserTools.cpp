@@ -44,26 +44,7 @@ std::string extractString(MemoryMapped &charArray, int start, int end) {
 	return ret;
 }
 
-/**
-Determines if response variable is case/control(1/0) or quantitative.
-Returns family type (case/control = binomial, quantitative = normal)
 
-@param VectorXd Y vector of response variable.
-@return Distribution family for response variable.
-*/
-std::string determineFamily(VectorXd Y) {
-
-    //if a value not 0 or 1 is found, assume quantitative data
-    for(int i = 0; i < Y.rows(); i++){
-        if(Y[i] != 0 && Y[i] != 1){
-            printInfo("Quantitative data detected");
-            return "normal";
-        }
-    }
-
-    printInfo("Case/control data detected");
-    return "binomial";
-}
 
 
 /**

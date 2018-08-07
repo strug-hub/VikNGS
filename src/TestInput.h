@@ -10,20 +10,58 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+enum class Family { NORMAL, BINOMIAL, NONE };
+enum class ReadGroup { HIGH, LOW };
+
+
+
+
+
 struct TestInput {
+private:
+    VectorXd Y;
+    VectorXd G;
+    MatrixXd Z;
+    std::map<int, ReadGroup> readGroup;
+    Family family;
 
-        VectorXd Y, G; MatrixXd Z;
-	std::map<int, int> readGroup;
-        std::vector<Interval> intervals;
-        std::vector<std::vector<int>> collapse;
+    void determineFamily() {
 
-        std::vector<Variant> variants;
-        std::string family;
+        //if a value not 0 or 1 is found, assume quantitative data
+        for(int i = 0; i < Y.rows(); i++){
+            if(Y[i] != 0 && Y[i] != 1){
+                family=Family::NORMAL;
+                return;
+            }
+        }
 
-	inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
-        inline int countCovariates() { return Z.cols() -1; }
-        inline bool hasIntervals() { return intervals.size() > 0; }
-	inline int getNumberOfGroups() { return 1 + (int)G.maxCoeff(); }
+        return family=Family::BINOMIAL;
+    }
+
+
+
+
+public:
+    TestInput(VectorXd y, VectorXd g, MatrixXd z, std::map<int, ReadGroup> readGroupMap) :
+        Y(y), G(g), Z(z), readGroup(readGroupMap) {
+        determineFamily();
+    }
+    ~TestInput() { }
+
+
+    inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
+    inline int ncovariates() { return Z.cols() -1; }
+    inline int getNumberOfGroups() { return 1 + (int)G.maxCoeff(); }
+
+
+}
+
+
+
+
+
+
+
 
         inline MatrixXd getP(){
             MatrixXd P(variants.size(), 3);

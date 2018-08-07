@@ -19,7 +19,7 @@ using Eigen::VectorXi;
 using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
-struct Result {
+struct Data {
     std::vector<Variant> variants;
     TestInput input;
 
@@ -30,13 +30,14 @@ struct Result {
 // functions
 //========================================================
 
-Result startVikNGS(Request req);
+Data startVikNGS(Request req);
 std::vector<Variant> runTest(TestInput &input, Request &req);
 
 //InputParser
+TestInput parseInfo(Request req);
+
 TestInput parseSampleLines(Request req);
 std::vector<Variant> processVCF(TestInput input, Request req);
-TestInput parseInfo(Request req);
 
 //CommonTest.cpp
 std::vector<Variant> runCommonTest(Request &req, TestInput &input);

@@ -8,16 +8,16 @@
 #include <fstream>
 #include <iomanip>
 
-Result startVikNGS(Request req) {
+Data startVikNGS(Request req) {
 
-    Result result;
+    Data result;
 
     createFile(req.outputDir);
 
     printInfo("Parsing files...");
     TestInput input = parseInfo(req);
     if(input.hasCovariates())
-        printInfo(std::to_string(input.countCovariates()) + " covariates parsed");
+        printInfo(std::to_string(input.ncovariates()) + " covariates parsed");
 
     result.variants = processVCF(input, req);
     result.input = input;

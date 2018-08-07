@@ -28,33 +28,36 @@ enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
                   RARE_LIKELIHOOD_RVS, RARE_LIKELIHOOD_NORVS,
                   RARE_REGULAR_TRUE, RARE_REGULAR_GTCALL, NONE };
 
+
 struct Variant {
 private:
-    std::vector<double> pvalues;    
-    std::vector<Test> psource;
-
-public:
-    std::vector<GenotypeLikelihood> likelihood;
-    std::string chr;
-    int pos;
-    double trueMaf;
-    std::string ref;
-    std::string alt;
-    std::string filter;
-    VectorXd P;
     VectorXd expectedGenotype;
     VectorXd trueGenotype;
     VectorXd genotypeCalls;
-    std::vector<int> readDepths;
-    std::vector<std::vector<int>> baseCalls;
-    std::vector<std::string> vcfCalls;
-    std::string format;
-    std::vector<std::string> columnUsed;
 
-    Interval interval;
+    Vector3d P;
+    Vector3d GL;
 
-    bool valid = true;
+    std::string chrom;
+    int pos;
+    std::string ref;
+    std::string alt;
+
+    std::vector<double> pvalues;    
+    std::vector<Test> psource;
+
+    bool valid;
     std::string errorMessage;
+
+
+public:
+
+    Variant(std::string chromosome, std::string position, std::string reference, std::string alternative) :
+        chrom(chromosome), pos(position), ref(reference), alt(alternative) {
+        valid = true;
+    }
+    ~Variant() { }
+
     inline bool isValid(){ return valid; }
     inline void setInvalid(std::string message) {
         valid = false;
@@ -63,19 +66,46 @@ public:
     }
     std::string getErrorMessage() { return errorMessage; }
 
+
     inline std::string toString() {
         std::string t = "\t";
-        return chr + t + std::to_string(pos) + t + ref + t + alt;
+        return chrom + t + std::to_string(pos) + t + ref + t + alt;
     }
-
+    inline void print() {
+        std::cout << toString() + "\n";
+    }
     inline std::string info() {
         std::string t = "\t";
         return "chr:" + chr + " pos:" + std::to_string(pos) + " ref:" + ref + " alt:" + alt;
     }
 
-    inline void print() {
-        std::cout << toString() + "\n";
-    }
+}
+
+
+
+
+
+
+
+
+
+
+    double trueMaf;
+
+
+    std::vector<int> readDepths;
+    std::vector<std::vector<int>> baseCalls;
+    std::vector<std::string> vcfCalls;
+    std::string format;
+    std::vector<std::string> columnUsed;
+
+
+
+
+
+
+
+
 
     inline void reduceSize() {
         likelihood.clear();
@@ -202,5 +232,12 @@ public:
     }
 
 };
+
+struct CollapsedVariants{
+
+    std::vector<Variant> variants;
+
+}
+
 
 inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }

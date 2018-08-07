@@ -14,11 +14,11 @@ public:
 public slots:
     void runVikngs() {
         try{
-            Result result = startVikNGS(request);
+            Data result = startVikNGS(request);
             emit jobFinished(result);
         }
         catch(...){
-            Result empty;
+            Data empty;
             emit jobFinished(empty);
         }
 
@@ -46,7 +46,7 @@ public slots:
     }
 
 signals:
-    void jobFinished(Result);
+    void jobFinished(Data);
     void simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest);
     void complete();
 

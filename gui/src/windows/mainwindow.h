@@ -29,7 +29,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void jobFinished(Result result);
+    void jobFinished(Data result);
     void printOutput(QString string, QColor c);
     void greyOutput();
 

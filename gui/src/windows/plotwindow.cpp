@@ -30,7 +30,7 @@ PlotWindow::~PlotWindow()
 }
 
 
-void PlotWindow::initialize(Result& result, QString title){
+void PlotWindow::initialize(Data& result, QString title){
 
     ui->plot_title->setText(title);
     this->setWindowTitle("Plotter - " + title);

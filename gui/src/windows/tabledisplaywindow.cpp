@@ -29,7 +29,7 @@ void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variant
     buildVariantTable();
 }
 
-void TableDisplayWindow::initialize(QString title, Result* result){
+void TableDisplayWindow::initialize(QString title, Data* result){
 
     simulation = false;
 

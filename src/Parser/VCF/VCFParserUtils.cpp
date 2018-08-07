@@ -298,7 +298,7 @@ Variant constructVariant(std::vector<std::string> &columns) {
 	std::string fmt = columns[FORMAT];
 
     //todo: remove? memory?
-    variant.format = fmt;
+   // variant.format = fmt;
 
 	int indexPL = -1;
 	int indexGL = -1;
@@ -323,14 +323,14 @@ Variant constructVariant(std::vector<std::string> &columns) {
 		return variant;
 	}
 
-    VectorXd genotypeCalls(columns.size() - (FORMAT + 1));
+//    VectorXd genotypeCalls(columns.size() - (FORMAT + 1));
     int index = 0;
     //get genotype likelihood for every sample
 	for (int i = FORMAT + 1; i < columns.size(); i++) {		
         variant.likelihood.emplace_back(getGenotypeLikelihood(columns[i], indexPL, indexGL, indexGT, variant));
 
         //todo: remove? memory?
-        variant.vcfCalls.push_back(columns[i]);
+  //      variant.vcfCalls.push_back(columns[i]);
  //       genotypeCalls[index] = getGenotypeCall(columns[i], indexGT);
         index++;
     }
