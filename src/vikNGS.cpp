@@ -1,6 +1,6 @@
-#include "../src/RVS.h"
+#include "../src/vikNGS.h"
 #include "simulation/simulation.h"
-#include "global.h"
+#include "Parser/InputParser.h"
 
 #include <iostream>  
 #include <string>
@@ -10,11 +10,13 @@
 
 Data startVikNGS(Request req) {
 
-    Data result;
+    printInfo("Starting vikNGS...");
 
-    createFile(req.outputDir);
+    initializeOutputFiles(req.outputDir);
 
     printInfo("Parsing files...");
+
+    Data result;
     TestInput input = parseInfo(req);
     if(input.hasCovariates())
         printInfo(std::to_string(input.ncovariates()) + " covariates parsed");

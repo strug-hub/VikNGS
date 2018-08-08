@@ -1,1 +1,0 @@
-extern bool STOP_RUNNING_THREAD;
