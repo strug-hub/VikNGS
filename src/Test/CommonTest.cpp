@@ -86,7 +86,7 @@ double commonBootstrap(CommonTestObject t, int nboot, bool stopEarly, bool rvs) 
 	return (tcount + 1) / (bootCount + 1);
 }
 
-std::vector<Variant> runCommonTest(Request &req, TestInput &input) {
+std::vector<Variant> runCommonTest(Request &req, SampleInfo &input) {
 
     std::vector<Variant> output;
 

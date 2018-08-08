@@ -17,7 +17,8 @@ Data startVikNGS(Request req) {
     printInfo("Parsing files...");
 
     Data result;
-    TestInput input = parseInfo(req);
+    SampleInfo info = parseSampleInfo(req);
+
     if(input.hasCovariates())
         printInfo(std::to_string(input.ncovariates()) + " covariates parsed");
 
@@ -27,7 +28,7 @@ Data startVikNGS(Request req) {
     return result;
 }
 
-std::vector<Variant> runTest(TestInput &input, Request &req){
+std::vector<Variant> runTest(SampleInfo &input, Request &req){
 
     if (req.useCommon()) {
         if(req.retainVariants){
@@ -59,7 +60,7 @@ std::vector<Variant> runTest(TestInput &input, Request &req){
 
 std::vector<std::vector<Variant>> startSimulation(SimulationRequest& simReq) {
 
-    std::vector<TestInput> inputs = simulate(simReq);
+    std::vector<SampleInfo> inputs = simulate(simReq);
     std::vector<std::vector<Variant>> results;
 
     printInfo("Starting tests...");
@@ -67,7 +68,7 @@ std::vector<std::vector<Variant>> startSimulation(SimulationRequest& simReq) {
     for(int i = 0; i< simReq.steps; i++){
         printInfo("Running step " + std::to_string(i+1) + " of " + std::to_string(simReq.steps) + ".");
 
-        TestInput input = inputs[i];
+        SampleInfo input = inputs[i];
 
         initializeRequest();
 

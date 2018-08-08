@@ -2,7 +2,7 @@
 #include "../vikNGS.h"
 #include "../Request.h"
 #include "File.h"
-#include "../TestInput.h"
+#include "../SampleInfo.h"
 #include "../Variant.h"
 #include "../Math/MathHelper.h"
 #include "BED/Interval.h"
