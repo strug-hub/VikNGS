@@ -1,8 +1,6 @@
 #pragma once
-#include "Log.h"
-#include "Variant.h"
 #include "Parser/BED/Interval.h"
-
+#include "vikNGS.h"
 #include <vector>
 #include <map>
 
@@ -10,14 +8,8 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-enum class Family { NORMAL, BINOMIAL, NONE };
-enum class ReadGroup { HIGH, LOW };
 
-
-
-
-
-struct TestInput {
+struct SampleInfo {
 private:
     VectorXd Y;
     VectorXd G;
@@ -42,11 +34,11 @@ private:
 
 
 public:
-    TestInput(VectorXd y, VectorXd g, MatrixXd z, std::map<int, ReadGroup> readGroupMap) :
+    SampleInfo(VectorXd y, VectorXd g, MatrixXd z, std::map<int, ReadGroup> readGroupMap) :
         Y(y), G(g), Z(z), readGroup(readGroupMap) {
         determineFamily();
     }
-    ~TestInput() { }
+    ~SampleInfo() { }
 
 
     inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
@@ -98,10 +90,10 @@ public:
 /**
 Creates a TestInput object.
 */
-inline TestInput buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup,
+inline SampleInfo buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup,
                                 std::vector<Interval> intervals, std::string family) {
 
-	TestInput input;
+        SampleInfo input;
 	input.Y = Y;
 	input.Z = Z;
 	input.G = G;
@@ -114,10 +106,10 @@ inline TestInput buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<
 /**
 Creates a TestInput object.
 */
-inline TestInput buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G,
+inline SampleInfo buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G,
         std::map<int, int> &readGroup, std::vector<Variant> &variants, std::string family) {
 
-        TestInput input;
+        SampleInfo input;
         input.Y = Y;
         input.Z = Z;
         input.G = G;
@@ -127,7 +119,7 @@ inline TestInput buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G,
         return input;
 }
 
-inline TestInput addVariants(TestInput t, std::vector<Variant> &variants, std::vector<std::vector<int>> &collapse) {
+inline SampleInfo addVariants(SampleInfo t, std::vector<Variant> &variants, std::vector<std::vector<int>> &collapse) {
 
         t.variants = variants;
         t.collapse = collapse;

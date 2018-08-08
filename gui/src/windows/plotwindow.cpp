@@ -1,9 +1,9 @@
-#include "plotwindow.h"
+#include "PlotWindow.h"
 #include "ui_plotwindow.h"
 
 PlotWindow::PlotWindow(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::PlotWindow)
+    ui(new Ui::PlotTab)
 {
     ui->setupUi(this);
     qApp->installEventFilter(this);

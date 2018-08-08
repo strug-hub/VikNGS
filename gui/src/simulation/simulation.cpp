@@ -6,7 +6,7 @@ Simulates a dataset which can be used for an association test.
 @param simReq Parameters required to simulate a dataset.
 @return TestInput with information for running association test.
 */
-std::vector<TestInput> simulate(SimulationRequest& simReq) {
+std::vector<SampleInfo> simulate(SimulationRequest& simReq) {
 
 	printInfo("Setting up simulation parameters.");
 
@@ -38,7 +38,7 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
     //note: each matrix is nsnp x nsamp
     std::vector<MatrixXd> X_ = simulateX(simReq, oddsRatio, mafs, simReq.collapse);
 
-    std::vector<TestInput> inputs;
+    std::vector<SampleInfo> inputs;
 
     VectorXd g;
     MatrixXd x;
@@ -113,7 +113,7 @@ std::vector<TestInput> simulate(SimulationRequest& simReq) {
             variants[k].genotypeCalls = calculateGenotypeCalls(variants[k].likelihood, variants[k].P);
         }
 
-        TestInput t = buildTestInput(y, z, g, readGroup, variants, "binomial");
+        SampleInfo t = buildTestInput(y, z, g, readGroup, variants, "binomial");
 
         if(simReq.isRare())
             t.addCollapse(collapse);

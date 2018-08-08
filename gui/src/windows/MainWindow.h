@@ -1,11 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "../src/RVS.h"
+#include "../src/vikNGS.h"
 #include "../src/Variant.h"
 #include "../simulation/simulation.h"
-#include "../runner.h"
-#include "../global.h"
+#include "../AsyncJob.h"
 
 #include <QMainWindow>
 #include <QFileDialog>
@@ -32,9 +31,35 @@ public slots:
     void jobFinished(Data result);
     void printOutput(QString string, QColor c);
     void greyOutput();
-
+    void enableRun();
+    void disableRun();
+    void stopJob();
 
 private slots:
+
+    //-----------
+    //MainTab.cpp
+    //-----------
+
+    Request createRequest();
+
+    void on_main_vcfDirBtn_clicked();
+    void on_main_sampleDirBtn_clicked();
+    void on_main_bedDirBtn_clicked();
+    void on_main_runBtn_clicked();
+
+    void on_main_testRareCastBtn_toggled(bool checked);
+    void on_main_testRareCalphaBtn_toggled(bool checked);
+    void on_main_testBootChk_stateChanged(int arg1);
+    void on_main_testBootChk_toggled(bool checked);
+    void on_main_vcfWholeFileChk_toggled(bool checked);
+
+    void on_main_randomBtn_pressed();
+
+    //-----------
+    //SimulationTab.cpp
+    //-----------
+    void simulationTabInit();
     std::vector<SimulationRequestGroup> constructGroups(int ntests);
     SimulationRequest constructRequest(std::vector<SimulationRequestGroup> groups);
 
@@ -51,25 +76,10 @@ private slots:
 
     void simulationFinished(std::vector<std::vector<Variant>> variants, SimulationRequest reqs);
 
-    //--------------
-    void stopJob();
-    void enableRun();
-    void disableRun();
+    //-----------
+    //qSimulationTab.cpp
+    //-----------
 
-    void on_main_vcfDirBtn_clicked();
-    void on_main_sampleDirBtn_clicked();
-    void on_main_bedDirBtn_clicked();
-    void on_main_runBtn_clicked();
-
-    void on_main_testRareCastBtn_toggled(bool checked);
-    void on_main_testRareCalphaBtn_toggled(bool checked);
-    void on_main_testBootChk_stateChanged(int arg1);
-    void on_main_testBootChk_toggled(bool checked);
-    void on_main_vcfWholeFileChk_toggled(bool checked);
-
-    void on_main_randomBtn_pressed();
-
-    //--------------
     std::vector<SimulationRequestGroup> qConstructGroups(int run, int ntests);
     SimulationRequest qConstructRequest(std::vector<SimulationRequestGroup> groups);
     void qAddGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);

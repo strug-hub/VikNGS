@@ -1,9 +1,15 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 #include "simplotwindow.h"
 
 #include "ui_mainwindow.h"
 
 const QString sep = ":";
+
+void MainWindow::simulationTabInit(){
+
+    addGroup("100", false, "32", "8", "0.01");
+    addGroup("100:300", true, "6", "2", "0.01");
+}
 
 std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
 
@@ -185,7 +191,7 @@ void MainWindow::on_sim_runBtn_clicked(){
         request.validate();
 
         QThread* thread = new QThread;
-        Runner* runner = new Runner();
+        AsyncJob* runner = new AsyncJob();
 
         runner->setSimulationRequest(request);
         runner->moveToThread(thread);

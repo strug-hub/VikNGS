@@ -4,8 +4,7 @@
 #include <map>
 
 #include "../../../src/Math/MathHelper.h"
-#include "../../../src/Log.h"
-#include "../../../src/RVS.h"
+#include "../../../src/vikNGS.h"
 #include "../../../src/Variant.h"
 #include "../../../src/Eigen/Dense"
 

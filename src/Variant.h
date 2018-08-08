@@ -5,6 +5,7 @@
 #include <vector>
 #include "Eigen/Dense"
 #include "Parser/BED/Interval.h"
+#include "vikNGS.h"
 
 using Eigen::VectorXd;
 using Eigen::Vector3d;
@@ -22,11 +23,6 @@ struct GenotypeLikelihood {
                 std::to_string(L11) + ")";
     }
 };
-
-enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
-                  COMMON_REGULAR_TRUE, COMMON_REGULAR_GTCALL,
-                  RARE_LIKELIHOOD_RVS, RARE_LIKELIHOOD_NORVS,
-                  RARE_REGULAR_TRUE, RARE_REGULAR_GTCALL, NONE };
 
 
 struct Variant {

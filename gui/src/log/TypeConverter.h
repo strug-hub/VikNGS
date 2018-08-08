@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 #include <limits>
-#include "../src/Log.h"
+#include "../src/vikNGS.h"
 
 int infinity = std::numeric_limits<int>::max();
 int neginfinity = std::numeric_limits<int>::min();

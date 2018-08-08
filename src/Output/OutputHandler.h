@@ -4,12 +4,11 @@
 #include <iostream>  
 #include <fstream>
 
+std::string dfile = outputDir + "/debug.txt";
+std::string pfile = outputDir + "/pvalues_.txt";
+std::string ffile = outputDir + "/filtered.txt";
 
-inline void createFile(std::string outputDir){
-
-    std::string dfile = outputDir + "/debug.txt";
-    std::string pfile = outputDir + "/pvalues_.txt";
-    std::string ffile = outputDir + "/filtered.txt";
+inline void initializeOutputFiles (std::string outputDir){
 
     std::ofstream debug(dfile);
     debug.close();
@@ -23,7 +22,7 @@ inline void createFile(std::string outputDir){
 
 inline void outputPvals(std::vector<Variant> &variants, std::string outputDir) {
 	
-    std::string pfile = outputDir + "/pvalues_.txt";
+    //std::string pfile = outputDir + "/pvalues_.txt";
 	std::ofstream pvals(pfile, std::ios_base::app);
 
 	if (pvals.is_open())
@@ -43,7 +42,7 @@ inline void outputPvals(std::vector<Variant> &variants, std::string outputDir) {
 inline void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
                            std::vector<std::string> codeMap, std::string outputDir) {
 
-    std::string ffile = outputDir + "/filtered.txt";
+    //std::string ffile = outputDir + "/filtered.txt";
 	std::ofstream filtered(ffile, std::ios_base::app);
 
 	if (filtered.is_open())
@@ -58,7 +57,7 @@ inline void outputFiltered(std::vector<std::string> variantInfo, std::vector<int
 
 inline void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir) {
 
-    std::string ffile = outputDir + "/filtered.txt";
+    //std::string ffile = outputDir + "/filtered.txt";
     std::ofstream filtered(ffile, std::ios_base::app);
 
     if (filtered.is_open())
@@ -74,7 +73,7 @@ inline void outputFiltered(std::vector<Variant> variants, std::string explain, s
 
 inline void outputDebug(std::string line, std::string outputDir) {
 
-    std::string dfile = outputDir + "/debug.txt";
+    //std::string dfile = outputDir + "/debug.txt";
     std::ofstream debug(dfile, std::ios_base::app);
 
     if (debug.is_open())

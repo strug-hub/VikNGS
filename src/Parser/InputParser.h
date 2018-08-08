@@ -1,6 +1,5 @@
 #pragma once
-#include "../Log.h"
-#include "../RVS.h"
+#include "../vikNGS.h"
 #include "../Request.h"
 #include "File.h"
 #include "../TestInput.h"
@@ -22,6 +21,8 @@ static const int MISSING_FAIL = 3;
 static const int HOMOZYGOUS_FAIL = 4;
 static const int MAF_FAIL = 5;
 
+SampleInfo parseSampleInfo(Request req);
+
 //ParserTools.cpp
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
 std::string extractString(MemoryMapped &charArray, int start, int end);
@@ -33,7 +34,7 @@ VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
 std::string determineFamily(VectorXd Y);
 
 //VCFParser.cpp
-std::vector<Variant> parseVCFLines(TestInput &input, Request &req);
+std::vector<Variant> parseVCFLines(SampleInfo &input, Request &req);
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 std::vector<std::string> extractHeader(File &vcf);
 

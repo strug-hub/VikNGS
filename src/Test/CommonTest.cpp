@@ -1,4 +1,4 @@
-#include "../RVS.h"
+#include "../vikNGS.h"
 #include "../Math/MathHelper.h"
 #include "CommonTestObject.h"
 #include <future>

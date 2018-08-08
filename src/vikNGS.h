@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Parser/InputParser.h"
 #include "Request.h"
 #include "Variant.h"
-#include "TestInput.h"
+#include "SampleInfo.h"
 #include "Output/OutputHandler.h"
 
 #include <string>
@@ -19,52 +18,80 @@ using Eigen::VectorXi;
 using Eigen::Vector3d;
 using Eigen::DiagonalMatrix;
 
+//========================================================
+// Main object that contains all the information
+// about tests and results
+//========================================================
+
 struct Data {
     std::vector<Variant> variants;
-    TestInput input;
+    SampleInfo input;
 
     inline int size(){ return variants.size(); }
 };
 
+enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
+                  COMMON_REGULAR_TRUE, COMMON_REGULAR_GTCALL,
+                  RARE_LIKELIHOOD_RVS_SKAT, RARE_LIKELIHOOD_NORVS_SKAT,
+                  RARE_REGULAR_TRUE_SKAT, RARE_REGULAR_GTCALL_SKAT,
+                  RARE_LIKELIHOOD_RVS_CALPHA, RARE_LIKELIHOOD_NORVS_CALPHA,
+                  RARE_REGULAR_TRUE_CALPHA, RARE_REGULAR_GTCALL_CALPHA, NONE };
+
+enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
+enum class Family { NORMAL, BINOMIAL, NONE };
+enum class ReadGroup { HIGH, LOW };
+
+
+
 //========================================================
-// functions
+// Main functions that have different implementations
+// for command line vs GUI
 //========================================================
+
+
 
 Data startVikNGS(Request req);
-std::vector<Variant> runTest(TestInput &input, Request &req);
+std::vector<Variant> runTest(SampleInfo &input, Request &req);
 
-//InputParser
-TestInput parseInfo(Request req);
+//========================================================
+// Global variable for thread stopping
+//========================================================
 
-TestInput parseSampleLines(Request req);
-std::vector<Variant> processVCF(TestInput input, Request req);
+extern bool STOP_RUNNING_THREAD;
+
+//========================================================
+// Logging functions
+//========================================================
+
+void printInfo(std::string message);
+void printWarning(std::string message);
+void printError(std::string message);
+void throwError(std::string source, std::string message);
+void throwError(std::string source, std::string message, std::string valueGiven);
+void printWarning(std::string source, std::string message, std::string valueGiven);
+void printWarning(std::string source, std::string message);
+
+
+class variant_exception: public std::exception{
+    std::string message;
+
+public:
+    variant_exception(std::string msg){
+        this->message= msg;
+    }
+
+  virtual const char* what() const throw()
+  {
+        std::string what= "Error in single variant p-value computation: " + this->message;
+        return what.c_str();
+  }
+};
+
+
+SampleInfo parseSampleLines(Request req);
+std::vector<Variant> processVCF(SampleInfo input, Request req);
 
 //CommonTest.cpp
-std::vector<Variant> runCommonTest(Request &req, TestInput &input);
+std::vector<Variant> runCommonTest(Request &req, SampleInfo &input);
 //RareTest.cpp
-std::vector<Variant> runRareTest(Request req, TestInput input);
-
-
-//========================================================
-// timing functions
-//========================================================
-
-#include <time.h>
-
-inline clock_t startTime() {
-	clock_t t;
-	t = clock();
-	return t;
-}
-
-inline void endTime(clock_t t, std::string label) {
-	t = clock() - t;
-	std::cout << "Timer " + label + " took ";
-	std::cout << (float)t / CLOCKS_PER_SEC;
-	std::cout << " seconds\n";
-}
-
-inline double endTime(clock_t t) {
-	t = clock() - t;
-	return (double)t / CLOCKS_PER_SEC;
-}
+std::vector<Variant> runRareTest(Request req, SampleInfo input);

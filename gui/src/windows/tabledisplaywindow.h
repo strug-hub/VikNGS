@@ -4,7 +4,7 @@
 #include <QTableWidgetItem>
 #include "./checktree.h"
 #include "../src/Variant.h"
-#include "../src/RVS.h"
+#include "../src/vikNGS.h"
 #include "../simulation/simulation.h"
 
 namespace Ui {

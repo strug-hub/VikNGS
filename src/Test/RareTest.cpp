@@ -1,6 +1,6 @@
 #include "../Math/MathHelper.h"
 #include "../Request.h"
-#include "../TestInput.h"
+#include "../SampleInfo.h"
 #include "../Output/OutputHandler.h"
 #include "RareTestObject.h"
 #include "RareTestCollapseObject.h"
@@ -65,7 +65,7 @@ double rareTest(RareTestCollapseObject &collapse, int nboot, bool stopEarly, boo
     return (tcount + 1) / (bootCount + 1) ;
 }
 
-std::vector<Variant> runRareTest(Request req, TestInput input) {
+std::vector<Variant> runRareTest(Request req, SampleInfo input) {
 
     //preprocessing
     //------------------

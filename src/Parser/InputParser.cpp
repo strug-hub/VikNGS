@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 
-static const std::string INPUT_PARSER = "input parser";
+static const std::string ERROR_SOURCE = "INPUT_PARSER";
 
 /*
 Parses all input files and filters variants based on given criteria
@@ -34,7 +34,7 @@ Output params:
 
 @return TestInput object holding all the output parameters.
 */
-TestInput parseInfo(Request req) {
+SampleInfo parseSampleInfo(Request req) {
 	
 	VectorXd Y, G; MatrixXd Z;
 	std::map<int, int> readGroup;
@@ -51,7 +51,7 @@ TestInput parseInfo(Request req) {
     return buildTestInput(Y, Z, G, readGroup, intervals, family);
 }
 
-std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::string> &lines, int startVariantNumber, int startLineNumber){
+std::vector<Variant> runBatch(SampleInfo input, Request req, std::vector<std::string> &lines, int startVariantNumber, int startLineNumber){
 
     std::vector<Variant> variants;
     std::vector<std::string> filterInfo;
@@ -103,7 +103,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
         collapse = collapseEveryK(req.collapse, variants.size());
     //todo
 
-    TestInput in = addVariants(input, variants, collapse);
+    SampleInfo in = addVariants(input, variants, collapse);
 
     //todo: remove
     //printInfo("rvs = " + std::to_string(req.rvs) + " --- useGT = " + std::to_string(req.regularTest));
@@ -116,7 +116,7 @@ std::vector<Variant> runBatch(TestInput input, Request req, std::vector<std::str
 
 class ParallelProcess
 {
-    TestInput input;
+    SampleInfo input;
     Request req;
 
     int startVariantNumber;
@@ -128,7 +128,7 @@ class ParallelProcess
 
 public:
 
-    ParallelProcess(TestInput ti, Request r) : input(ti), req(r) { initialized = false;}
+    ParallelProcess(SampleInfo ti, Request r) : input(ti), req(r) { initialized = false;}
 
     inline bool isDone(){
         return initialized && futureResults.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -143,7 +143,7 @@ public:
         return futureResults.get();
     }
 
-    void copyValues(TestInput input, Request req){
+    void copyValues(SampleInfo input, Request req){
         this->input = input;
         this->req = req;
     }
@@ -159,7 +159,7 @@ public:
     }
 };
 
-std::vector<Variant> processVCF(TestInput input, Request req) {
+std::vector<Variant> processVCF(SampleInfo input, Request req) {
 
     std::string vcfDir = req.vcfDir;
     std::string filterChr = req.filterChr;

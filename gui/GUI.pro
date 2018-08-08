@@ -27,8 +27,6 @@ RESOURCES += resources/resources.qrc
 
 SOURCES += \
     src/main.cpp \
-    src/vikngs.cpp \
-    src/windows/maintab.cpp \
     src/windows/plotwindow.cpp \
     src/widgets/qzoombar.cpp \
     src/widgets/qcustomplot.cpp \
@@ -40,7 +38,6 @@ SOURCES += \
     ../src/Test/CommonTest.cpp \
     ../src/Test/RareTest.cpp \
     ../src/Test/RareTestObject.cpp \
-    ../src/RequestBuilder.cpp \
     ../src/Math/StatisticsHelper.cpp \
     ../src/Math/CompQuadForm.cpp \
     ../src/Math/VectorHelper.cpp \
@@ -54,24 +51,23 @@ SOURCES += \
     ../src/Parser/InputParser.cpp \
     ../src/Parser/ParserTools.cpp \
     ../src/Test/CommonTestObject.cpp \
-    src/windows/simulationtab.cpp \
     ../src/Test/RareTestCollapseObject.cpp \
     src/global.cpp \
     src/windows/qsimulationtab.cpp \
     src/windows/tabledisplaywindow.cpp \
-    src/windows/tabledisplaywindowcolumns.cpp
+    src/windows/tabledisplaywindowcolumns.cpp \
+    ../src/Request.cpp \
+    src/windows/MainWindow.cpp \
+    src/windows/MainTab.cpp \
+    src/windows/SimulationTab.cpp \
+    ../src/vikNGS.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
-    src/windows/mainwindow.h \
-    src/runner.h \
     src/log/qlog.h \
-    src/log/typeconverter.h \
-    src/windows/plotwindow.h \
     src/widgets/qzoombar.h \
     src/windows/simplotwindow.h \
     src/simulation/simulation.h \
-    ../src/RVS.h \
     ../src/Variant.h \
     ../src/Eigen/src/Cholesky/LDLT.h \
     ../src/Eigen/src/Cholesky/LLT.h \
@@ -275,9 +271,7 @@ HEADERS += \
     ../src/Parser/MemoryMapped/MemoryMapped.h \
     ../src/Parser/InputParser.h \
     ../src/Output/OutputHandler.h \
-    ../src/Log.h \
     ../src/Request.h \
-    ../src/RVS.h \
     ../src/Math/MathHelper.h \
     ../src/Math/StatisticsHelper.h \
     ../src/Math/VectorHelper.h \
@@ -290,9 +284,14 @@ HEADERS += \
     ../src/Test/RareTestObject.h \
     ../src/Test/RareTestCollapseObject.h \
     ../src/Parser/BED/Interval.h \
-    src/global.h \
     src/windows/tabledisplaywindow.h \
-    src/windows/checktree.h
+    src/windows/checktree.h \
+    ../src/vikNGS.h \
+    src/windows/MainWindow.h \
+    src/windows/PlotWindow.h \
+    src/log/TypeConverter.h \
+    src/AsyncJob.h \
+    ../src/SampleInfo.h
 
 
 FORMS += \

@@ -1,15 +1,14 @@
 #include <QObject>
-#include <QVector>
-#include "../src/RVS.h"
+#include "../src/vikNGS.h"
 #include "../src/Variant.h"
 #include "simulation/simulation.h"
 
-class Runner : public QObject {
+class AsyncJob : public QObject {
     Q_OBJECT
 
 public:
-    Runner(){}
-    ~Runner(){}
+    AsyncJob(){}
+    ~AsyncJob(){}
 
 public slots:
     void runVikngs() {

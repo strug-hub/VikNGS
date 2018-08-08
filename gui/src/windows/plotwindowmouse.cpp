@@ -1,4 +1,4 @@
-#include "plotwindow.h"
+#include "PlotWindow.h"
 #include "ui_plotwindow.h"
 
 

@@ -1,4 +1,4 @@
-#include "../src/Log.h"
+#include "../src/vikNGS.h"
 #include "qlog.h"
 
 #include <QObject>
