@@ -1,6 +1,6 @@
 #include "VCFParserUtils.h"
 
-static const std::string VCF_PARSER_UTILS = "VCF parser utils";
+static const std::string ERROR_SOURCE = "VCF_PARSER";
 
 std::vector<std::string> extractHeader(File &vcf) {
     std::string header = extractHeaderLine(vcf);
@@ -19,7 +19,7 @@ std::string extractHeaderLine(File &vcf) {
         else if (line.substr(0, 1) == "#")
             break;
         else
-            throwError(VCF_PARSER_UTILS, "Problem identifying header. Ensure header begins with a single '#'.");
+            throwError(ERROR_SOURCE, "Problem identifying header. Ensure header begins with a single '#'.");
     }
 
     return line;
@@ -198,6 +198,12 @@ double getGenotypeCall(std::string &column, int indexGT) {
     return NAN;
 }
 
+/*
+Reads every sample ID (columns after FORMAT) from a multisample VCF and stores it in a map.
+
+@param vcfDir Directory of multisample VCF file.
+@return A map from sample name to a unique integer.
+*/
 std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 
 	//open VCF file and extract header
@@ -223,9 +229,9 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 	}
 
 	if (!flag) 
-		throwError(VCF_PARSER_UTILS, "Cannot find FORMAT column in header.");
+        throwError(ERROR_SOURCE, "Cannot find FORMAT column in VCF header.");
 	if (IDmap.size() <= 0)
-		throwError(VCF_PARSER_UTILS, "No sample IDs were found in the VCF file header.");
+        throwError(ERROR_SOURCE, "No sample IDs were found in the VCF file header.");
 
 	return IDmap;
 }

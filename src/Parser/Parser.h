@@ -14,14 +14,30 @@
 #include <algorithm>
 #include <map>
 
-static const int PASS = 0;
-static const int SNP_FAIL = 1;
-static const int FILTER_FAIL = 2;
-static const int MISSING_FAIL = 3;
-static const int HOMOZYGOUS_FAIL = 4;
-static const int MAF_FAIL = 5;
+
+enum class Filter { VALID, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
+
 
 SampleInfo parseSampleInfo(Request req);
+
+
+static const int ID_COL = 0;
+static const int PHENOTYPE_COL = 1;
+static const int GROUP_COL = 2;
+static const int DEPTH_COL = 3;
+static const int COV_COL = 4;
+static const char SAMPLE_SEP = '\t';
+
+//SampleInfoParser.cpp
+bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap);
+VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> &IDmap);
+VectorXd parseSampleGroupID(std::string sampleDir, std::map<std::string, int> &IDmap);
+std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::string, int> &IDmap, VectorXd &G, int highLowCutOff);
+MatrixXd parseSampleCovariates(std::string sampleDir, std::map<std::string, int> &IDmap);
+
+
+//VCFParser.cpp
+
 
 //ParserTools.cpp
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
@@ -34,13 +50,11 @@ VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood);
 std::string determineFamily(VectorXd Y);
 
 //VCFParser.cpp
+std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 std::vector<Variant> parseVCFLines(SampleInfo &input, Request &req);
 std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 std::vector<std::string> extractHeader(File &vcf);
 
-//SampleParser.cpp
-void parseSampleLines(Request req, std::map<std::string, int> &IDmap,
-	VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup);
 
 //BEDParser.cpp
 std::vector<Interval> parseBEDLines(std::string bedDir, bool collapseExon);

@@ -25,7 +25,7 @@ using Eigen::DiagonalMatrix;
 
 struct Data {
     std::vector<Variant> variants;
-    SampleInfo input;
+    SampleInfo sampleInfo;
 
     inline int size(){ return variants.size(); }
 };
@@ -39,7 +39,7 @@ enum class Test { COMMON_LIKELIHOOD_RVS, COMMON_LIKELIHOOD_NORVS,
 
 enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
 enum class Family { NORMAL, BINOMIAL, NONE };
-enum class ReadGroup { HIGH, LOW };
+enum class Depth { HIGH, LOW };
 
 
 
@@ -47,8 +47,6 @@ enum class ReadGroup { HIGH, LOW };
 // Main functions that have different implementations
 // for command line vs GUI
 //========================================================
-
-
 
 Data startVikNGS(Request req);
 std::vector<Variant> runTest(SampleInfo &input, Request &req);
@@ -88,7 +86,6 @@ public:
 };
 
 
-SampleInfo parseSampleLines(Request req);
 std::vector<Variant> processVCF(SampleInfo input, Request req);
 
 //CommonTest.cpp

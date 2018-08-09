@@ -1,4 +1,4 @@
-#include "../InputParser.h"
+#include "../Parser.h"
 #include "VariantFilterUtils.h"
 
 /*

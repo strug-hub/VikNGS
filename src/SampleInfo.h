@@ -1,5 +1,4 @@
 #pragma once
-#include "Parser/BED/Interval.h"
 #include "vikNGS.h"
 #include <vector>
 #include <map>
@@ -8,13 +7,12 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-
 struct SampleInfo {
 private:
     VectorXd Y;
     VectorXd G;
     MatrixXd Z;
-    std::map<int, ReadGroup> readGroup;
+    std::map<int, Depth> groupDepth;
     Family family;
 
     void determineFamily() {
@@ -30,21 +28,19 @@ private:
         return family=Family::BINOMIAL;
     }
 
-
-
-
 public:
-    SampleInfo(VectorXd y, VectorXd g, MatrixXd z, std::map<int, ReadGroup> readGroupMap) :
-        Y(y), G(g), Z(z), readGroup(readGroupMap) {
-        determineFamily();
-    }
-    ~SampleInfo() { }
 
+    inline void setY(VectorXd Y){ this->Y = Y; determineFamily(); }
+    inline void setZ(MatrixXd Z){ this->Z = Z; }
+    inline void setG(VectorXd G){ this->G = G; }
+    inline void setGroupDepthMap(std::map<int, Depth> groupDepth){ this->groupDepth = groupDepth; }
+
+    inline VectorXd getG(){ return G; }
 
     inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
-    inline int ncovariates() { return Z.cols() -1; }
-    inline int getNumberOfGroups() { return 1 + (int)G.maxCoeff(); }
-
+    inline int ncov() { return Z.cols() -1; }
+    inline int nsamp() { return Y.rows(); }
+    inline int ngroup() { return 1 + (int)G.maxCoeff(); }
 
 }
 
@@ -52,7 +48,7 @@ public:
 
 
 
-
+/*
 
 
         inline MatrixXd getP(){
@@ -87,9 +83,9 @@ public:
         }
 };
 
-/**
-Creates a TestInput object.
-*/
+
+//Creates a TestInput object.
+
 inline SampleInfo buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map<int, int> &readGroup,
                                 std::vector<Interval> intervals, std::string family) {
 
@@ -103,9 +99,9 @@ inline SampleInfo buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G, std::map
 	return input;
 }
 
-/**
-Creates a TestInput object.
-*/
+
+//Creates a TestInput object.
+
 inline SampleInfo buildTestInput(VectorXd &Y, MatrixXd &Z, VectorXd &G,
         std::map<int, int> &readGroup, std::vector<Variant> &variants, std::string family) {
 
@@ -127,3 +123,4 @@ inline SampleInfo addVariants(SampleInfo t, std::vector<Variant> &variants, std:
 }
 
 
+*/

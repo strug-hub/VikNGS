@@ -1,6 +1,6 @@
 #include "../src/vikNGS.h"
 #include "simulation/simulation.h"
-#include "Parser/InputParser.h"
+#include "Parser/Parser.h"
 
 #include <iostream>  
 #include <string>
@@ -17,12 +17,11 @@ Data startVikNGS(Request req) {
     printInfo("Parsing files...");
 
     Data result;
-    SampleInfo info = parseSampleInfo(req);
-
-    if(input.hasCovariates())
-        printInfo(std::to_string(input.ncovariates()) + " covariates parsed");
-
+    result.sampleInfo = parseSampleInfo(req);
     result.variants = processVCF(input, req);
+
+
+
     result.input = input;
 
     return result;

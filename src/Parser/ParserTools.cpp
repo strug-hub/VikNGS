@@ -1,4 +1,4 @@
-#include "InputParser.h"
+#include "Parser.h"
 #include <regex>
 #include <fstream>
 
@@ -44,9 +44,6 @@ std::string extractString(MemoryMapped &charArray, int start, int end) {
 	return ret;
 }
 
-
-
-
 /**
 Removes whitespace from a string
 
@@ -89,7 +86,7 @@ inline bool isNumeric(const std::string& str) {
 	return (std::regex_match(str, std::regex("-?[1234567890]+(\\.[1234567890]+)?")));
 }
 
-/*
+/**
 Uses EM algorithm to estimate the genotype frequencies in the sample
 
 @param likelihood A vector with genotype likelihoods.
@@ -148,7 +145,7 @@ VectorXd calcEM(std::vector<GenotypeLikelihood> &likelihood) {
 	return freq;
 }
 
-/*
+/**
 Calculates the conditional expected genotype probability E( P(G_ij | D_ij) )
 given the genotype likelihoods P(D_ij | G_ij = g) and frequencies.
 
@@ -186,7 +183,7 @@ VectorXd calcEG(std::vector<GenotypeLikelihood> &likelihood, VectorXd &p) {
 	return EG;
 }
 
-/*
+/**
 Generates the expected probabilities of the genotypes E(G_ij | D_ij).
 Using the genotype likelihood for case and controls from VCF file to generates the population frequency by calling function calcEM
 and then use it to calculate the expected genotype probabilities E(G_ij | D_ij) by calling function calcEG.

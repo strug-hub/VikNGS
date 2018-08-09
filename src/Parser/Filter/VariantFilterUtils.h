@@ -1,5 +1,5 @@
 #pragma once
-#include "../InputParser.h"
+#include "../Parser.h"
 
 /*
 Verifies whether or not a string is a single nucleotide base (A, T, C or G).

@@ -44,8 +44,6 @@ SOURCES += \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
     ../src/Parser/VCF/VCFParserUtils.cpp \
     ../src/Parser/Filter/VariantFilter.cpp \
-    ../src/Parser/Sample/SampleParserUtils.cpp \
-    ../src/Parser/Sample/SampleParser.cpp \
     ../src/Parser/BED/BEDParserUtils.cpp \
     ../src/Parser/BED/BEDParser.cpp \
     ../src/Parser/InputParser.cpp \
@@ -60,7 +58,8 @@ SOURCES += \
     src/windows/MainWindow.cpp \
     src/windows/MainTab.cpp \
     src/windows/SimulationTab.cpp \
-    ../src/vikNGS.cpp
+    ../src/vikNGS.cpp \
+    ../src/Parser/SampleParser.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -269,14 +268,12 @@ HEADERS += \
     ../src/Eigen/src/SVD/SVDBase.h \
     ../src/Eigen/src/SVD/UpperBidiagonalization.h \
     ../src/Parser/MemoryMapped/MemoryMapped.h \
-    ../src/Parser/InputParser.h \
     ../src/Output/OutputHandler.h \
     ../src/Request.h \
     ../src/Math/MathHelper.h \
     ../src/Math/StatisticsHelper.h \
     ../src/Math/VectorHelper.h \
     ../src/Parser/VCF/VCFParserUtils.h \
-    ../src/Parser/Sample/SampleParserUtils.h \
     ../src/Parser/BED/BEDParserUtils.h \
     ../src/Parser/Filter/VariantFilterUtils.h \
     ../src/Parser/File.h \
@@ -291,7 +288,8 @@ HEADERS += \
     src/windows/PlotWindow.h \
     src/log/TypeConverter.h \
     src/AsyncJob.h \
-    ../src/SampleInfo.h
+    ../src/SampleInfo.h \
+    ../src/Parser/Parser.h
 
 
 FORMS += \

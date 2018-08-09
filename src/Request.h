@@ -103,6 +103,8 @@ public:
     inline bool shouldCollapseGene() { return collapseType == CollapseType::COLLAPSE_GENE; }
     inline bool shouldCollapseExon() { return collapseType == CollapseType::COLLAPSE_EXON; }
 
+    inline std::string getSampleDir() { return sampleDir; }
+
     bool validate();
 };
 

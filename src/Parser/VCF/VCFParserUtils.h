@@ -1,5 +1,5 @@
 #pragma once
-#include "../InputParser.h"
+#include "../Parser.h"
 
 static const char VCF_SEPARATOR = '\t';
 
@@ -35,13 +35,7 @@ GenotypeLikelihood getGenotypeLikelihood(std::string &column, int indexPL, int i
 double getGenotypeCall(std::string &column, int indexGT);
 
 
-/*
-Reads every sample ID (columns after FORMAT) from a multisample VCF and stores it in a map.
 
-@param vcfDir Directory of multisample VCF file.
-@return A map from sample name to a unique integer.
-*/
-std::map<std::string, int> getSampleIDMap(std::string vcfDir);
 
 /*
 Takes the columns of a VCF line and builds a Variant object.

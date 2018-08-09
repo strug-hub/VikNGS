@@ -1,5 +1,5 @@
 #pragma once
-#include "../InputParser.h"
+#include "../Parser.h"
 
 static const char BED_SEPARATOR = '\t';
 
