@@ -14,6 +14,7 @@ Request getDefaultRequest() {
     r.setStopEarly(false);
     r.setNumberThreads(1);
     r.setBatchSize(1000);
+    r.setKeepFiltered(false);
 
     r.setMustPASS(true);
     r.setOnlySNPs(true);

@@ -1,82 +1,117 @@
 #pragma once
+#include "vikNGS.h"
+#include "Math/Math.h"
+#include "Eigen/Dense"
+#include "Interval.h"
 
-#include <iostream>
 #include <string>
 #include <vector>
-#include "Eigen/Dense"
-#include "Parser/BED/Interval.h"
-#include "vikNGS.h"
+#include <map>
 
 using Eigen::VectorXd;
 using Eigen::Vector3d;
 using Eigen::MatrixXd;
 
-struct GenotypeLikelihood {
-    bool missing = false;
-    double L00;
-    double L01;
-    double L11;
-
-    std::string toString(){
-        return "(" + std::to_string(L00) + ", " +
-                std::to_string(L01) + ", " +
-                std::to_string(L11) + ")";
-    }
-};
-
-
 struct Variant {
 private:
-    VectorXd expectedGenotype;
-    VectorXd trueGenotype;
-    VectorXd genotypeCalls;
-
-    Vector3d P;
-    Vector3d GL;
+    std::map<Genotype, VectorXd> genotypes;
+    std::map<Genotype, Vector3d> P;
 
     std::string chrom;
     int pos;
+    std::string id;
     std::string ref;
     std::string alt;
 
-    std::vector<double> pvalues;    
-    std::vector<Test> psource;
-
-    bool valid;
-    std::string errorMessage;
-
+    Filter filter;
 
 public:
 
-    Variant(std::string chromosome, std::string position, std::string reference, std::string alternative) :
-        chrom(chromosome), pos(position), ref(reference), alt(alternative) {
-        valid = true;
+    Variant(std::string chromosome, int position, std::string unique_id, std::string reference, std::string alternative) :
+        chrom(chromosome), pos(position), id(unique_id), ref(reference), alt(alternative) {
+        filter = Filter::VALID;
+    }
+
+    Variant() {
+        filter = Filter::INVALID;
     }
     ~Variant() { }
 
-    inline bool isValid(){ return valid; }
-    inline void setInvalid(std::string message) {
-        valid = false;
-        errorMessage = message;
-        reduceSize();
+    inline void setExpectedGenotypes(std::vector<Vector3d> &likelihoods) {
+        P[Genotype::EXPECTED] = calculateGenotypeFrequencies(likelihoods);
+        this->genotypes[Genotype::EXPECTED] = calculateExpectedGenotypes(likelihoods, P[Genotype::EXPECTED]);
     }
-    std::string getErrorMessage() { return errorMessage; }
+    inline void setCallGenotypes(std::vector<Vector3d> &likelihoods) {
+        P[Genotype::CALL] = calculateGenotypeFrequencies(likelihoods);
+        this->genotypes[Genotype::CALL] = calculateGenotypeCalls(likelihoods, P[Genotype::CALL]);
+    }
+    inline void setTrueGenotypes(VectorXd &gt) {
+        P[Genotype::TRUE] = calculateGenotypeFrequencies(gt);
+        this->genotypes[Genotype::TRUE] = gt;
+    }
+    inline void setVCFCallGenotypes(VectorXd &gt) {
+        P[Genotype::VCF_CALL] = calculateGenotypeFrequencies(gt);
+        this->genotypes[Genotype::VCF_CALL] = gt;
+    }
 
+    inline void setFilter(Filter f) { this->filter = f; }
+    inline std::string getChromosome() { return this->chrom; }
+    inline int getPosition() { return this->pos; }
+
+    inline std::vector<Genotype> getAllGenotypes(){
+        std::vector<Genotype> all;
+        for(auto const& gt : this->genotypes)
+            all.push_back(gt.first);
+        return all;
+    }
+    inline VectorXd getGenotype(Genotype gt) { return genotypes[gt]; }
+    inline Vector3d getP(Genotype gt) { return P[gt]; }
+
+    inline bool isValid() { return this->filter == Filter::VALID; }
 
     inline std::string toString() {
         std::string t = "\t";
         return chrom + t + std::to_string(pos) + t + ref + t + alt;
     }
-    inline void print() {
-        std::cout << toString() + "\n";
-    }
-    inline std::string info() {
+    inline std::string getInfo() {
         std::string t = "\t";
-        return "chr:" + chr + " pos:" + std::to_string(pos) + " ref:" + ref + " alt:" + alt;
+        return "chr:" + chrom + " pos:" + std::to_string(pos) + " ref:" + ref + " alt:" + alt;
+    }
+    inline bool operator < (Variant& v) {
+        if (this->chrom == v.getChromosome())
+            return this->pos < v.getPosition();
+        else
+            return this->chrom < v.getChromosome();
     }
 
-}
+};
 
+inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }
+
+
+struct VariantSet{
+private:
+    std::vector<Variant> variants;
+    std::map<Test, double> pval;
+    int nvalid = 0;
+    Interval *interval;
+public:
+    VariantSet(Variant & v) { variants.push_back(v); }
+    inline void setInterval(Interval * inv) { interval = inv; }
+    inline bool isIn(Variant &variant) { return interval->isIn(variant.getChromosome(), variant.getPosition()); }
+
+    inline void addVariant(Variant &variant) {
+        variants.push_back(variant);
+        if(variant.isValid()) nvalid++;
+    }
+    inline void addPval(Test test, double p) { this->pval[test] = p; }
+
+    inline double getPval(Test test) { return this->pval[test]; }
+    inline int nPvals() { return this->pval.size(); }
+    inline int size(){ return variants.size(); }
+    inline int validSize(){ return variants.size(); }
+
+};
 
 
 
@@ -110,70 +145,9 @@ public:
         expectedGenotype = empty;
     }
 
-    inline void addPval(double pval, Test psource) {
-        this->pvalues.push_back(pval);
-        this->psource.push_back(psource);
-    }
 
-    inline double getPval(int i) { return pvalues[i]; }
-    inline std::string getPvalSource(int i) {
 
-        switch(psource[i])
-        {
-            case Test::COMMON_LIKELIHOOD_RVS :
-               return "RVS Genotype Likelihoods - common";
-            case Test::COMMON_LIKELIHOOD_NORVS :
-               return "Genotype Likelihoods - common";
-            case Test::COMMON_REGULAR_TRUE :
-               return "True Genotype - common";
-            case Test::COMMON_REGULAR_GTCALL :
-                return "Regular Genotype Calls - common";
-            case Test::RARE_LIKELIHOOD_RVS :
-               return "RVS Genotype Likelihoods - rare";
-            case Test::RARE_LIKELIHOOD_NORVS :
-               return "Genotype Likelihoods - rare";
-            case Test::RARE_REGULAR_TRUE :
-               return "True Genotype - rare";
-            case Test::RARE_REGULAR_GTCALL :
-                return "Regular Genotype Calls - rare";
-            default:
-                  return "???";
-         }
-    }
 
-    inline std::string getPvalSourceShort(int i) {
-
-        switch(psource[i])
-        {
-            case Test::COMMON_LIKELIHOOD_RVS :
-               return "RVS";
-            case Test::COMMON_LIKELIHOOD_NORVS :
-               return "no RVS";
-            case Test::COMMON_REGULAR_TRUE :
-               return "True GT";
-            case Test::COMMON_REGULAR_GTCALL :
-                return "GT calls";
-            case Test::RARE_LIKELIHOOD_RVS :
-                return "RVS";
-            case Test::RARE_LIKELIHOOD_NORVS :
-                return "no RVS";
-            case Test::RARE_REGULAR_TRUE :
-                return "True GT";
-            case Test::RARE_REGULAR_GTCALL :
-                return "GT calls";
-            default:
-                  return "???";
-         }
-    }
-
-    inline int nPvals() { return this->pvalues.size(); }
-
-    inline bool operator<(Variant& line) {
-        if (this->chr == line.chr)
-            return this->pos < line.pos;
-        else
-            return this->chr < line.chr;
-    }
 
     inline MatrixXd getLikelihoodMatrix() {
 
@@ -229,11 +203,5 @@ public:
 
 };
 
-struct CollapsedVariants{
-
-    std::vector<Variant> variants;
-
-}
 
 
-inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }

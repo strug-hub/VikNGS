@@ -12,17 +12,19 @@ Data startVikNGS(Request req) {
 
     printInfo("Starting vikNGS...");
 
-    initializeOutputFiles(req.outputDir);
+    initializeOutputFiles(req.getOutputDir());
 
     printInfo("Parsing files...");
 
     Data result;
+
+    if(req.shouldCollapseBed()){
+        result.intervals = parseBEDLines(req.getBEDDir(), req.getCollapseType());
+        req.setIntervals(& result.intervals);
+    }
+
     result.sampleInfo = parseSampleInfo(req);
-    result.variants = processVCF(input, req);
-
-
-
-    result.input = input;
+    result.variants = processVCF(req, result.sampleInfo);
 
     return result;
 }

@@ -38,16 +38,9 @@ SOURCES += \
     ../src/Test/CommonTest.cpp \
     ../src/Test/RareTest.cpp \
     ../src/Test/RareTestObject.cpp \
-    ../src/Math/StatisticsHelper.cpp \
     ../src/Math/CompQuadForm.cpp \
-    ../src/Math/VectorHelper.cpp \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
-    ../src/Parser/VCF/VCFParserUtils.cpp \
     ../src/Parser/Filter/VariantFilter.cpp \
-    ../src/Parser/BED/BEDParserUtils.cpp \
-    ../src/Parser/BED/BEDParser.cpp \
-    ../src/Parser/InputParser.cpp \
-    ../src/Parser/ParserTools.cpp \
     ../src/Test/CommonTestObject.cpp \
     ../src/Test/RareTestCollapseObject.cpp \
     src/global.cpp \
@@ -59,7 +52,16 @@ SOURCES += \
     src/windows/MainTab.cpp \
     src/windows/SimulationTab.cpp \
     ../src/vikNGS.cpp \
-    ../src/Parser/SampleParser.cpp
+    ../src/Parser/SampleParser.cpp \
+    ../src/Parser/Filter.cpp \
+    ../src/Parser/InputProcess.cpp \
+    ../src/Parser/VariantParser.cpp \
+    ../src/Math/RandomHelper.cpp \
+    ../src/Math/StatisticsHelper.cpp \
+    ../src/Math/VectorHelper.cpp \
+    ../src/Parser/StringTools.cpp \
+    ../src/Math/GeneticsHelper.cpp \
+    ../src/Parser/BEDParser.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -270,17 +272,14 @@ HEADERS += \
     ../src/Parser/MemoryMapped/MemoryMapped.h \
     ../src/Output/OutputHandler.h \
     ../src/Request.h \
-    ../src/Math/MathHelper.h \
     ../src/Math/StatisticsHelper.h \
     ../src/Math/VectorHelper.h \
     ../src/Parser/VCF/VCFParserUtils.h \
-    ../src/Parser/BED/BEDParserUtils.h \
     ../src/Parser/Filter/VariantFilterUtils.h \
     ../src/Parser/File.h \
     ../src/Test/CommonTestObject.h \
     ../src/Test/RareTestObject.h \
     ../src/Test/RareTestCollapseObject.h \
-    ../src/Parser/BED/Interval.h \
     src/windows/tabledisplaywindow.h \
     src/windows/checktree.h \
     ../src/vikNGS.h \
@@ -289,7 +288,11 @@ HEADERS += \
     src/log/TypeConverter.h \
     src/AsyncJob.h \
     ../src/SampleInfo.h \
-    ../src/Parser/Parser.h
+    ../src/Parser/Parser.h \
+    ../src/Parser/Filter.h \
+    ../src/Enums.h \
+    ../src/Math/Math.h \
+    ../src/Interval.h
 
 
 FORMS += \

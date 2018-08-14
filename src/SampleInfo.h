@@ -10,40 +10,42 @@ using Eigen::VectorXd;
 struct SampleInfo {
 private:
     VectorXd Y;
-    VectorXd G;
+    VectorXi G;
     MatrixXd Z;
     std::map<int, Depth> groupDepth;
     Family family;
 
     void determineFamily() {
-
+        double epsilon = 1e-8;
         //if a value not 0 or 1 is found, assume quantitative data
         for(int i = 0; i < Y.rows(); i++){
-            if(Y[i] != 0 && Y[i] != 1){
+            if( std::abs(Y[i]) > epsilon || std::abs(Y[i] - 1) > epsilon){
                 family=Family::NORMAL;
                 return;
             }
         }
 
-        return family=Family::BINOMIAL;
+        family=Family::BINOMIAL;
     }
 
 public:
 
     inline void setY(VectorXd Y){ this->Y = Y; determineFamily(); }
     inline void setZ(MatrixXd Z){ this->Z = Z; }
-    inline void setG(VectorXd G){ this->G = G; }
+    inline void setG(VectorXi G){ this->G = G; }
     inline void setGroupDepthMap(std::map<int, Depth> groupDepth){ this->groupDepth = groupDepth; }
 
-    inline VectorXd getG(){ return G; }
+    inline VectorXi getG(){ return G; }
+    inline VectorXd getY(){ return Y; }
+    inline MatrixXd getZ(){ return Z; }
+    inline Family getFamily(){ return family; }
 
     inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
     inline int ncov() { return Z.cols() -1; }
     inline int nsamp() { return Y.rows(); }
-    inline int ngroup() { return 1 + (int)G.maxCoeff(); }
+    inline int ngroup() { return 1 + G.maxCoeff(); }
 
-}
-
+};
 
 
 

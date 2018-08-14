@@ -9,7 +9,7 @@
 //  Motified by Scott Mastromatteo
 //  assumes 1 degree of freedom, non-centrality parameter = 0
 
-#include "MathHelper.h"
+#include "Math.h"
 
 #include <setjmp.h>
 #include <iostream>  
@@ -20,16 +20,13 @@
 typedef int BOOL;
 
 #define pi 3.14159265358979
-#define log28 .0866  /*  log(2.0) / 8.0  */
-
+#define log28 0.0866  /*  log(2.0) / 8.0  */
 
 static double sigsq, lmax, lmin, mean, c;
 static double intl, ersm;
 static int count, r, lim;  static BOOL ndtsrt, fail;
 static int *th; static double *lb, *nc;
 static jmp_buf env;
-
-
 
 static inline double exp1(double x)               /* to avoid underflows  */
 {
@@ -275,10 +272,10 @@ parameter of 0; X_0 having a standard Gaussian distribution.
 double qfc(std::vector<double> lambda, double evalpoint, int ncoef) {
 	double acc = 1e-04;
 
-	extern double sigsq, lmax, lmin, mean;
-	extern double intl, ersm;
-	extern int r, lim; extern double c;
-	extern int *th; extern double *lb;
+    extern double sigsq, lmax, lmin, mean;
+    extern double intl, ersm;
+    extern int r, lim; extern double c;
+    extern int *th; extern double *lb;
 
 	int j, nt, ntm; double almx, xlim, xnt, xntm;
 	double utx, tausq, sd, intv, intv1, x, up, un, d1, d2, lj;
@@ -290,8 +287,8 @@ double qfc(std::vector<double> lambda, double evalpoint, int ncoef) {
 	count = 0;
 	intl = 0.0; ersm = 0.0;
 	qfval = -1.0; ndtsrt = TRUE;  fail = FALSE;
-	xlim = (double)lim;
-	th = (int*)malloc(r*(sizeof(int)));
+    xlim =  static_cast<double>(lim);
+    th =  static_cast<int *>(malloc( static_cast<size_t>(r)*(sizeof(int))));
 
 	/* find mean, sd, max and min of lb,
 	check that parameter values are valid */
@@ -343,7 +340,7 @@ l1:
 	if (xnt > xntm * 1.5)
 	{
 		/* parameters for auxillary integration */
-		ntm = (int)std::floor(xntm + 0.5);
+        ntm = (int)std::floor(xntm + 0.5);
 		intv1 = utx / ntm;  x = 2.0 * pi / intv1;
 		if (x <= fabs(c)) goto l2;
 		/* calculate convergence factor */
@@ -360,7 +357,7 @@ l1:
 
 	/* main integration */
 l2:
-	nt = (int)std::floor(xnt + 0.5);
+    nt =  static_cast<int>(std::floor(xnt + 0.5));
 	integrate(nt, intv, 0.0, TRUE);
 	qfval = 0.5 - intl;
 
@@ -369,6 +366,6 @@ l2:
 	up = ersm; x = up + acc / 10.0;
 
 endofproc:
-	free((char*)th);
+    free((char*)th);
 	return std::abs(1 - qfval);
 }

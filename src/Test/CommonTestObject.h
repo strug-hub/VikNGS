@@ -1,5 +1,5 @@
 #pragma once
-#include "../Math/MathHelper.h"
+#include "../Math/Math.h"
 
 class CommonTestObject {
 private:

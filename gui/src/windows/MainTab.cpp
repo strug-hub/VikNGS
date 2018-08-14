@@ -206,10 +206,10 @@ Request MainWindow::createRequest(){
 
     if(ui->main_testCommonBtn->isChecked()){
 
-        if(ui->main_rvsChk->isChecked()){
-            req.doCommonRVS();
-        if(ui->main_gtChk->isChecked()){
-            req.doCommonCalls();
+        if(ui->main_rvsChk->isChecked())
+            req.addTest(Test(Genotype::EXPECTED, Statistic::COMMON));
+        if(ui->main_gtChk->isChecked())
+            req.addTest(Test(Genotype::CALL, Statistic::COMMON));
 
         printInfo("Preparing to run common variant association...");
         commands.push_back("-c");
@@ -217,21 +217,22 @@ Request MainWindow::createRequest(){
 
     if(ui->main_testRareCastBtn->isChecked()){
 
-        if(ui->main_rvsChk->isChecked()){
-            req.doRareSkatRVS(n);
-        if(ui->main_gtChk->isChecked()){
-            req.doRareSkatCalls(n);
+        if(ui->main_rvsChk->isChecked())
+            req.addTest(Test(Genotype::EXPECTED, Statistic::SKAT));
+        if(ui->main_gtChk->isChecked())
+            req.addTest(Test(Genotype::CALL, Statistic::SKAT));
 
+        //todo: change to SKAT?
         printInfo("Preparing to run rare variant association (CAST p-values)...");
         commands.push_back("-r cast");
     }
 
     if(ui->main_testRareCalphaBtn->isChecked()){
 
-        if(ui->main_rvsChk->isChecked()){
-            req.doRareCalphaRVS(n);
-        if(ui->main_gtChk->isChecked()){
-            req.doRareCalphaCalls(n);
+        if(ui->main_rvsChk->isChecked())
+            req.addTest(Test(Genotype::EXPECTED, Statistic::CALPHA));
+        if(ui->main_gtChk->isChecked())
+            req.addTest(Test(Genotype::CALL, Statistic::CALPHA));
 
         printInfo("Preparing to run rare variant association (C-alpha p-values)...");
         commands.push_back("-r calpha");

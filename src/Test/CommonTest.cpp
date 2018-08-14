@@ -1,5 +1,5 @@
 #include "../vikNGS.h"
-#include "../Math/MathHelper.h"
+#include "../Math/Math.h"
 #include "CommonTestObject.h"
 #include <future>
 #include "../gui/src/global.h"

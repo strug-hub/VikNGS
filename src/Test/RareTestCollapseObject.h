@@ -1,4 +1,4 @@
-#include "../Math/MathHelper.h"
+#include "../Math/Math.h"
 #include "RareTestObject.h"
 
 class RareTestCollapseObject {

@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-#include "../../../src/Math/MathHelper.h"
+#include "../../../src/Math/Math.h"
 #include "../../../src/vikNGS.h"
 #include "../../../src/Variant.h"
 #include "../../../src/Eigen/Dense"

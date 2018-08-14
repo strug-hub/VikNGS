@@ -19,10 +19,12 @@ bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap)
     std::vector<std::string> lineSplit;
 
     std::map<std::string, int> ID;
+    std::string line;
 
     while (sampleInfo.hasNext()) {
 
-        lineSplit = split(sampleInfo.nextLine(), SAMPLE_SEP);
+        line = sampleInfo.nextLine();
+        lineSplit = splitString(line, SAMPLE_SEP);
 
         if (lineSplit.size() < 2)
             break;
@@ -56,7 +58,7 @@ bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap)
     if (missingSample.size() > 0) {
 
         std::string message = "Samples were found in the provided VCF but are missing in the sample information file:";
-        for (int i = 0; i < missingSample.size(); i++)
+        for (size_t i = 0; i < missingSample.size(); i++)
             message += " '" + missingSample[i] + "' ";
 
         throwError(ERROR_SOURCE, message);
@@ -83,10 +85,12 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
         Y[i] = NAN;
 
     std::vector<std::string> lineSplit;
+    std::string line;
 
     while (sampleInfo.hasNext()) {
 
-        lineSplit = split(sampleInfo.nextLine(), SAMPLE_SEP);
+        line = sampleInfo.nextLine();
+        lineSplit = splitString(line, SAMPLE_SEP);
 
         if (lineSplit.size() < 2)
             break;
@@ -98,7 +102,7 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
             Y[index] = std::stod(lineSplit[PHENOTYPE_COL]);
         }
         catch (...) {
-            if(!lineSplit[PHENOTYPE_COL]=="NA"){
+            if(! (lineSplit[PHENOTYPE_COL] == "NA")){
                 std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
                 " in sample information file - Unexpected value non-numeric value in phenotype column. Use NA if missing.";
                 sampleInfo.close();
@@ -119,21 +123,24 @@ Parses a data file containing tab-separated info for each sample. Extracts group
 
 @return Vector of group ID
 */
-VectorXd parseSampleGroupID(std::string sampleDir, std::map<std::string, int> &IDmap){
+VectorXi parseSampleGroupID(std::string sampleDir, std::map<std::string, int> &IDmap){
 
     File sampleInfo;
     sampleInfo.open(sampleDir);
 
     std::map<std::string, int> groupIDMap;
     int groupIndex = 0;
-    VectorXd G = VectorXd(IDmap.size());
+    VectorXi G = VectorXd(IDmap.size());
     for(int i = 0; i < G.rows(); i++)
         G[i] = -1;
 
     std::vector<std::string> lineSplit;
+    std::string line;
+
     while (sampleInfo.hasNext()) {
 
-        lineSplit = split(sampleInfo.nextLine(), SAMPLE_SEP);
+        line = sampleInfo.nextLine();
+        lineSplit = splitString(line, SAMPLE_SEP);
 
         if (lineSplit.size() < 2)
             break;
@@ -164,7 +171,7 @@ Parses a data file containing tab-separated info for each sample. Extracts read 
 
 @return Map from group ID to read depth
 */
-std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::string, int> &IDmap, VectorXd &G, int highLowCutOff){
+std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::string, int>& IDmap, VectorXi& G, int highLowCutOff){
 
     File sampleInfo;
     sampleInfo.open(sampleDir);
@@ -172,10 +179,12 @@ std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::s
     std::map<int, Depth> groupDepth;
 
     std::vector<std::string> lineSplit;
+    std::string line;
 
     while (sampleInfo.hasNext()) {
 
-        lineSplit = split(sampleInfo.nextLine(), SAMPLE_SEP);
+        line = sampleInfo.nextLine();
+        lineSplit = splitString(line, SAMPLE_SEP);
 
         if (lineSplit.size() < 2)
             break;
@@ -229,12 +238,12 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
 
     if (isNumeric) {
         VectorXd z(covariate.size());
-        for (int i = 0; i < covariate.size(); i++) {
+        for (size_t i = 0; i < covariate.size(); i++) {
 
             if (covariate[i] == "NA" || covariate[i] == "")
-                z[i] = NAN;
+                z[static_cast<int>(i)] = NAN;
             else
-                z[i] = stod(covariate[i]);
+                z[static_cast<int>(i)] = stod(covariate[i]);
         }
         return z;
     }
@@ -242,7 +251,7 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
         std::map<std::string, int> covIDMap;
         int id = 0;
 
-        for (int i = 0; i < covariate.size(); i++) {
+        for (size_t i = 0; i < covariate.size(); i++) {
             if (!covIDMap.count(covariate[i])) {
                 covIDMap[covariate[i]] = id;
                 id++;
@@ -260,18 +269,17 @@ MatrixXd handleCovariate(std::vector<std::string> covariate, bool isNumeric, int
         z = z.setZero();
 
         int col;
-        for (int i = 0; i < covariate.size(); i++) {
-
+        for (size_t i = 0; i < covariate.size(); i++) {
             if (covariate[i] == "NA" || covariate[i] == "") {
-                for (int j = 0; j < covIDMap.size() - 1; j++)
-                    z(i, j) = NAN;
+                for (size_t j = 0; j < covIDMap.size() - 1; j++)
+                    z(static_cast<int>(i), static_cast<int>(j)) = NAN;
             }
             else {
                 col = covIDMap[covariate[i]];
 
                 //don't include last categorical covariate
                 if(col < id-1)
-                    z(i, col) = 1;
+                    z(static_cast<int>(i), col) = 1;
             }
         }
         return z;
@@ -287,12 +295,12 @@ Parses a data file containing tab-separated info for each sample.
 MatrixXd handleCovariates(std::vector<std::vector<std::string>> covariates) {
     MatrixXd Z;
 
-    for (int i = 0; i < covariates[0].size(); i++) {
+    for (size_t i = 0; i < covariates[0].size(); i++) {
 
         std::vector<std::string> covariate;
         bool isNumeric = true;
 
-        for (int j = 0; j < covariates.size(); j++) {
+        for (size_t j = 0; j < covariates.size(); j++) {
             covariate.push_back(covariates[j][i]);
             if (isNumeric) {
                 try {
@@ -305,7 +313,7 @@ MatrixXd handleCovariates(std::vector<std::vector<std::string>> covariates) {
                 }
             }
         }
-        MatrixXd cov = handleCovariate(covariate, isNumeric, i);
+        MatrixXd cov = handleCovariate(covariate, isNumeric, static_cast<int>(i));
 
         if (i == 0)
             Z = cov;
@@ -338,10 +346,12 @@ MatrixXd parseSampleCovariates(std::string sampleDir, std::map<std::string, int>
     std::vector<std::vector<std::string>> covariates(IDmap.size());
 
 	std::vector<std::string> lineSplit;
+    std::string line;
 
 	while (sampleInfo.hasNext()) {
 
-        lineSplit = split(sampleInfo.nextLine(), SAMPLE_SEP);
+        line = sampleInfo.nextLine();
+        lineSplit = splitString(line, SAMPLE_SEP);
 
 		if (lineSplit.size() < 2)
 			break;
@@ -353,7 +363,7 @@ MatrixXd parseSampleCovariates(std::string sampleDir, std::map<std::string, int>
         for (size_t i = COV_COL; i < lineSplit.size(); i++)
 			cov.push_back(lineSplit[i]);
 
-        covariates[index] = cov;
+        covariates[static_cast<size_t>(index)] = cov;
 	}
 
     MatrixXd Z;

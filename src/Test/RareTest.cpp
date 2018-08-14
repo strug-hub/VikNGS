@@ -1,4 +1,4 @@
-#include "../Math/MathHelper.h"
+#include "../Math/Math.h"
 #include "../Request.h"
 #include "../SampleInfo.h"
 #include "../Output/OutputHandler.h"

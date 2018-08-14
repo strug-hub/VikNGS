@@ -100,4 +100,3 @@ void MainWindow::jobFinished(Data result){
         plotter->show();
     }
 }
-

@@ -1,18 +1,25 @@
 #pragma once
 #include "vikNGS.h"
+#include "Enums.h"
+#include "Interval.h"
+
 #include <string>
+#include <vector>
 
 struct Request {
 private:
-	///input files
-	std::string vcfDir;
-	std::string sampleDir;
+    ///input files
+    std::string vcfDir;
+    std::string sampleDir;
     std::string bedDir;
     std::string outputDir;
 
     bool simulation;
+    bool keepFiltered;
 
-    std::vector<Test> tests;
+    std::vector<Test> test;
+
+    IntervalSet* intervals;
     CollapseType collapse;
     int collapseSize;
 
@@ -25,12 +32,12 @@ private:
     int highLowCutOff;
     double mafCutoff;
     double missingThreshold;
-    bool onlySNPs;
-    bool mustPASS;
+    bool onlySNPsFilter;
+    bool mustPASSFilter;
     int minPos;
     int maxPos;
-    //filterChr = "" means no filter
-    std::string filterChr;
+    //filterChrName = "" means no filter
+    std::string filterChrName;
 
 public:
 
@@ -43,15 +50,7 @@ public:
     inline void setCollapseFile(std::string bedDir){ this->bedDir = bedDir; }
     inline void setOutputDir(std::string outputDir){ this->outputDir = outputDir; }
 
-    inline void doCommonRVS() { tests.push_back(Test::COMMON_LIKELIHOOD_RVS); }
-    inline void doRareSkatRVS(int nboot) { tests.push_back(Test::RARE_LIKELIHOOD_RVS_SKAT); this->nboot = nboot; }
-    inline void doRareCalphaRVS(int nboot) { tests.push_back(Test::RARE_LIKELIHOOD_RVS_CALPHA); this->nboot = nboot; }
-    inline void doCommonCalls() { tests.push_back(Test::COMMON_REGULAR_GTCALL); }
-    inline void doRareSkatCalls(int nboot) { tests.push_back(Test::RARE_REGULAR_GTCALL_SKAT); this->nboot = nboot; }
-    inline void doRareCalphaCalls(int nboot) { tests.push_back(Test::RARE_REGULAR_GTCALL_CALPHA); this->nboot = nboot; }
-    inline void doCommonTrue() { tests.push_back(Test::COMMON_REGULAR_TRUE); }
-    inline void doRareSkatTrue(int nboot) { tests.push_back(Test::RARE_REGULAR_TRUE_SKAT); this->nboot = nboot; }
-    inline void doRareCalphaTrue(int nboot) { tests.push_back(Test::RARE_REGULAR_TRUE_CALPHA); this->nboot = nboot; }
+    inline void addTest(Test t) { this->test.push_back(t); }
 
     inline void setCollapseGene(){ collapse = CollapseType::COLLAPSE_GENE; }
     inline void setCollapseExon(){ collapse = CollapseType::COLLAPSE_EXON; }
@@ -60,51 +59,74 @@ public:
     inline void setStopEarly(bool value) { stopEarly = value; }
     inline void setNumberThreads(int nthreads) { this->nthreads = nthreads; }
     inline void setBatchSize(int size) { this->batchSize = size; }
+    inline void setKeepFiltered(bool value) { this->keepFiltered = value; }
 
-    inline void setMustPASS(bool value) { mustPASS = value; }
-    inline void setOnlySNPs(bool value) { onlySNPs = value; }
-    inline void setHighLowCutOff(double mafCutoff) { this->highLowCutOff = highLowCutOff; }
-    inline void setMafCutOff(int highLowCutOff) { this->highLowCutOff = highLowCutOff; }
+    inline void setMustPASS(bool value) { mustPASSFilter = value; }
+    inline void setOnlySNPs(bool value) { onlySNPsFilter = value; }
+    inline void setHighLowCutOff(int highLowCutOff) { this->highLowCutOff = highLowCutOff; }
+    inline void setMafCutOff(double mafCutoff) { this->mafCutoff = mafCutoff; }
     inline void setMissingThreshold(double missingThreshold) { this->missingThreshold = missingThreshold; }
 
     inline void setMinPos(int min) { this->minPos = min; }
     inline void setMaxPos(int max) { this->maxPos = max; }
-    inline void setChromosomeFilter(std::string chrom) { this->filterChr = chrom; }
+    inline void setChromosomeFilter(std::string chrom) { this->filterChrName = chrom; }
+    inline void setIntervals(IntervalSet *is) { this->intervals = is; }
 
-    inline bool useBootstrap(int i) { return useRare(i); }
+    inline bool requireExpectedGenotypes(){
+        bool result = false;
+        for(Test t : test)
+            result = result || t.needExpectedGenotypes();
+        return result;
+    }
+    inline bool requireGenotypeCalls(){
+        bool result = false;
+        for(Test t : test)
+            result = result || t.needGenotypeCalls();
+        return result;
+    }
+    inline bool requireVCFCalls(){
+        bool result = false;
+        for(Test t : test)
+            result = result || t.needVCFCalls();
+        return result;
+    }
+    inline bool useCommon(){
+        bool result = false;
+        for(Test t : test)
+            result = result || t.needVCFCalls();
+        return result;
+    }
 
-    inline bool useCommon(int i) { return test[i] == Test::COMMON_LIKELIHOOD_NORVS ||
-                                 test[i] == Test::COMMON_LIKELIHOOD_RVS ||
-                                 test[i] == Test::COMMON_REGULAR_GTCALL ||
-                                 test[i] == Test::COMMON_REGULAR_TRUE; }
+    inline bool shouldCollapseBed() {return this->collapse != CollapseType::COLLAPSE_K && bedDir.size() > 0; }
+    inline bool shouldCollapseK() { return this->collapse == CollapseType::COLLAPSE_K; }
+    inline bool shouldCollapseGene() { return this->collapse == CollapseType::COLLAPSE_GENE; }
+    inline bool shouldCollapseExon() { return this->collapse == CollapseType::COLLAPSE_EXON; }
 
-    inline bool useRare(int i) { return test[i] == Test::RARE_LIKELIHOOD_NORVS_CALPHA ||
-                                 test[i] == Test::RARE_LIKELIHOOD_NORVS_SKAT ||
-                                 test[i] == Test::RARE_LIKELIHOOD_RVS_CALPHA ||
-                                 test[i] == Test::RARE_LIKELIHOOD_RVS_SKAT ||
-                                 test[i] == Test::RARE_REGULAR_GTCALL_CALPHA ||
-                                 test[i] == Test::RARE_REGULAR_GTCALL_SKAT ||
-                                 test[i] == Test::RARE_REGULAR_TRUE_CALPHA ||
-                                 test[i] == Test::RARE_REGULAR_TRUE_SKAT; }
-
-    inline bool useRVS(int i) { return test[i] == Test::COMMON_LIKELIHOOD_RVS ||
-                                 test[i] == Test::RARE_LIKELIHOOD_RVS_SKAT ||
-                                 test[i] == Test::RARE_LIKELIHOOD_RVS_CALPHA; }
-
-    inline bool useRegular(int i) { return test[i] == Test::COMMON_REGULAR_GTCALL ||
-                                 test[i] == Test::COMMON_REGULAR_TRUE ||
-                                 test[i] == Test::RARE_REGULAR_GTCALL_CALPHA ||
-                                 test[i] == Test::RARE_REGULAR_GTCALL_SKAT ||
-                                 test[i] == Test::RARE_REGULAR_TRUE_CALPHA ||
-                                 test[i] == Test::RARE_REGULAR_TRUE_SKAT; }
-
-    inline bool shouldCollapseBed() { return collapseType != CollapseType::COLLAPSE_K && bedDir != ""; }
-    inline bool shouldCollapseK() { return collapseType == CollapseType::COLLAPSE_K; }
-    inline bool shouldCollapseGene() { return collapseType == CollapseType::COLLAPSE_GENE; }
-    inline bool shouldCollapseExon() { return collapseType == CollapseType::COLLAPSE_EXON; }
-
+    inline std::string getVCFDir() { return vcfDir; }
+    inline std::string getBEDDir() { return bedDir; }
     inline std::string getSampleDir() { return sampleDir; }
+    inline std::string getOutputDir() { return outputDir; }
+    inline CollapseType getCollapseType() { return collapse; }
+    inline int getCollapseSize() { return collapseSize; }
+    inline int getNumberThreads() { return nthreads; }
+    inline int getBatchSize() { return this->batchSize; }
 
+    inline int getHighLowCutOff() { return highLowCutOff; }
+    inline bool mustPASS() { return mustPASSFilter; }
+    inline bool onlySNPs() { return onlySNPsFilter; }
+
+    inline double getMissingThreshold() { return missingThreshold; }
+    inline double getMAFCutOff() { return mafCutoff; }
+
+    inline bool filterByChromosome() { return !(filterChrName.size() > 0); }
+    inline bool filterByMinPosition() { return minPos >= 0; }
+    inline bool filterByMaxPosition() { return maxPos >= 0; }
+    inline std::string getFilterChromosome() { return filterChrName; }
+    inline int getMinPosition() { return minPos; }
+    inline int getMaxPosition() { return maxPos; }
+
+    inline bool shouldKeepFiltered() { return keepFiltered; }
+    inline IntervalSet* getIntervals() { return intervals; }
     bool validate();
 };
 
