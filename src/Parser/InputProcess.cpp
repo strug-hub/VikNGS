@@ -73,13 +73,14 @@ std::vector<Variant> constructVariants(SampleInfo * sampleInfo, Request * req, s
 }
 
 int findInterval(IntervalSet * is, std::string chr, int pos, int searchHint){
-
+    size_t hint = static_cast<size_t>(searchHint);
     std::vector<Interval>* intervals = is->get(chr);
     size_t left = 0; size_t right = intervals->size();
-    size_t middle = static_cast<size_t>(searchHint);
+    size_t middle = hint;
+    if(hint <= left || hint >= right)
+        middle = (left + right) / 2;
 
     while (left <= right) {
-
         if (intervals->at(middle).isIn(pos))
               return static_cast<int>(middle);
         else if (intervals->at(middle).isSmaller(pos))
@@ -100,7 +101,8 @@ std::vector<VariantSet> collapseVariants(Request * req, std::vector<Variant> var
     std::vector<VariantSet> variantSet;
 
     if(collapse == CollapseType::NONE){
-        variantSet.push_back(leftover);
+        if(leftover.size() > 0)
+            variantSet.push_back(leftover);
         for(size_t i = 0; i < variants.size(); i++)
             variantSet.emplace_back(VariantSet(variants[i]));
     }
@@ -109,7 +111,7 @@ std::vector<VariantSet> collapseVariants(Request * req, std::vector<Variant> var
         int k = req->getCollapseSize();
 
         size_t startFrom = 0;
-        while(leftover.validSize() < k){
+        while(leftover.validSize() < k && startFrom < variants.size()){
             leftover.addVariant(variants[startFrom]);
             startFrom++;
         }
@@ -129,18 +131,27 @@ std::vector<VariantSet> collapseVariants(Request * req, std::vector<Variant> var
     else if(collapse == CollapseType::COLLAPSE_EXON || collapse == CollapseType::COLLAPSE_GENE){
 
         size_t startFrom = 0;
-        while(true){
+        while(startFrom < variants.size()){
             if(leftover.isIn(variants[startFrom]))
                 leftover.addVariant(variants[startFrom]);
             else
                 break;
             startFrom++;
         }
-        variantSet.push_back(leftover);
+        if(leftover.size() > 0)
+            variantSet.push_back(leftover);
 
+        int hint = -1;
         for(size_t i = startFrom; i < variants.size(); i++){
-            if(variantSet.)
 
+            if(variantSet.back().isIn(variants[i]))
+                variantSet.back().addVariant(variants[i]);
+            else{
+                int index = findInterval(req->getIntervals(), variants[i].getChromosome(), variants[i].getPosition(), hint);
+                VariantSet newSet(variants[i]);
+                newSet.setInterval(&req->getIntervals()->get(variants[i].getChromosome())->at(index));
+                hint = index+1;
+            }
         }
     }
 
@@ -181,6 +192,7 @@ private:
 
     std::vector<std::string> lines;
     std::vector<Variant> variants;
+    VariantSet leftover;
 
     bool running;
     std::future<std::vector<Variant>> futureVariants;
@@ -211,18 +223,21 @@ public:
         lines.clear();
     }
 
-    void createVariantSet(std::vector<Variant> & v){
+    void createVariantSet(std::vector<Variant> & v, VariantSet & leftovers){
         running = true;
         this->variants = v;
-
-        futureVariants = std::async(std::launch::async,
-                [this] { return constructVariants(sampleInfo, req, lines); }) ;
+        this->leftover = leftovers;
+        futureVariantSets = std::async(std::launch::async,
+                [this] { return collapseVariants(req, variants, leftover); }) ;
     }
     inline bool isCollapseDone(){
         return running && futureVariantSets.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
     }
-
-
+    inline std::vector<VariantSet> getCollapseResults(){
+        running = false;
+        return futureVariantSets.get();
+        variants.clear();
+    }
 
     void beginAssociationTest(std::vector<VariantSet> variants){
         running = true;
@@ -250,11 +265,14 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &input) {
     std::queue<ParallelProcess*> filterOrder;
 
     std::vector<Variant> constructedVariants;
+    std::vector<VariantSet> collapsedVariants;
+    VariantSet leftover;
+    bool readyToCollapse = false;
 
     //skips header
     extractHeaderLine(vcf);
 
-    while (lines.size() > 0 || vcf.hasNext()){
+    while (vcf.hasNext() || lines.size() > 0 || constructedVariants.size() > 0){
 
         //read in line if batch not full
         if(lines.size() < batchSize){
@@ -277,14 +295,13 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &input) {
         }
 
         for(size_t m = 0; m < nthreads; m++){
-            if(threads[m].isParseDone()){
-                std::vector<Variant> results = threads[m].getFilterResults();
+            if(threads[m].isCollapseDone()){
+                std::vector<VariantSet> v = threads[m].getCollapseResults();
+                collapsedVariants.insert(collapsedVariants.end(), v.begin(), v.end());
 
-                if(req.retainVariants)
-                    for(size_t l = 0; l < results.size(); l++){
-                        output.push_back(results[l]);
-
-                }
+                leftover = collapsedVariants.back();
+                collapsedVariants.pop_back();
+                readyToCollapse = true;
             }
         }
 
@@ -296,6 +313,17 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &input) {
                      threads[m].parseAndFilter(lines);
                      filterOrder.push(&threads[m]);
                      lines.clear();
+                     break;
+                 }
+             }
+        }
+
+        if(readyToCollapse && (constructedVariants.size() >= batchSize || !vcf.hasNext())){
+            for(size_t m = 0; m < nthreads; m++){
+                 if(!threads[m].isRunning()){
+                     threads[m].createVariantSet(constructedVariants, leftover);
+                     filterOrder.push(&threads[m]);
+                     constructedVariants.clear();
                      break;
                  }
              }

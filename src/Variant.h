@@ -88,7 +88,6 @@ public:
 
 inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }
 
-
 struct VariantSet{
 private:
     std::vector<Variant> variants;
@@ -97,6 +96,8 @@ private:
     Interval *interval;
 public:
     VariantSet(Variant & v) { variants.push_back(v); }
+    VariantSet() { }
+
     inline void setInterval(Interval * inv) { interval = inv; }
     inline bool isIn(Variant &variant) { return interval->isIn(variant.getChromosome(), variant.getPosition()); }
 
