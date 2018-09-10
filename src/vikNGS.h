@@ -1,23 +1,23 @@
 #pragma once
 
-#include "Request.h"
-#include "Variant.h"
-#include "SampleInfo.h"
-#include "Enums.h"
-
-#include "Output/OutputHandler.h"
 #include <string>
 #include <vector>
 #include <map>
-#include <algorithm>
-#include <iostream>  
+#include <iostream>
 
-#include "Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::VectorXi;
-using Eigen::Vector3d;
-using Eigen::DiagonalMatrix;
+#include "SampleInfo.h"
+#include "Interval.h"
+#include "Variant.h"
+#include "Request.h"
+
+struct Test;
+enum class Genotype;
+enum class Statistic;
+bool isRare(Statistic s);
+enum class Family;
+enum class Depth;
+enum class Filter;
+enum class CollapseType;
 
 //========================================================
 // Main object that contains all the information
@@ -25,11 +25,12 @@ using Eigen::DiagonalMatrix;
 //========================================================
 
 struct Data {
-    IntervalSet intervals;
-    std::vector<VariantSet> variants;
     SampleInfo sampleInfo;
+    IntervalSet intervals;
+    std::vector<Test> tests;
+    std::vector<VariantSet> variants;
 
-    inline int size(){ return variants.size(); }
+    inline int size(){ return static_cast<int>(variants.size()); }
 };
 
 
@@ -39,9 +40,7 @@ struct Data {
 //========================================================
 
 Data startVikNGS(Request req);
-std::vector<VariantSet> processVCF(Request &req, SampleInfo &input);
-
-std::vector<Variant> runTest(SampleInfo &input, Request &req);
+void processVCF(Request &req, SampleInfo &input, std::vector<VariantSet>* results);
 
 //========================================================
 // Global variable for thread stopping
@@ -50,35 +49,11 @@ std::vector<Variant> runTest(SampleInfo &input, Request &req);
 extern bool STOP_RUNNING_THREAD;
 
 //========================================================
-// Logging functions
+// Output functions
 //========================================================
-
-void printInfo(std::string message);
-void printWarning(std::string message);
-void printError(std::string message);
-void throwError(std::string source, std::string message);
-void throwError(std::string source, std::string message, std::string valueGiven);
-void printWarning(std::string source, std::string message, std::string valueGiven);
-void printWarning(std::string source, std::string message);
-
-class variant_exception: public std::exception{
-    std::string message;
-
-public:
-    variant_exception(std::string msg){
-        this->message= msg;
-    }
-
-  virtual const char* what() const throw()
-  {
-        std::string what= "Error in single variant p-value computation: " + this->message;
-        return what.c_str();
-  }
-};
-
-
-
-//CommonTest.cpp
-std::vector<Variant> runCommonTest(Request &req, SampleInfo &input);
-//RareTest.cpp
-std::vector<Variant> runRareTest(Request req, SampleInfo input);
+void outputDebug(std::string line, std::string outputDir);
+void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir);
+void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
+                           std::vector<std::string> codeMap, std::string outputDir);
+void outputPvals(std::vector<VariantSet> &variants, std::string outputDir);
+void initializeOutputFiles (std::string outputDir);

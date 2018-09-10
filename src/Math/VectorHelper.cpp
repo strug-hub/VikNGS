@@ -2,45 +2,61 @@
 
 static const std::string ERROR_SOURCE = "VECTOR_HELPER";
 
-/**
-Finds the mean of the values in a vector of vectors.
+double variance(VectorXd& X, VectorXi& G, int group){
 
-@param v Vector of vectors which is used to calculate the mean.
-@return The mean value of all the vectors.
-*/
-double average(std::vector<VectorXd> v) {
-    double sum = 0;
-    double n = 0;
-    for (size_t i = 0; i < v.size(); i++) {
-        n += v[i].size();
-        sum += v[i].sum();
-    }
-    return sum / n;
-}
-
-/**
-Finds the variance of the values in a vector of vectors.
-Note: uses n, not n-1 for final division
-
-@param v Vector of vectors which is used to calculate the variance.
-@return Total variance of vectors.
-*/
-double variance(std::vector<VectorXd> v) {
-
-    double mean = average(v);
+    double mean = 0;
     double sum = 0;
     double n = 0;
 
-    for (size_t i = 0; i < v.size(); i++) {
-        for (int j = 0; j < v[i].size(); j++) {
-            sum += (v[i][j] - mean)*(v[i][j] - mean);
+    for (int i = 0; i < X.rows(); i++) {
+        if(G[i] == group){
+            sum += X[i];
             n++;
         }
     }
 
+    mean = sum / n;
+    sum = 0;
+
+    for (int i = 0; i < X.rows(); i++)
+        if(G[i] == group)
+            sum += (X[i] - mean)*(X[i] - mean);
+
     //not this is n, not n-1
     return sum/(n);
 }
+
+/**
+Determines if there is variation in the values in a vector.
+
+@param v Vector
+@return true if variance is present.
+*/
+bool hasVariance(VectorXd &v) {
+
+    int j;
+
+    double mean = 0;
+    double n = 0;
+    for (j = 0; j < v.rows(); j++) {
+        if (!std::isnan(v[j])) {
+            mean += v[j];
+            n++;
+        }
+    }
+    mean = mean / n;
+
+    double sd = 0;
+    for (j = 0; j < v.size(); j++)
+        if (!std::isnan(v[j]))
+            sd += pow((v[j] - mean), 2);
+
+    if (1e-8*n < sd)
+        return true;
+
+    return false;
+}
+
 
 /**
 Finds the variance of the values in a vector.
@@ -56,32 +72,82 @@ double variance(VectorXd &v) {
     return var/(v.rows()-1);
 }
 
+/**
+Finds the variance of the values in a column of a matrix.
 
-VectorXd concatenate(std::vector<VectorXd> &v) {
+@param M Matrix which is used to calculate the variance.
+@param column Column index of M where the variance will be calculated.
+@return Variance of column in M.
+*/
+double variance(MatrixXd& M, int column) {
 
-    VectorXd cat = v[0];
+    double mean = M.col(column).mean();
+    double var = (M.col(column).array() - mean).pow(2).sum();
 
-    for (size_t i = 1; i < v.size(); i++) {
-        VectorXd temp(cat.rows() + v[i].rows());
-        temp << cat, v[i];
-        cat = temp;
-    }
-
-    return cat;
+    return var/(M.rows()-1);
 }
 
-MatrixXd concatenate(std::vector<MatrixXd> &m) {
+MatrixXd subtractGroupMean(MatrixXd& M, VectorXi& G){
 
-    MatrixXd cat = m[0];
+    MatrixXd Mcenter(M.rows(), M.cols());
+    int groupID;
 
-    for (size_t i = 1; i < m.size(); i++) {
-        MatrixXd temp(cat.rows() + m[i].rows(), m[i].cols());
-        temp << cat, m[i];
-        cat = temp;
+    for(int j = 0; j < M.cols(); j++){
+        std::map<int, double> mean;
+        std::map<int, double> n;
+
+        for (int i = 0; i < M.rows(); i++){
+            groupID = G[i];
+            if(mean.count(groupID) < 1){
+                mean[groupID] = M(i,j);
+                n[groupID] = 1;
+            }
+            else{
+                mean[groupID] += M(i,j);
+                n[groupID]++;
+            }
+        }
+
+        for (std::pair<int, double> e : mean)
+            mean[e.first] = e.second / n[e.first];
+
+        for (int i = 0; i < M.rows(); i++)
+            Mcenter(i,j) = M(i,j) - mean[G[i]];
     }
 
-    return cat;
+    return Mcenter;
 }
+
+std::vector<VectorXd> splitIntoGroups(VectorXd& v, VectorXi& g, int gSize){
+    int ngroups;
+    if(gSize > 0)
+        ngroups = gSize;
+    else
+        ngroups = 1 + g.maxCoeff();
+
+    std::vector<VectorXd> result(static_cast<size_t>(ngroups));
+
+    for (int i = 0; i < ngroups; i++)
+        result.emplace_back(extractRows(v, g, i));
+
+    return result;
+}
+
+std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, VectorXi& g, int gSize){
+    int ngroups;
+    if(gSize > 0)
+        ngroups = gSize;
+    else
+        ngroups = 1 + g.maxCoeff();
+
+    std::vector<MatrixXd> result(static_cast<size_t>(ngroups));
+
+    for (int i = 0; i < ngroups; i++)
+        result[i] = extractRows(m, g, i);
+
+    return result;
+}
+
 
 MatrixXd replaceNAN(MatrixXd & M, double value) {
     int nrow = M.rows();
@@ -141,6 +207,31 @@ VectorXd extractRows(VectorXd &v, VectorXi &where, int equals) {
 }
 
 /**
+Creates a subset of vector v by taking all indexes i such that where[i] == equals.
+@param v The vector to subset.
+@param where The vector to condition the subset on.
+@param equals Specifies which indexes to retain.
+
+@requires Vector v and vector where must have the same number of rows
+@return A subset of v.
+*/
+VectorXi extractRows(VectorXi &v, VectorXi &where, int equals) {
+
+    VectorXi subset(v.rows());
+    int c = 0;
+
+    for (int i = 0; i < where.rows(); i++) {
+        if (where[i] == equals) {
+            subset[c] = v[i];
+            c++;
+        }
+    }
+
+    return subset.block(0, 0, c, 1);
+}
+
+
+/**
 Creates a subset of matrix m (rows) by taking all indexes i such that where[i] == equals.
 @param m The matrix to extract rows from.
 @param where The vector to condition the subset on.
@@ -168,19 +259,15 @@ MatrixXd extractRows(MatrixXd &m, VectorXi &where, int equals) {
 
 /**
 Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of V1, V2 or M
+- the vector contains a 1 at if a NAN exists in a given row of M
 - 0 otherwise
 
-@param V1 Vector to check for NANs.
-@param V2 Vector to check for NANs.
 @param M Matrix to check for NANs (rows).
-
-@requires V1, V2, M have the same number of rows.
-@return A vector specifing where NANs appear in V1, V2 or M.
+@return A vector specifing where NANs appear in M
 */
-VectorXi whereNAN(VectorXd &V1, VectorXd &V2, MatrixXd &M) {
+VectorXi whereNAN(MatrixXd &M) {
 
-    int nrow = V1.rows();
+    int nrow = M.rows();
     int ncol = M.cols();
 
     VectorXi isNAN(nrow);
@@ -188,72 +275,12 @@ VectorXi whereNAN(VectorXd &V1, VectorXd &V2, MatrixXd &M) {
     for (int i = 0; i < nrow; i++) {
         isNAN[i] = 0;
 
-        if (std::isnan(V1[i]) || std::isnan(V2[i]))
-            isNAN[i] = 1;
-        else {
-            for (int j = 0; j < ncol; j++)
-                if (std::isnan(M(i, j)))
-                    isNAN[i] = 1;
-        }
+        for (int j = 0; j < ncol; j++)
+            if (std::isnan(M(i, j)))
+                isNAN[i] = 1;
     }
 
     return isNAN;
-}
-
-/**
-Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of V or M
-- 0 otherwise
-
-@param V Vector to check for NANs.
-@param M Matrix to check for NANs (rows).
-
-@requires V, M have the same number of rows.
-@return A vector specifing where NANs appear in V or M.
-*/
-VectorXi whereNAN(VectorXd &V, MatrixXd &M) {
-    int nrow = V.rows();
-    int ncol = M.cols();
-
-    VectorXi isNAN(nrow);
-
-    for (int i = 0; i < nrow; i++) {
-        isNAN[i] = 0;
-
-        if (std::isnan(V[i]))
-            isNAN[i] = 1;
-        else {
-            for (int j = 0; j < ncol; j++)
-                if (std::isnan(M(i, j)))
-                    isNAN[i] = 1;
-        }
-    }
-
-    return isNAN;
-}
-
-/**
-Creates a vector such that:
-- the vector contains a 1 at if a NAN exists in a given row of V1 or V2
-- 0 otherwise
-
-@param V1 Vector to check for NANs.
-@param V2 Vector to check for NANs.
-
-@requires V1, V2 have the same number of rows.
-@return A vector specifing where NANs appear in V1 or V2.
-*/
-//todo: print warning if many rows are removed due to NA?
-VectorXi whereNAN(VectorXd &V1, VectorXd &V2) {
-    int nrow = V1.rows();
-    VectorXi toRemove(nrow);
-
-    for (int i = 0; i < nrow; i++) {
-        toRemove[i] = 0;
-        if (std::isnan(V1[i]) || std::isnan(V2[i]))
-            toRemove[i] = 1;
-    }
-    return toRemove;
 }
 
 /**
@@ -262,20 +289,19 @@ Creates a vector such that:
 - 0 otherwise
 
 @param V Vector to check for NANs.
-@return A vector specifing where NANs appear in V.
+@return A vector specifing where NANs appear in V
 */
 VectorXi whereNAN(VectorXd &V) {
+
     int nrow = V.rows();
-    VectorXi toRemove(nrow);
-    for (int i = 0; i < nrow; i++) {
-        toRemove[i] = 0;
 
+    VectorXi isNAN(nrow);
+
+    for (int i = 0; i < nrow; i++)
         if (std::isnan(V[i]))
-            toRemove[i] = 1;
+            isNAN[i] = 1;
         else
-            toRemove[i] = 0;
-    }
+            isNAN[i] = 0;
 
-    return toRemove;
+    return isNAN;
 }
-

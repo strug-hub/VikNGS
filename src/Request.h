@@ -1,10 +1,9 @@
 #pragma once
-#include "vikNGS.h"
-#include "Enums.h"
 #include "Interval.h"
+#include "Enums.h"
+#include "Log.h"
 
 #include <string>
-#include <vector>
 
 struct Request {
 private:
@@ -17,7 +16,7 @@ private:
     bool simulation;
     bool keepFiltered;
 
-    std::vector<Test> test;
+    std::vector<Test> tests;
 
     IntervalSet* intervals;
     CollapseType collapse;
@@ -50,7 +49,7 @@ public:
     inline void setCollapseFile(std::string bedDir){ this->bedDir = bedDir; }
     inline void setOutputDir(std::string outputDir){ this->outputDir = outputDir; }
 
-    inline void addTest(Test t) { this->test.push_back(t); }
+    inline void addTest(Test t) { this->tests.push_back(t); }
 
     inline void setCollapseGene(){ collapse = CollapseType::COLLAPSE_GENE; }
     inline void setCollapseExon(){ collapse = CollapseType::COLLAPSE_EXON; }
@@ -74,28 +73,29 @@ public:
 
     inline bool requireExpectedGenotypes(){
         bool result = false;
-        for(Test t : test)
+        for(Test t : tests)
             result = result || t.needExpectedGenotypes();
         return result;
     }
     inline bool requireGenotypeCalls(){
         bool result = false;
-        for(Test t : test)
+        for(Test t : tests)
             result = result || t.needGenotypeCalls();
         return result;
     }
     inline bool requireVCFCalls(){
         bool result = false;
-        for(Test t : test)
+        for(Test t : tests)
             result = result || t.needVCFCalls();
         return result;
     }
     inline bool useCommon(){
         bool result = false;
-        for(Test t : test)
+        for(Test t : tests)
             result = result || t.needVCFCalls();
         return result;
     }
+    inline std::vector<Test> getTests() { return tests; }
 
     inline bool shouldCollapseBed() {return this->collapse != CollapseType::COLLAPSE_K && bedDir.size() > 0; }
     inline bool shouldCollapseK() { return this->collapse == CollapseType::COLLAPSE_K; }
@@ -124,6 +124,9 @@ public:
     inline std::string getFilterChromosome() { return filterChrName; }
     inline int getMinPosition() { return minPos; }
     inline int getMaxPosition() { return maxPos; }
+    inline int bootstrapSize() { return nboot; }
+    inline bool useBootstrap() { return nboot>0; }
+    inline bool useStopEarly() { return stopEarly; }
 
     inline bool shouldKeepFiltered() { return keepFiltered; }
     inline IntervalSet* getIntervals() { return intervals; }

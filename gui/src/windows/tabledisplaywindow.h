@@ -5,7 +5,7 @@
 #include "./checktree.h"
 #include "../src/Variant.h"
 #include "../src/vikNGS.h"
-#include "../simulation/simulation.h"
+#include "../simulation/Simulation.h"
 
 namespace Ui {
 class TableDisplayWindow;

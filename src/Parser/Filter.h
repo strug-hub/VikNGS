@@ -11,11 +11,11 @@ inline bool validBase(std::string &base) {
 Filter filterByVariantInfo(Request * req, std::string &chrom, std::string &pos, std::string &ref, std::string &alt, std::string &filter);
 Filter filterByGenotypes(Request *req, Variant &variant, VectorXd &Y, Family family);
 
-inline bool mafTest(Vector3d &P, double mafCutoff, bool keepCommon);
-bool missingTestCaseControl(VectorXd &X, VectorXd &Y, double missingThreshold);
-bool missingTestQuantitative(VectorXd &X, double missingThreshold);
+inline bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon);
+bool missingTestCaseControl(VectorXd* X, VectorXd &Y, double missingThreshold);
+bool missingTestQuantitative(VectorXd* X, double missingThreshold);
 
-inline bool missingTest(VectorXd &X, VectorXd &Y, double missingThreshold, Family family){
+inline bool missingTest(VectorXd* X, VectorXd &Y, double missingThreshold, Family family){
     if(family == Family::BINOMIAL)
         return missingTestCaseControl(X, Y, missingThreshold);
     else
@@ -33,7 +33,7 @@ inline bool missingTest(VectorXd &X, VectorXd &Y, double missingThreshold, Famil
 
 
 
-
+//TODO!!
 
 /*
 Filters homozygous variants (no variability across samples).
@@ -42,6 +42,7 @@ Filters homozygous variants (no variability across samples).
 @return True if variant is valid.
 */
 
+/*
 inline bool homozygousTest(Variant &variant) {
 
     int j;
@@ -66,7 +67,7 @@ inline bool homozygousTest(Variant &variant) {
     else
         return false;
 }
-
+*/
 
 
 

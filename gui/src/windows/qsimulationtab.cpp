@@ -24,10 +24,9 @@ std::vector<SimulationRequestGroup> MainWindow::qConstructGroups(int test, int n
 
             int nMin = size.split(sep).at(0).toInt(&ok1);
             int nMax = size.split(sep).at(1).toInt(&ok2);
-            if(!ok1 || !ok2 || nMin <= 0 || nMax <= 0){
-                warningDialog("Invalid group settings. Ensure number of individuals is an integer greater than 0. If you wish to use a range please separate two integers by a colon \":\"");
-                throw std::runtime_error("n");
-            }
+            if(!ok1 || !ok2 || nMin <= 0 || nMax <= 0)
+                throwError("Invalid group settings. Ensure number of individuals is an integer greater than 0. If you wish to use a range please separate two integers by a colon \":\"");
+
 
             if(nMax < nMin){
                 int temp = nMax;
@@ -52,34 +51,29 @@ std::vector<SimulationRequestGroup> MainWindow::qConstructGroups(int test, int n
         bool ok = false;
 
         g.meanDepth = meanDepth.toDouble(&ok);
-        if( !ok || g.meanDepth <= 0){
-            warningDialog("Invalid group settings. Expected mean read depth to be a numeric value greater than 0.");
-            throw std::runtime_error("meanDepth");
-        }
+        if( !ok || g.meanDepth <= 0)
+            throwError("Invalid group settings. Expected mean read depth to be a numeric value greater than 0.");
+
 
         ok=false;
         g.sdDepth = sdDepth.toDouble(&ok);
-        if(!ok || g.sdDepth < 0){
-            warningDialog("Invalid group settings. Expected read depth SD to be a numeric value greater than or equal to 0.");
-            throw std::runtime_error("sdDepth");
-        }
+        if(!ok || g.sdDepth < 0)
+            throwError("Invalid group settings. Expected read depth SD to be a numeric value greater than or equal to 0.");
 
         ok=false;
         g.errorRate = errorRate.toDouble(&ok);
-        if(!ok || g.errorRate < 0 || g.errorRate > 1){
-            warningDialog("Invalid group settings. Expected error rate to be a numeric value between 0 and 1");
-            throw std::runtime_error("errorRate");
-        }
+        if(!ok || g.errorRate < 0 || g.errorRate > 1)
+            throwError("Invalid group settings. Expected error rate to be a numeric value between 0 and 1");
+
 
         g.isCase = (caseControl == "case");
 
         ok=false;
         int highLow = ui->sim_groupHighLowTxt->text().toInt(&ok);
 
-        if(!ok || highLow <= 0){
-            warningDialog("Expected high-low read depth cutoff to be an integer greater than 0");
-            throw std::runtime_error("highLow");
-        }
+        if(!ok || highLow <= 0)
+            throwError("Expected high-low read depth cutoff to be an integer greater than 0");
+
 
         g.isHrg = g.meanDepth < highLow;
         groups.push_back(g);
@@ -211,7 +205,7 @@ void MainWindow::on_qsim_testRareCastBtn_toggled(bool checked){
     qSimEnableRare(checked);
 }
 
-void MainWindow::on_qsim_testRareCalphaBtn_toggled(bool checked){
+void MainWindow::on_qsim_testRareSkatBtn_toggled(bool checked){
     qSimEnableRare(checked);
 }
 

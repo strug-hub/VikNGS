@@ -1,16 +1,15 @@
 #pragma once
-#include "vikNGS.h"
-#include "Math/Math.h"
-#include "Eigen/Dense"
+#include "Enums.h"
+#include "./Math/Math.h"
 #include "Interval.h"
-
-#include <string>
-#include <vector>
 #include <map>
-
+#include <vector>
+#include <string>
+#include <iostream>
+#include "Eigen/Dense"
+using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using Eigen::Vector3d;
-using Eigen::MatrixXd;
 
 struct Variant {
 private:
@@ -24,6 +23,7 @@ private:
     std::string alt;
 
     Filter filter;
+    double trueMaf;
 
 public:
 
@@ -45,16 +45,18 @@ public:
         P[Genotype::CALL] = calculateGenotypeFrequencies(likelihoods);
         this->genotypes[Genotype::CALL] = calculateGenotypeCalls(likelihoods, P[Genotype::CALL]);
     }
-    inline void setTrueGenotypes(VectorXd &gt) {
+    inline void setTrueGenotypes(VectorXd& gt) {
         P[Genotype::TRUE] = calculateGenotypeFrequencies(gt);
         this->genotypes[Genotype::TRUE] = gt;
     }
-    inline void setVCFCallGenotypes(VectorXd &gt) {
+    inline void setVCFCallGenotypes(VectorXd& gt) {
         P[Genotype::VCF_CALL] = calculateGenotypeFrequencies(gt);
         this->genotypes[Genotype::VCF_CALL] = gt;
     }
 
     inline void setFilter(Filter f) { this->filter = f; }
+    inline void setTrueMaf(double maf) { this->trueMaf = maf; }
+
     inline std::string getChromosome() { return this->chrom; }
     inline int getPosition() { return this->pos; }
 
@@ -64,8 +66,10 @@ public:
             all.push_back(gt.first);
         return all;
     }
-    inline VectorXd getGenotype(Genotype gt) { return genotypes[gt]; }
-    inline Vector3d getP(Genotype gt) { return P[gt]; }
+    //inline VectorXd getGenotype(Genotype gt) { return genotypes[gt]; }
+    inline VectorXd* getGenotype(Genotype gt) { return &genotypes[gt]; }
+
+    inline Vector3d* getP(Genotype gt) { return &P[gt]; }
 
     inline bool isValid() { return this->filter == Filter::VALID; }
 
@@ -84,6 +88,11 @@ public:
             return this->chrom < v.getChromosome();
     }
 
+    inline void reduceSize() {
+        genotypes.clear();
+    }
+
+
 };
 
 inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }
@@ -91,11 +100,11 @@ inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }
 struct VariantSet{
 private:
     std::vector<Variant> variants;
-    std::map<Test, double> pval;
+    std::vector<double> pval;
     int nvalid = 0;
     Interval *interval;
 public:
-    VariantSet(Variant & v) { variants.push_back(v); }
+    VariantSet(Variant& v) { variants.push_back(v); }
     VariantSet() { }
 
     inline void setInterval(Interval * inv) { interval = inv; }
@@ -105,104 +114,51 @@ public:
         variants.push_back(variant);
         if(variant.isValid()) nvalid++;
     }
-    inline void addPval(Test test, double p) { this->pval[test] = p; }
 
-    inline double getPval(Test test) { return this->pval[test]; }
-    inline int nPvals() { return this->pval.size(); }
-    inline int size(){ return variants.size(); }
-    inline int validSize(){ return variants.size(); }
+    inline std::vector<Variant>* getVariants() { return &variants; }
+    inline std::string getChromosome() { return (variants.size() < 1) ? "na" : variants[0].getChromosome(); }
+    inline int getMinPos() { return (variants.size() < 1) ? -1 : variants[0].getPosition(); }
+    inline int getMaxPos() { return (variants.size() < 1) ? -1 : variants.back().getPosition(); }
+    inline double getMidPos() { return (variants.size() < 1) ? -1 :
+                                                            (variants[0].getPosition() + variants.back().getPosition())/2.0; }
 
+    inline void addPval(double p) { pval.push_back(p); }
+
+    inline double getPval(size_t i) { return pval[i]; }
+    inline int nPvals() { return static_cast<int>(this->pval.size()); }
+    inline int size(){ return static_cast<int>(variants.size()); }
+    inline int validSize(){ return nvalid; }
+    inline bool isValid(){ return nvalid > 0; }
+
+    inline MatrixXd getX(Genotype gt){
+        std::vector<VectorXd*> x;
+        for (size_t i = 0; i < static_cast<size_t>(validSize()); i++)
+            if(variants[i].isValid())
+                x.push_back(variants[i].getGenotype(gt));
+
+        if(x.size() < 1)
+            return MatrixXd();
+
+        MatrixXd X(x[0]->rows(), x.size());
+        for (size_t i = 0; i < x.size(); i++)
+            X.col(static_cast<int>(i)) = *x[i];
+
+        return X;
+    }
+
+    inline MatrixXd getP(Genotype gt){
+        std::vector<Vector3d*> p;
+        for (size_t i = 0; i < static_cast<size_t>(validSize()); i++)
+            if(variants[i].isValid())
+                p.push_back(variants[i].getP(gt));
+
+        if(p.size() < 1)
+            return MatrixXd();
+
+        MatrixXd P(p.size(), 3);
+        for (size_t i = 0; i < p.size(); i++)
+            P.row(static_cast<int>(i)) = *p[i];
+
+        return P;
+    }
 };
-
-
-
-
-
-
-
-
-
-    double trueMaf;
-
-
-    std::vector<int> readDepths;
-    std::vector<std::vector<int>> baseCalls;
-    std::vector<std::string> vcfCalls;
-    std::string format;
-    std::vector<std::string> columnUsed;
-
-
-
-
-
-
-
-
-
-    inline void reduceSize() {
-        likelihood.clear();
-        VectorXd empty;
-        P = empty;
-        expectedGenotype = empty;
-    }
-
-
-
-
-
-    inline MatrixXd getLikelihoodMatrix() {
-
-        MatrixXd M(likelihood.size(), 3);
-        for(int i = 0; i < likelihood.size(); i++){
-            M(i,0)=likelihood[i].L00;
-            M(i,1)=likelihood[i].L01;
-            M(i,2)=likelihood[i].L11;
-        }
-
-        return M;
-    }
-
-    //Uses EM algorithm to estimate the genotype frequencies in the sample.
-    inline void calculateGenotypeFrequency() {
-
-        MatrixXd M = getLikelihoodMatrix();
-
-        double p = 0.15;
-        double q = 0.15;
-        double qn = 1;
-        double pn = 0;
-        double dn = 0;
-        double d = 0;
-
-        int k = 0;
-
-        while (pow((pn - p), 2) + pow((qn - q), 2) > 0.000001) {
-
-            d = 1 - p - q;
-            Vector3d v = { p, q, d };
-            VectorXd pD = M * v;
-            VectorXd Ep = M.col(0).array() * (p / pD.array()).array();
-            VectorXd Eq = M.col(1).array() * (q / pD.array()).array();
-            pn = p;
-            qn = q;
-            dn = 1 - q - p;
-            p = Ep.sum() / Ep.rows();
-            q = Eq.sum() / Eq.rows();
-
-            k++;
-            if (k == 1000)
-                break;
-        }
-
-        VectorXd freq(3);
-        freq[0] = std::max(0.0, p);
-        freq[1] = std::max(0.0, q);
-        freq[2] = std::max(0.0, 1 - p - q);
-
-        P=freq;
-    }
-
-};
-
-
-

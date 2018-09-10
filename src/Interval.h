@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 #include <map>
 #include <vector>
@@ -41,7 +40,7 @@ private:
 public:
     void addInterval(Interval &inv){ chrMap[inv.chr].push_back(inv); }
     void sort(){
-        for ( const auto &keyValue : chrMap )
+        for (auto& keyValue : chrMap)
             std::sort(keyValue.second.begin(), keyValue.second.end(), intervalCompare);
     }
 

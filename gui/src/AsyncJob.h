@@ -1,7 +1,7 @@
 #include <QObject>
 #include "../src/vikNGS.h"
 #include "../src/Variant.h"
-#include "simulation/simulation.h"
+#include "simulation/Simulation.h"
 
 class AsyncJob : public QObject {
     Q_OBJECT
@@ -26,11 +26,11 @@ public slots:
 
     void runSimulation() {
         try{
-            std::vector<std::vector<Variant>> results = startSimulation(simRequest);
+            Data results = startSimulation(simRequest);
             emit simulationFinished(results, simRequest);
         }
         catch(...){
-            std::vector<std::vector<Variant>> empty;
+            Data empty;
             emit simulationFinished(empty, simRequest);
         }
 
@@ -46,7 +46,7 @@ public slots:
 
 signals:
     void jobFinished(Data);
-    void simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest);
+    void simulationFinished(Data, SimulationRequest);
     void complete();
 
 private:

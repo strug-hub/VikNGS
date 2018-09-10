@@ -4,7 +4,7 @@
 #include <QWidget>
 #include "../src/Variant.h"
 #include "../widgets/qcustomplot.h"
-#include "../simulation/simulation.h"
+#include "../simulation/Simulation.h"
 
 namespace Ui {
 class SimPlotWindow;
@@ -20,11 +20,9 @@ public:
 
 public slots:
 
-    void initialize(std::vector<std::vector<Variant>>& variants, SimulationRequest& req, QString title);
-    void getPvalues(std::vector<std::vector<Variant>>& variants);
+    void initialize(Data& results, SimulationRequest& req, QString title);
 
-    std::vector<std::vector<Variant>> filterCollapsed(std::vector<std::vector<Variant>> &variants, int k);
-    void buildPlot();
+    void buildPowerPlot();
     void buildLegend();
 
     void updateSampleSize(int index);
@@ -46,30 +44,34 @@ private:
     QColor grey2 = QColor::fromRgb(169, 169, 169);
     QColor highlight = QColor::fromRgb(255, 127, 80);
     QColor focus = QColor::fromRgb(102, 204, 204);
-
     QFont axisFont = QFont("sans", 10, QFont::Bold);
-
-    std::vector<std::vector<Variant>> variants;
-    std::vector<std::vector<std::vector<double>>> pvalues;
-
-    SimulationRequest request;
-    double alpha;
-    int ntests;
-    int nsteps;
+    QColor redLine = QColor(210, 80, 80, 125);
 
     QString yAxisLabel;
     QString xAxisLabel;
+
+    SimulationRequest request;
+    Data result;
+
+    void getPvalues(std::vector<VariantSet>& variants);
+    std::vector<std::vector<double>> pvalues;
+    std::vector<Test> tests;
+
+    int nsteps;
+    int testsPerStep;
+    inline int ntests() { return nsteps * testsPerStep; }
+
     QVector<QColor> colours;
-    QColor redLine = QColor(210, 80, 80, 125);
-    QVector<QString> testTypes;
-    int stepIndexForPlot2 = 0;
-    int testIndexForPlot2;
-    QVector<double> calculatePower(int testIndex, double alpha);
+    int powerIndex = 0;
+    int qqIndex = 0;
+    double calculatePower(int testIndex, double alpha);
+
     int findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex=false);
-    void buildPlot2(int stepIndex, int focusGraph = -1);
+    void buildQQPlot(int stepIndex, int focusGraph = -1);
     void updatePowerValues(int index);
 
     QCPItemLine *alphaLine;
+    double alpha;
     void updateAlphaLine();
 
 

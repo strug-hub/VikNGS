@@ -21,100 +21,75 @@ int randomBinomial(int trials, double success) {
     return sample(generate);
 }
 
-std::vector<VectorXd> groupwiseShuffleWithoutReplacement(std::vector<VectorXd> &v){
+MatrixXd shuffleColumnwiseWithoutReplacement(MatrixXd& M){
 
-    std::vector<VectorXd> shuffled;
-
-    for(size_t i = 0; i < v.size(); i++){
-
-        VectorXi indices = VectorXi::LinSpaced(v[i].rows(), 0, v[i].rows());
-        std::random_shuffle(indices.data(), indices.data() + v[i].rows());
-        VectorXd s = indices.asPermutation() * v[i];
-
-        shuffled.push_back(s);
+    MatrixXd shuffled(M.rows(), M.cols());
+    VectorXi indices = VectorXi::LinSpaced(M.rows(), 0, M.rows());
+    for(int i = 0; i < M.cols(); i++){
+        std::random_shuffle(indices.data(), indices.data() + M.rows());
+        shuffled.col(i) = indices.asPermutation() * M.col(i);
     }
 
     return shuffled;
 }
 
-std::vector<VectorXd> groupwiseShuffleWithReplacement(std::vector<VectorXd> &v){
+MatrixXd groupwiseShuffleWithReplacement(MatrixXd& M, VectorXi& G, std::map<int, std::vector<int>>& group){
 
-    std::vector<VectorXd> shuffled;
-    int n, j;
+    MatrixXd shuffled(M.rows(), M.cols());
+    int g, n, rand;
 
-    for(size_t i = 0; i < v.size(); i++){
-        n = v[i].rows();
-        VectorXd s(n);
+    for(int i = 0; i < M.cols(); i++){
+        for(int j = 0; j < M.rows(); j++){
 
-        for (j = 0; j < n; j++)
-            s[j] = v[i][randomInt(0, n - 1)];
+            g = G[j]; n = static_cast<int>(group[g].size());
+            rand = randomInt(0, n - 1);
+            rand = group[g][static_cast<size_t>(rand)];
 
-        shuffled.push_back(s);
+            shuffled(j, i) = M(rand, i);
+        }
     }
 
     return shuffled;
-
 }
 
-std::vector<MatrixXd> groupwiseShuffleWithReplacement(std::vector<MatrixXd> &m){
+VectorXd groupwiseShuffleWithReplacement(VectorXd& V, VectorXi& G, std::map<int, std::vector<int>>& group){
 
-    std::vector<MatrixXd> shuffled;
-    int n, ncol, j, k;
+    VectorXd shuffled(V.rows());
+    int g, n, rand;
 
-    for(size_t i = 0; i < m.size(); i++){
-        n = m[i].rows();
-        ncol = m[i].cols();
-        MatrixXd s(n, ncol);
+    for(int j = 0; j < V.rows(); j++){
+        g = G[j]; n = static_cast<int>(group[g].size());
+        rand = randomInt(0, n - 1);
+        rand = group[g][static_cast<size_t>(rand)];
 
-        for (k = 0; k < ncol; k++)
-            for (j = 0; j < n; j++)
-                s(j,k) = m[i](randomInt(0, n - 1),k);
-
-        shuffled.push_back(s);
+        shuffled(j) = V[rand];
     }
 
     return shuffled;
-
 }
 
-std::vector<MatrixXd> shuffleWithoutReplacement(std::vector<MatrixXd> &m){
+VectorXd groupwiseShuffleWithoutReplacement(VectorXd& V, VectorXi& G, std::map<int, std::vector<int>>& group){
 
-    MatrixXd cat = concatenate(m);
+    std::map<int, std::vector<int>> groupShuffle;
 
-    VectorXi indices = VectorXi::LinSpaced(cat.rows(), 0, cat.rows());
-    std::random_shuffle(indices.data(), indices.data() + cat.rows());
-    MatrixXd s = indices.asPermutation() * cat;
+    for (std::pair<int, std::vector<int>> e : group){
+        std::vector<int> v = e.second;
+        std::random_shuffle(v.begin(), v.end());
+        groupShuffle[e.first] = v;
+    }
 
-    std::vector<MatrixXd> shuffled;
-    int startRow = 0;
+    VectorXd shuffled(V.rows());
+    int g;
 
-    for(size_t i = 0; i < m.size(); i++){
-        MatrixXd m_i = s.block(0, startRow, m[i].rows(), m[i].cols());
-        startRow += m[i].rows();
-        shuffled.push_back(m_i);
+    for(int j = 0; j < V.rows(); j++){
+        g = G[j];
+
+        shuffled(j) = V[groupShuffle[g].back()];
+        groupShuffle[g].pop_back();
     }
 
     return shuffled;
-
 }
 
-std::vector<VectorXd> shuffleWithoutReplacement(std::vector<VectorXd> &v){
 
-    VectorXd cat = concatenate(v);
 
-    VectorXi indices = VectorXi::LinSpaced(cat.rows(), 0, cat.rows());
-    std::random_shuffle(indices.data(), indices.data() + cat.rows());
-    VectorXd s = indices.asPermutation() * cat;
-
-    std::vector<VectorXd> shuffled;
-    int startRow = 0;
-
-    for(size_t i = 0; i < v.size(); i++){
-        VectorXd v_i = s.segment(startRow, v[i].rows());
-        startRow += v[i].rows();
-        shuffled.push_back(v_i);
-    }
-
-    return shuffled;
-
-}

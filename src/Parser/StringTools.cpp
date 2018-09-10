@@ -56,7 +56,7 @@ the sep character, up to a given position
 
 @param s String to split.
 @param sep Character to split the string at.
-@param stop Stop splitting after this size is reached.
+@param stop Stop splitting after this index is reached (inclusive).
 @return Split string.
 */
 std::vector<std::string> splitString(std::string &s, char sep, int stop) {
@@ -67,7 +67,7 @@ std::vector<std::string> splitString(std::string &s, char sep, int stop) {
         if (s[i] == sep || i == s.length()) {
             split.emplace_back(s.substr(start, i - start));
             start = i + 1;
-            if(split.size() >= stp)
+            if(split.size() > stp)
                 return split;
         }
     }

@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-#include "simplotwindow.h"
+#include "SimPlotWindow.h"
 
 #include "ui_mainwindow.h"
 
@@ -20,7 +20,6 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
         SimulationRequestGroup g;
 
         QString size = ui->sim_groupTbl->item(i, 0)->text();
-        int n;
 
         if(size.contains(sep)){
 
@@ -29,10 +28,9 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
 
             int nMin = size.split(sep).at(0).toInt(&ok1);
             int nMax = size.split(sep).at(1).toInt(&ok2);
-            if(!ok1 || !ok2 || nMin <= 0 || nMax <= 0){
-                warningDialog("Invalid group settings. Ensure number of individuals is an integer greater than 0. If you wish to use a range please separate two integers by a colon \":\"");
-                throw std::runtime_error("n");
-            }
+            if(!ok1 || !ok2 || nMin <= 0 || nMax <= 0)
+                throwError(ERROR_SOURCE, "Invalid group settings. Ensure number of individuals is an integer greater than 0. If you wish to use a range please separate two integers by a colon \":\"");
+
 
             if(nMax < nMin){
                 int temp = nMax;
@@ -59,37 +57,33 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
         bool ok = false;
 
         g.meanDepth = meanDepth.toDouble(&ok);
-        if( !ok || g.meanDepth <= 0){
-            warningDialog("Invalid group settings. Expected mean read depth to be a numeric value greater than 0.");
-            throw std::runtime_error("meanDepth");
-        }
+        if(!ok || g.meanDepth <= 0)
+            throwError(ERROR_SOURCE, "Invalid group settings. Expected mean read depth to be a numeric value greater than 0.", std::to_string(g.meanDepth));
+
 
         ok=false;
         g.sdDepth = sdDepth.toDouble(&ok);
-        if(!ok || g.sdDepth < 0){
-            warningDialog("Invalid group settings. Expected read depth SD to be a numeric value greater than or equal to 0.");
-            throw std::runtime_error("sdDepth");
-        }
+        if(!ok || g.sdDepth < 0)
+            throwError(ERROR_SOURCE, "Invalid group settings. Expected read depth SD to be a numeric value greater than or equal to 0.", std::to_string(g.sdDepth));
+
 
         ok=false;
         g.errorRate = errorRate.toDouble(&ok);
-        if(!ok || g.errorRate < 0 || g.errorRate > 1){
-            warningDialog("Invalid group settings. Expected error rate to be a numeric value between 0 and 1");
-            throw std::runtime_error("errorRate");
-        }
+        if(!ok || g.errorRate < 0 || g.errorRate > 1)
+            throwError(ERROR_SOURCE, "Invalid group settings. Expected error rate to be a numeric value between 0 and 1", std::to_string(g.errorRate));
+
 
         g.isCase = (caseControl == "case");
 
         ok=false;
         int highLow = ui->sim_groupHighLowTxt->text().toInt(&ok);
 
-        if(!ok || highLow <= 0){
-            warningDialog("Expected high-low read depth cutoff to be an integer greater than 0");
-            throw std::runtime_error("highLow");
-        }
+        if(!ok || highLow <= 0)
+            throwError(ERROR_SOURCE, "Expected high-low read depth cutoff to be an integer greater than 0", std::to_string(highLow));
 
-        g.isHrg = g.meanDepth >= highLow;
-        g.isCaseControl=true;
+
+       (g.meanDepth >= highLow) ? g.readDepth = Depth::HIGH : g.readDepth = Depth::LOW;
+        g.family=Family::BINOMIAL;
         groups.push_back(g);
     }
 
@@ -99,20 +93,20 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
 SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGroup> groups){
 
     SimulationRequest request;
-    request.isCaseControl=true;
+    request.family = Family::BINOMIAL;
     request.groups = groups;
 
-    request.test = "common";
+    request.testStatistic = Statistic::COMMON;
     request.useBootstrap = false;
 
-    if(ui->sim_testRareCalphaBtn->isChecked()){
-        request.test = "calpha";
+    if(ui->sim_testRareSkatBtn->isChecked()){
+        request.testStatistic = Statistic::SKAT;
         request.collapse = ui->sim_collapseTxt->text().toInt();
         request.useBootstrap = true;
 
     }
     else if(ui->sim_testRareCastBtn->isChecked()){
-        request.test= "cast";
+        request.testStatistic = Statistic::CAST;
         request.collapse = ui->sim_collapseTxt->text().toInt();
         request.useBootstrap = true;
     }
@@ -133,14 +127,14 @@ SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGrou
     return request;
 }
 
-void MainWindow::simulationFinished(std::vector<std::vector<Variant>> variants, SimulationRequest req){
+void MainWindow::simulationFinished(Data results, SimulationRequest req){
     enableRun();
 
-    if(variants.size() > 0){
+    if(results.size() > 0){
         SimPlotWindow *plotter = new SimPlotWindow();
         QString title = "Plot " + QString::number(plotCount);
         plotCount++;
-        plotter->initialize(variants, req, title);
+        plotter->initialize(results, req, title);
         printOutput("Displaying results in " + title.toLower(), green);
         plotter->show();
     }
@@ -165,6 +159,7 @@ void MainWindow::on_sim_runBtn_clicked(){
     disableRun();
 
     SimulationRequest request;
+    bool ok=false;
 
     bool multitest = false;
     for(int i = 0; i< ui->sim_groupTbl->rowCount(); i++)
@@ -177,15 +172,19 @@ void MainWindow::on_sim_runBtn_clicked(){
 
             bool ok=false;
             steps = ui->sim_powerStepTxt->text().toInt(&ok);
-            if(!ok || steps < 1){
-                warningDialog("Invalid step value. Expected # steps to be an integer greater than 1");
-                throw std::runtime_error("step");
-            }
+            if(!ok || steps < 1)
+                throwError(ERROR_SOURCE, "Invalid step value. Expected # steps to be an integer greater than 1.", ui->sim_powerStepTxt->text().toStdString());
         }
 
         std::vector<SimulationRequestGroup> groups = constructGroups(steps);
         request = constructRequest(groups);
         request.steps = steps;
+
+        int nthreads = ui->sim_threadsTxt->text().toInt(&ok);
+        if(!ok)
+            throwError(ERROR_SOURCE, "Invalid number of threads. Expected an integer greater than or equal to 1.", ui->sim_threadsTxt->text().toStdString());
+
+        request.nthreads = nthreads;
 
         //throws error if invalid
         request.validate();
@@ -198,8 +197,8 @@ void MainWindow::on_sim_runBtn_clicked(){
         connect(thread, SIGNAL(started()), runner, SLOT(runSimulation()));
         connect(runner, SIGNAL(complete()), thread, SLOT(quit()));
         connect(runner, SIGNAL(complete()), runner, SLOT(deleteLater()));
-        connect(runner, SIGNAL(simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest)),
-                this, SLOT(simulationFinished(std::vector<std::vector<Variant>>, SimulationRequest)));
+        connect(runner, SIGNAL(simulationFinished(Data, SimulationRequest)),
+                this, SLOT(simulationFinished(Data, SimulationRequest)));
         thread->start();
         jobThread = thread;
     }catch(...){
@@ -236,7 +235,7 @@ void MainWindow::on_sim_testRareCastBtn_toggled(bool checked){
     simEnableRare(checked);
 }
 
-void MainWindow::on_sim_testRareCalphaBtn_toggled(bool checked){
+void MainWindow::on_sim_testRareSkatBtn_toggled(bool checked){
     simEnableRare(checked);
 }
 

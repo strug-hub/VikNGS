@@ -1,4 +1,4 @@
-#include "../src/vikNGS.h"
+#include "../src/Log.h"
 #include "qlog.h"
 
 #include <QObject>
@@ -8,19 +8,19 @@
 #include <thread>
 #include <chrono>
 
-int chill = 0;
+static int chill = 0;
 
-QLog* qlog = new QLog();
+static QLog* qlog = new QLog();
 QLog* getQLog(){
     return qlog;
 }
 
-QString newl = "\n";
-QColor info = QColor::fromRgb(89, 94, 109);
-QColor error = QColor::fromRgb(201, 42, 42);
-QColor warning = QColor::fromRgb(163, 86, 58);
+static QString newl = "\n";
+static QColor info = QColor::fromRgb(89, 94, 109);
+static QColor error = QColor::fromRgb(201, 42, 42);
+static QColor warning = QColor::fromRgb(163, 86, 58);
 
-int sleepMilli = 10;
+static int sleepMilli = 10;
 
 void printInfo(std::string message) {\
    chill = 0;

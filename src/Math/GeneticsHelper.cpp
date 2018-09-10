@@ -10,6 +10,10 @@ double calcRobustVar(Vector3d &P) {
     return (4 * P[2] + P[1]) - pow(2 * P[2] + P[1], 2);
 }
 
+double calcRobustVar(double P1, double P2) {
+    return (4 * P2 + P1) - pow(2 * P2 + P1, 2);
+}
+
 /**
 Generates the genotype calls using simple bayesian genotyper (maximum likelihood).
 
@@ -79,7 +83,7 @@ Uses EM algorithm to estimate the genotype frequencies in the sample
 @param likelihood A vector with genotype likelihoods.
 @return A vector with probability of 0, 1 or 2 minor alleles.
 */
-Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood) {
+Vector3d calculateGenotypeFrequencies(std::vector<Vector3d>& likelihood) {
     double p = 0.15;
     double q = 0.15;
     double qn = 1;
@@ -87,7 +91,7 @@ Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood) {
     double dn = 0;
     double d = 0;
 
-    int glCounter = 0;
+    double n = 0;
 
     double Ep;
     double Eq;
@@ -98,7 +102,7 @@ Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood) {
     while (pow((pn - p), 2) + pow((qn - q), 2) > 0.000001) {
 
         d = 1 - p - q;
-        glCounter = 0;
+        n = 0;
         Ep = 0;
         Eq = 0;
 
@@ -106,9 +110,9 @@ Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood) {
             if (std::isnan(likelihood[i][0]))
                 continue;
 
-            glCounter++;
+            n++;
 
-            pD = 1 / (p * likelihood[i][0] + q * likelihood[i][1] + d * likelihood[i][0]);
+            pD = 1.0 / ((p * likelihood[i][0]) + (q * likelihood[i][1]) + (d * likelihood[i][2]));
             Ep += p * likelihood[i][0] * pD;
             Eq += q * likelihood[i][1] * pD;
         }
@@ -116,15 +120,15 @@ Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood) {
         pn = p;
         qn = q;
         dn = 1 - q - p;
-        p = Ep / glCounter;
-        q = Eq / glCounter;
+        p = Ep / n;
+        q = Eq / n;
 
         k++;
         if (k == 1000)
             break;
     }
 
-    VectorXd freq(3);
+    Vector3d freq;
     freq[0] = std::max(1e-14, p);
     freq[1] = std::max(1e-14, q);
     freq[2] = std::max(1e-14, 1 - p - q);
@@ -161,10 +165,10 @@ VectorXd calculateExpectedGenotypes(std::vector<Vector3d> &likelihood, Vector3d 
             m2 = likelihood[i][2] * P[2];
             m = 1 / (m0 + m1 + m2);
 
-            EG[static_cast<int>(i)] = m1*m + (2 * m2*m);
+            EG[i] = m1*m + (2 * m2*m);
         }
         else
-            EG[static_cast<int>(i)] = NAN;
+            EG[i] = NAN;
     }
 
     return EG;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>977</width>
     <height>752</height>
    </rect>
   </property>
@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vcf/chr2.pruned.vcf</string>
+                  <string>C:/Users/scott/Desktop/small.test.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/home/scott/vikNGS/vcf/chr22.txt</string>
+                  <string>C:/Users/scott/Desktop/test.info.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -392,9 +392,9 @@
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="main_testRareCalphaBtn">
+                <widget class="QRadioButton" name="main_testRareSkatBtn">
                  <property name="text">
-                  <string>Rare (c-alpha)</string>
+                  <string>Rare (SKAT)</string>
                  </property>
                 </widget>
                </item>
@@ -552,13 +552,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="main_randomBtn">
-               <property name="text">
-                <string>Random</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QLineEdit" name="main_nrandomTxt">
                <property name="text">
                 <string>1000</string>
@@ -576,7 +569,7 @@
        <attribute name="title">
         <string>Power Simulation (case/control)</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="4,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="3,2">
         <item>
          <widget class="QGroupBox" name="sim_groupGrp">
           <property name="title">
@@ -606,6 +599,9 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>100</number>
+             </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
              </attribute>
@@ -653,14 +649,14 @@
              <item row="2" column="0">
               <widget class="QLineEdit" name="sim_variantMafMaxTxt">
                <property name="text">
-                <string>0.45</string>
+                <string>0.01</string>
                </property>
               </widget>
              </item>
              <item row="0" column="0">
               <widget class="QLineEdit" name="sim_variantSizeTxt">
                <property name="text">
-                <string>1000</string>
+                <string>100</string>
                </property>
               </widget>
              </item>
@@ -697,7 +693,7 @@
              <item row="1" column="0">
               <widget class="QLineEdit" name="sim_variantMafMinTxt">
                <property name="text">
-                <string>0.1</string>
+                <string>0.01</string>
                </property>
               </widget>
              </item>
@@ -730,13 +726,6 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="sim_powerStepTxt">
-               <property name="text">
-                <string>2</string>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="0">
               <widget class="QLineEdit" name="sim_groupHighLowTxt">
                <property name="text">
@@ -761,6 +750,13 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="sim_powerStepTxt">
+               <property name="text">
+                <string>2</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -769,95 +765,120 @@
             <property name="title">
              <string>Test Parameters</string>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <layout class="QVBoxLayout" name="verticalLayout_19">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_6">
+              <layout class="QHBoxLayout" name="horizontalLayout_4">
                <item>
-                <widget class="QRadioButton" name="sim_testCommonBtn">
-                 <property name="text">
-                  <string>Common</string>
-                 </property>
-                 <property name="checked">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="sim_testRareCastBtn">
-                 <property name="text">
-                  <string>Rare (CAST)</string>
-                 </property>
-                 <property name="checked">
-                  <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QRadioButton" name="sim_testRareCalphaBtn">
-                 <property name="text">
-                  <string>Rare (c-alpha)</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <layout class="QVBoxLayout" name="verticalLayout_6">
                  <item>
-                  <layout class="QGridLayout" name="gridLayout_4">
-                   <item row="0" column="1">
-                    <widget class="QLabel" name="sim_testBootLbl">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="text">
-                      <string># iterations</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLabel" name="sim_collapseLbl">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="text">
-                      <string>Collapse </string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLineEdit" name="sim_testBootTxt">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="text">
-                      <string>100</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLineEdit" name="sim_collapseTxt">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="text">
-                      <string>5</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                  <widget class="QRadioButton" name="sim_testCommonBtn">
+                   <property name="text">
+                    <string>Common</string>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="sim_testRareCastBtn">
+                   <property name="text">
+                    <string>Rare (CAST)</string>
+                   </property>
+                   <property name="checked">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QRadioButton" name="sim_testRareSkatBtn">
+                   <property name="text">
+                    <string>Rare (SKAT)</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </item>
                <item>
-                <widget class="QCheckBox" name="sim_testStopChk">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
+                <layout class="QVBoxLayout" name="verticalLayout_9">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
+                   <item>
+                    <layout class="QGridLayout" name="gridLayout_4">
+                     <item row="0" column="1">
+                      <widget class="QLabel" name="sim_testBootLbl">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="text">
+                        <string># iterations</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="sim_collapseLbl">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="text">
+                        <string>Collapse </string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QLineEdit" name="sim_testBootTxt">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="text">
+                        <string>100</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLineEdit" name="sim_collapseTxt">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="text">
+                        <string>5</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="sim_testStopChk">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="text">
+                    <string>Stop Early</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <widget class="QLineEdit" name="sim_threadsTxt">
                  <property name="text">
-                  <string>Stop Early</string>
+                  <string>1</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="sim_threadsLbl">
+                 <property name="text">
+                  <string># threads</string>
                  </property>
                 </widget>
                </item>
@@ -1117,9 +1138,9 @@
                 </widget>
                </item>
                <item>
-                <widget class="QRadioButton" name="qsim_testRareCalphaBtn">
+                <widget class="QRadioButton" name="qsim_testRareSkatBtn">
                  <property name="text">
-                  <string>Rare (c-alpha)</string>
+                  <string>Rare (SKAT)</string>
                  </property>
                 </widget>
                </item>

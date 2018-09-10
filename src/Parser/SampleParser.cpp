@@ -81,7 +81,7 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
     sampleInfo.open(sampleDir);
 
     VectorXd Y = VectorXd(IDmap.size());
-    for(int i = 0; i<Y.rows(); i++)
+    for(int i = 0; i < Y.rows(); i++)
         Y[i] = NAN;
 
     std::vector<std::string> lineSplit;
@@ -130,7 +130,7 @@ VectorXi parseSampleGroupID(std::string sampleDir, std::map<std::string, int> &I
 
     std::map<std::string, int> groupIDMap;
     int groupIndex = 0;
-    VectorXi G = VectorXd(IDmap.size());
+    VectorXi G(IDmap.size());
     for(int i = 0; i < G.rows(); i++)
         G[i] = -1;
 

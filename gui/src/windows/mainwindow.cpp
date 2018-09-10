@@ -15,8 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //required to push log updates to textbox
     connect(getQLog(), SIGNAL(pushOutput(QString, QColor)), this, SLOT(printOutput(QString, QColor)));
-    qRegisterMetaType<Data>("Result");
-    qRegisterMetaType<std::vector<std::vector<Variant>>>("std::vector<std::vector<Variant>>");
+    qRegisterMetaType<Data>("Data");
     qRegisterMetaType<SimulationRequest>("SimulationRequest");
 
     simulationTabInit();

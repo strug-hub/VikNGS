@@ -23,8 +23,8 @@ void TableDisplayWindow::initialize(QString title, std::vector<Variant>& variant
     this->setWindowTitle("Table - " + title);
     this->variants = &variants;
     this->simRequest = &simRequest;
-    this->g = simRequest.getGroups(index);
-    this->y = simRequest.getCaseControlStatus(index);
+   // this->g = simRequest.getGroups(index);
+    //this->y = simRequest.getPhenotypes(index);
 
     buildVariantTable();
 }
@@ -34,9 +34,9 @@ void TableDisplayWindow::initialize(QString title, Data* result){
     simulation = false;
 
     this->setWindowTitle("Table - " + title);
-    this->variants = &result->variants;
-    this->g = result->input.G;
-    this->y = result->input.Y;
+    //this->variants = &result->variants;
+    //this->g = result->input.G;
+    //this->y = result->input.Y;
 
     buildVariantTable();
 }
@@ -117,8 +117,8 @@ void TableDisplayWindow::buildVariantTable(){
 }
 
 void TableDisplayWindow::displayCalls(int index){
-    QString ref = QString::fromStdString(variants->at(selectedVariantIndex).ref);
-    QString alt = QString::fromStdString(variants->at(selectedVariantIndex).alt);
+    QString ref ="A"; //QString::fromStdString(variants->at(selectedVariantIndex).ref);
+    QString alt ="T";// QString::fromStdString(variants->at(selectedVariantIndex).alt);
     QString error1;
     QString error2;
 
@@ -148,7 +148,7 @@ void TableDisplayWindow::displayCalls(int index){
     }
 
     //[ref, alt, error1, error2]
-    std::vector<int> baseCalls = variants->at(selectedVariantIndex).baseCalls[index];
+ /*   std::vector<int> baseCalls = variants->at(selectedVariantIndex).baseCalls[index];
 
     QString calls = "";
     for(int i = 0; i < baseCalls[0]; i++)
@@ -161,19 +161,20 @@ void TableDisplayWindow::displayCalls(int index){
         calls.append(basePair(error2));
 
     ui->table_callsTxt->setText(calls);
-
+*/
 }
 
 void TableDisplayWindow::on_table_variantTbl_cellClicked(int row, int column){
 
     int index = ui->table_variantTbl->item(row,0)->text().toInt();
     fillGenotypeTable(index);
-
+/*
     QString ref = QString::fromStdString(variants->at(index).ref);
     QString alt = QString::fromStdString(variants->at(index).alt);
     ui->table_refLbl->setText(basePair(ref));
     ui->table_altLbl->setText(basePair(alt));
     selectedVariantIndex = index;
+*/
 }
 
 void TableDisplayWindow::on_table_genoTbl_currentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)

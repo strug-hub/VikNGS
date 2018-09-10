@@ -1,21 +1,49 @@
-﻿#include "simulation.h"
+﻿#include "Simulation.h"
 
 /*
-Produces a vector of simulated minor allele frequencies (uniformly random between min and max).
+Produces a VectorXd holding the group ID for all samples.
 
-@param nsnp Number of MAF to produce.
-@param min Minimum value for MAF.
-@param max Maximum value for MAF.
-
-@return Vector of minor allele frequencies.
+@param simReq Provides information about sample size and group ID
+@return VectorXd for group ID
 */
-VectorXd simulateMinorAlleleFrequency(int nsnp, double min, double max) {
-    VectorXd maf(nsnp);
+VectorXi simulateG(SimulationRequest& simReq) {
 
-    for (int i = 0; i < nsnp; i++)
-        maf[i] = randomDouble(min, max);
+    VectorXi G(simReq.maxSize());
+    int index = 0;
 
-    return maf;
+    for(int i = 0; i < simReq.steps; i++)
+        for (SimulationRequestGroup srg : simReq.groups){
+            int n = srg.getIncreaseSize(i);
+            for (int j = 0; j < n; j++){
+                G[index] = srg.index;
+                index++;
+            }
+        }
+
+    return G;
+}
+
+/*
+Produces a VectorXd of phenotypes for each sample.
+
+@param simReq Provides information about group phenotype and step sample size.
+@return VectorXd of phenotypes.
+*/
+VectorXd simulateY(SimulationRequest& simReq) {
+
+    VectorXd Y(simReq.maxSize());
+    int index = 0;
+
+    for(int i = 0; i < simReq.steps; i++)
+        for (SimulationRequestGroup srg : simReq.groups){
+            int n = srg.getIncreaseSize(i);
+            for (int j = 0; j < n; j++){
+                Y[index] = srg.generatePhenotype();
+                index++;
+            }
+        }
+
+    return Y;
 }
 
 /*
@@ -24,46 +52,36 @@ Produces a set of matrices (one per step) of true genotypes using minor allele f
 @param simReq Provides information about which groups are case/control and sample size.
 @param oddsRatio Odds ratio of being affected given harmful variant.
 @param maf Vector of minor allele frequencies for each variant.
-@param collapse Decay odds ratio outward from causative, one causative variant every collapse.
 
-@return Vector of MatrixXd of true genotypes (nsnp x nsamp).
+@return MatrixXd of true genotypes (nsnp x nsamp).
 */
-std::vector<MatrixXd> simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf, int collapse) {
+MatrixXd simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
     int nsnp = maf.size();
 
-    std::vector<MatrixXd> X;
-    //for collapsing only
-    std::vector<double> oddsRatios(collapse);
-    double OR = oddsRatio;
+    MatrixXd X(simReq.maxSize(), nsnp);
+    std::vector<double> oddsRatios(static_cast<size_t>(nsnp));
+    oddsRatios[0] = oddsRatio;
 
-    for(int i = 0; i < simReq.steps; i++){
+    //decay odds ratio outward from causitive variant
+    if(nsnp > 1){
+        int effectIndex = randomInt(0, nsnp-1);
+        oddsRatios[static_cast<size_t>(effectIndex)] = oddsRatio;
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> x(nsnp, simReq.stepIncrementSize(i));
+        double lastOR = oddsRatio;
+        for(int j = effectIndex-1; j >= 0; j--){
+            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+            oddsRatios[static_cast<size_t>(j)] = lastOR;
+        }
+        lastOR = oddsRatio;
+        for(int j = effectIndex+1; j < nsnp; j++){
+            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+            oddsRatios[static_cast<size_t>(j)] = lastOR;
+        }
+    }
 
-        for (int h = 0; h < nsnp; h++) {
+    for (int h = 0; h < nsnp; h++) {
 
-            if(collapse > 1){
-
-                if(h % collapse == 0){
-                    //define causative variant in collapsed region
-                    int effectIndex = randomInt(0, collapse-1);
-                    oddsRatios[effectIndex] = oddsRatio;
-
-                    //decay odds ratio outward from causitive variant
-                    double lastOR = oddsRatio;
-                    for(int j = effectIndex-1; j >= 0; j--){
-                        lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-                        oddsRatios[j] = lastOR;
-                    }
-                    lastOR = oddsRatio;
-                    for(int j = effectIndex+1; j < collapse; j++){
-                        lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-                        oddsRatios[j] = lastOR;
-                    }
-                }
-
-                 OR = oddsRatios[i%collapse];
-            }
+            double OR = oddsRatios[static_cast<size_t>(h)];
 
             double p_x0_y0 = (1 - maf[h]) * (1 - maf[h]);
             double p_x1_y0 = 2 * maf[h] * (1 - maf[h]);
@@ -73,83 +91,41 @@ std::vector<MatrixXd> simulateX(SimulationRequest& simReq, double oddsRatio, Vec
             double p_x0_y1 = beta0 * p_x0_y0;
             double p_x1_y1 = (beta0 * OR) * p_x1_y0;
 
+        generate:
             int index = 0;
-            for (SimulationRequestGroup srg : simReq.groups) {
+            bool ok = false;
 
-                if(srg.isCase){
-                    for (int j = 0; j < srg.getStepSize(i); j++){
-                        x(h, index) = generateGenotype(p_x0_y1, p_x1_y1);
-                        index++;
-                    }
+            for(int i = 0; i < simReq.steps; i++){
+                for (SimulationRequestGroup srg : simReq.groups){
+                    int n = srg.getIncreaseSize(i);
+
+                    if(srg.isCase)
+                        for (int j = 0; j < n; j++){
+                            X(index, h) = generateGenotype(p_x0_y1, p_x1_y1);
+                            ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
+                            index++;
+                        }
+                    else
+                        for (int j = 0; j < n; j++){
+                            X(index, h) = generateGenotype(p_x0_y0, p_x1_y0);
+                            ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
+                            index++;
+                        }
                 }
-                else{
-                    for (int j = 0; j < srg.getStepSize(i); j++){
-                        x(h, index) = generateGenotype(p_x0_y0, p_x1_y0);
-                        index++;
-                    }
-                }
+
+                if(!ok)
+                    goto generate;
+
+                double sum = 0;
+                for(int p = 0; p< index; p++)
+                    sum += X(p, h);
+
+                if(sum < 1e-4)
+                    std::cout << "why";
             }
         }
-        X.emplace_back(x);
-    }
 
     return X;
-}
-
-/*
-Produces a set of VectorXd holding the group ID for every step of the simulation.
-
-@param simReq Provides information about sample size and group ID
-
-@return Vector of VectorXd for group ID
-*/
-std::vector<VectorXd> simulateG(SimulationRequest& simReq) {
-
-    std::vector<VectorXd> G;
-
-    for(int i = 0; i < simReq.steps; i++){
-
-        VectorXd g(simReq.stepIncrementSize(i));
-        int index = 0;
-        for (SimulationRequestGroup srg : simReq.groups) {
-            for(int j = 0; j < srg.getStepSize(i); j++){
-                g[index] = srg.index;
-                index++;
-            }
-        }
-
-        G.emplace_back(g);
-    }
-
-    return G;
-}
-
-/*
-Produces a set of VectorXd for phenotype of each sampe for every step.
-
-@param simReq Provides information about group phenotype and step sample size.
-@return Vector of VectorXd of case/control status.
-*/
-std::vector<VectorXd> simulateY(SimulationRequest& simReq) {
-
-    std::vector<VectorXd> Y;
-
-    for(int i = 0; i < simReq.steps; i++){
-
-        VectorXd y(simReq.stepIncrementSize(i));
-        int index = 0;
-
-        for (SimulationRequestGroup srg : simReq.groups) {
-
-            for (int j = 0; j < srg.getStepSize(i); j++){
-                y[index] = srg.generatePhenotype();
-                index++;
-            }
-        }
-        Y.push_back(y);
-    }
-
-    return Y;
 }
 
 double inline generateGenotype(double prob_x0, double prob_x1) {
@@ -163,6 +139,24 @@ double inline generateGenotype(double prob_x0, double prob_x1) {
             return 2;
     else
         return 0;
+}
+
+VectorXi generateReadDepths(SimulationRequest& simReq){
+
+    VectorXi readDepths(simReq.maxSize());
+
+    int index = 0;
+    for(int i = 0; i < simReq.steps; i++)
+        for (SimulationRequestGroup srg : simReq.groups){
+            int n = srg.getIncreaseSize(i);
+            for (int j = 0; j < n; j++){
+                readDepths[index] = static_cast<int>(std::round(randomNormal(srg.meanDepth, srg.sdDepth)));
+                readDepths[index] = std::max(1, readDepths[index]);
+                index++;
+            }
+        }
+
+    return readDepths;
 }
 
 /*
@@ -230,6 +224,24 @@ std::vector<int> baseCalls(int trueGenotype, double error, int readDepth) {
     return bases;
 }
 
+std::vector<std::vector<int>> generateBaseCalls(SimulationRequest& simReq, VectorXd& X, VectorXi& readDepths){
+
+    std::vector<std::vector<int>> calls(static_cast<size_t>(simReq.maxSize()));
+
+    int index = 0;
+    for(int i = 0; i < simReq.steps; i++)
+        for (SimulationRequestGroup srg : simReq.groups){
+            int n = srg.getIncreaseSize(i);
+            for (int j = 0; j < n; j++){
+                calls[static_cast<size_t>(index)] =
+                        baseCalls(static_cast<int>(X[index]), srg.errorRate, readDepths[index]);
+                index++;
+            }
+        }
+
+    return calls;
+}
+
 /*
 Produces a vector of 3 probabilities as follows:
 0: probability of calling bases in a homozygous individual (2 major alleles).
@@ -241,172 +253,98 @@ Produces a vector of 3 probabilities as follows:
 
 @return Vector of 3 probabilities.
 */
-GenotypeLikelihood calculateLikelihood(std::vector<int> &bases, double error) {
+Vector3d calculateLikelihood(std::vector<int> &bases, double error) {
 
-    GenotypeLikelihood gl;
+    Vector3d gl;
 
     int refCalls = bases[0];
     int altCalls = bases[1];
     int errorCalls = bases[2] + bases[3];
 
-    gl.L00 = std::pow(1-error, refCalls) * std::pow(error/3, altCalls + errorCalls);
-    gl.L01 = std::pow(0.5 * (1-error + (error/3)), refCalls + altCalls) * std::pow(error/3, errorCalls);
-    gl.L11 = std::pow(1-error, altCalls) * std::pow(error/3, refCalls + errorCalls);
+    gl[0] = std::pow(1-error, refCalls) * std::pow(error/3, altCalls + errorCalls);
+    gl[1] = std::pow(0.5 * (1-error + (error/3)), refCalls + altCalls) * std::pow(error/3, errorCalls);
+    gl[2] = std::pow(1-error, altCalls) * std::pow(error/3, refCalls + errorCalls);
 
     return gl;
 }
 
-std::vector<int> generateReadDepths(VectorXd& x, double meanDepth, double depthSd) {
+std::vector<Vector3d> generateLikelihoods(SimulationRequest& simReq, std::vector<std::vector<int>>& baseCalls){
 
-    std::vector<int> readDepths;
+    std::vector<Vector3d> likelihoods(static_cast<size_t>(simReq.maxSize()));
 
-    for (int i = 0; i < x.rows(); i++) {
-        int rd = std::round(randomNormal(meanDepth, depthSd));
-        readDepths.push_back( std::max(rd, 1) );
-    }
-
-    return readDepths;
-}
-
-std::vector<std::vector<int>> generateBaseCalls(VectorXd& x, double errorRate, std::vector<int>& readDepths) {
-
-    std::vector<std::vector<int>> calls;
-
-    for (int i = 0; i < x.rows(); i++)
-        calls.push_back( baseCalls(x[i], errorRate, readDepths[i]) );
-
-    return calls;
-}
-
-
-std::vector<GenotypeLikelihood> generateLikelihoods(VectorXd& x, double errorRate, std::vector<std::vector<int>>& baseCalls) {
-
-    std::vector<GenotypeLikelihood> likelihoods;
-
-    for (int i = 0; i < x.rows(); i++)
-        likelihoods.emplace_back(calculateLikelihood(baseCalls[i], errorRate));
+    size_t index = 0;
+    for(int i = 0; i < simReq.steps; i++)
+        for (SimulationRequestGroup srg : simReq.groups){
+            int n = srg.getIncreaseSize(i);
+            for (int j = 0; j < n; j++){
+                likelihoods[index] = calculateLikelihood(baseCalls[index], srg.errorRate);
+                index++;
+            }
+        }
 
     return likelihoods;
 }
 
-/*
-Generates the expected probabilities of the genotypes E(G_ij | D_ij).
-
-@param  gl A vector of genotype likelihoods, one per individual.
-@param  p Population genotype frequency.
-
-@return Vector of expected genotypes.
-*/
-VectorXd calculateExpectedGenotypes(std::vector<GenotypeLikelihood>& gl, VectorXd& p){
-
-    VectorXd m(3);
-    Vector3d g = { 0, 1, 2 };
-    VectorXd EG( gl.size());
-
-    for (int i = 0; i < gl.size(); i++) {
-        m[0] = gl[i].L00 * p[0];
-        m[1] = gl[i].L01 * p[1];
-        m[2] = gl[i].L11 * p[2];
-
-        double msum = m[0] + m[1] + m[2];
-        EG[i] = (m[1]/msum) + 2 * (m[2]/msum);
-        EG[i] = std::max(0.0, EG[i]);
-        EG[i] = std::min(2.0, EG[i]);
-
-    }
-
-    return EG;
-}
-
-/*
-Generates the genotype calls using simple bayesian genotyper (maximum likelihood).
-
-@param  gl A vector of genotype likelihoods, one per individual.
-@param  p Population genotype frequency.
-
-@return Vector of genotype calls.
-*/
-VectorXd calculateGenotypeCalls(std::vector<GenotypeLikelihood>& gl, VectorXd& p){
-
-    VectorXd GC(gl.size());
-
-    for (int i = 0; i < gl.size(); i++) {
-        double L00 = gl[i].L00*p[0];
-        double L01 = gl[i].L01*p[1];
-        double L11 = gl[i].L11*p[2];
-
-        if(L00 > L01)
-             if (L00 > L11)
-                 GC[i] = 0;
-             else
-                 GC[i] = 2;
-         else if (L01 > L11)
-             GC[i] = 1;
-         else
-        GC[i] = 2;
-    }
-
-    return GC;
-}
-
 Variant randomVariant(){
-
-    Variant v;
 
     int refalt = randomInt(0,11);
     int rchr = randomInt(0,23);
+    std::string ref;
+    std::string alt;
+    std::string chr;
+    int pos = 0;
 
-    if(refalt==0) v.ref = "A";
-    else if(refalt==1) v.ref = "A";
-    else if(refalt==2) v.ref = "A";
-    else if(refalt==3) v.ref = "T";
-    else if(refalt==4) v.ref = "T";
-    else if(refalt==5) v.ref = "T";
-    else if(refalt==6) v.ref = "C";
-    else if(refalt==7) v.ref = "C";
-    else if(refalt==8) v.ref = "C";
-    else if(refalt==9) v.ref = "G";
-    else if(refalt==10) v.ref = "G";
-    else if(refalt==11) v.ref = "G";
+    if(refalt==0) ref = "A";
+    else if(refalt==1) ref = "A";
+    else if(refalt==2) ref = "A";
+    else if(refalt==3) ref = "T";
+    else if(refalt==4) ref = "T";
+    else if(refalt==5) ref = "T";
+    else if(refalt==6) ref = "C";
+    else if(refalt==7) ref = "C";
+    else if(refalt==8) ref = "C";
+    else if(refalt==9) ref = "G";
+    else if(refalt==10) ref = "G";
+    else if(refalt==11) ref = "G";
 
-    if(refalt==0) v.alt = "T";
-    else if(refalt==1) v.alt = "G";
-    else if(refalt==2) v.alt = "C";
-    else if(refalt==3) v.alt = "A";
-    else if(refalt==4) v.alt = "G";
-    else if(refalt==5) v.alt = "C";
-    else if(refalt==6) v.alt = "T";
-    else if(refalt==7) v.alt = "A";
-    else if(refalt==8) v.alt = "G";
-    else if(refalt==9) v.alt = "C";
-    else if(refalt==10) v.alt = "A";
-    else if(refalt==11) v.alt = "T";
+    if(refalt==0) alt = "T";
+    else if(refalt==1) alt = "G";
+    else if(refalt==2) alt = "C";
+    else if(refalt==3) alt = "A";
+    else if(refalt==4) alt = "G";
+    else if(refalt==5) alt = "C";
+    else if(refalt==6) alt = "T";
+    else if(refalt==7) alt = "A";
+    else if(refalt==8) alt = "G";
+    else if(refalt==9) alt = "C";
+    else if(refalt==10) alt = "A";
+    else if(refalt==11) alt = "T";
 
-    if(rchr==0){ v.chr = "1"; v.pos = randomInt(0, 248956422);}
-    if(rchr==1){ v.chr = "2"; v.pos = randomInt(0, 242193529);}
-    if(rchr==2){ v.chr = "3"; v.pos = randomInt(0, 198295559);}
-    if(rchr==3){ v.chr = "4"; v.pos = randomInt(0, 190214555);}
-    if(rchr==4){ v.chr = "5"; v.pos = randomInt(0, 181538259);}
-    if(rchr==5){ v.chr = "6"; v.pos = randomInt(0, 170805979);}
-    if(rchr==6){ v.chr = "7"; v.pos = randomInt(0, 159345973);}
-    if(rchr==7){ v.chr = "8"; v.pos = randomInt(0, 145138636);}
-    if(rchr==8){ v.chr = "9"; v.pos = randomInt(0, 138394717);}
-    if(rchr==9){ v.chr = "10"; v.pos = randomInt(0, 133797422);}
-    if(rchr==10){ v.chr = "11"; v.pos = randomInt(0, 135086622);}
-    if(rchr==11){ v.chr = "12"; v.pos = randomInt(0, 133275309);}
-    if(rchr==12){ v.chr = "13"; v.pos = randomInt(0, 114364328);}
-    if(rchr==13){ v.chr = "14"; v.pos = randomInt(0, 107043718);}
-    if(rchr==14){ v.chr = "15"; v.pos = randomInt(0, 101991189);}
-    if(rchr==15){ v.chr = "16"; v.pos = randomInt(0, 90338345);}
-    if(rchr==16){ v.chr = "17"; v.pos = randomInt(0, 83257441);}
-    if(rchr==17){ v.chr = "18"; v.pos = randomInt(0, 80373285);}
-    if(rchr==18){ v.chr = "19"; v.pos = randomInt(0, 58617616);}
-    if(rchr==19){ v.chr = "20"; v.pos = randomInt(0, 64444167);}
-    if(rchr==20){ v.chr = "21"; v.pos = randomInt(0, 46709983);}
-    if(rchr==21){ v.chr = "22"; v.pos = randomInt(0, 50818468);}
-    if(rchr==22){ v.chr = "X"; v.pos = randomInt(0, 156040895);}
-    if(rchr==23){ v.chr = "Y"; v.pos = randomInt(0, 57227415);}
+    if(rchr==0){ chr = "1"; pos = randomInt(0, 248956422);}
+    if(rchr==1){ chr = "2"; pos = randomInt(0, 242193529);}
+    if(rchr==2){ chr = "3"; pos = randomInt(0, 198295559);}
+    if(rchr==3){ chr = "4"; pos = randomInt(0, 190214555);}
+    if(rchr==4){ chr = "5"; pos = randomInt(0, 181538259);}
+    if(rchr==5){ chr = "6"; pos = randomInt(0, 170805979);}
+    if(rchr==6){ chr = "7"; pos = randomInt(0, 159345973);}
+    if(rchr==7){ chr = "8"; pos = randomInt(0, 145138636);}
+    if(rchr==8){ chr = "9"; pos = randomInt(0, 138394717);}
+    if(rchr==9){ chr = "10"; pos = randomInt(0, 133797422);}
+    if(rchr==10){ chr = "11"; pos = randomInt(0, 135086622);}
+    if(rchr==11){ chr = "12"; pos = randomInt(0, 133275309);}
+    if(rchr==12){ chr = "13"; pos = randomInt(0, 114364328);}
+    if(rchr==13){ chr = "14"; pos = randomInt(0, 107043718);}
+    if(rchr==14){ chr = "15"; pos = randomInt(0, 101991189);}
+    if(rchr==15){ chr = "16"; pos = randomInt(0, 90338345);}
+    if(rchr==16){ chr = "17"; pos = randomInt(0, 83257441);}
+    if(rchr==17){ chr = "18"; pos = randomInt(0, 80373285);}
+    if(rchr==18){ chr = "19"; pos = randomInt(0, 58617616);}
+    if(rchr==19){ chr = "20"; pos = randomInt(0, 64444167);}
+    if(rchr==20){ chr = "21"; pos = randomInt(0, 46709983);}
+    if(rchr==21){ chr = "22"; pos = randomInt(0, 50818468);}
+    if(rchr==22){ chr = "X"; pos = randomInt(0, 156040895);}
+    if(rchr==23){ chr = "Y"; pos = randomInt(0, 57227415);}
 
-    return v;
+    return Variant(chr, pos, "simulated", ref, alt);
 }
 

@@ -26,8 +26,7 @@ Approximates the p-value from the pdf of the normal distribution where x is a Z-
 @param x Z-score.
 @return p-value.
 */
-double pnorm(double x)
-{
+double pnorm(double x){
     // constants
     double a1 = 0.254829592;
     double a2 = -0.284496736;
@@ -190,6 +189,7 @@ MatrixXd calculateHatMatrix(MatrixXd &Z){
     }catch(...){
         throwError(ERROR_SOURCE, "Error while calculate covariate hat matrix. Not invertable?");
     }
+    MatrixXd null; return null;
 }
 
 MatrixXd calculateHatMatrix(MatrixXd &Z, MatrixXd &W, MatrixXd &sqrtW){
@@ -198,20 +198,7 @@ MatrixXd calculateHatMatrix(MatrixXd &Z, MatrixXd &W, MatrixXd &sqrtW){
     }catch(...){
         throwError(ERROR_SOURCE, "Error while calculate covariate hat matrix. Not invertable?");
     }
-}
-
-VectorXd getBeta(VectorXd &X, VectorXd &Y, MatrixXd &Z, Family family) {
-
-    VectorXi toRemove = whereNAN(X, Y, Z);
-    VectorXd y_filtered = extractRows(Y, toRemove, 0);
-    MatrixXd z_filtered = extractRows(Z, toRemove, 0);
-
-    if(family == Family::BINOMIAL)
-        return CovariateBinomialRegression(y_filtered, z_filtered);
-    if(family == Family::NORMAL)
-        return CovariateNormalRegression(y_filtered, z_filtered);
-
-    throwError(ERROR_SOURCE, "Family not recognized, could not compute beta values.");
+    MatrixXd null; return null;
 }
 
 VectorXd getBeta(VectorXd &Y, MatrixXd &Z, Family family) {
@@ -224,23 +211,18 @@ VectorXd getBeta(VectorXd &Y, MatrixXd &Z, Family family) {
     throwError(ERROR_SOURCE, "Family not recognized, could not compute beta values.");
 }
 
-std::vector<VectorXd> fitModel(VectorXd &beta, std::vector<VectorXd> &y, std::vector<MatrixXd> &z, Family family) {
-    std::vector<VectorXd> yhat;
+VectorXd fitModel(VectorXd &beta, MatrixXd &Z, Family family) {
 
-    for (size_t i = 0; i < y.size(); i++) {
+    VectorXd meanValue = Z * beta;
 
-        VectorXd meanValue = z[i] * beta;
+    if(family == Family::BINOMIAL)
+        meanValue = 1 / (1 + exp(-meanValue.array()));
 
-        if(family == Family::BINOMIAL)
-            meanValue = 1 / (1 + exp(-meanValue.array()));
+    //if(family == Family::NORMAL)
+        //do nothing
 
-        //if(family == Family::NORMAL)
-            //do nothing
+    return meanValue;
 
-        yhat.push_back(meanValue);
-    }
-
-    return yhat;
 }
 
 VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
@@ -286,8 +268,7 @@ VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
         try{
         beta = lastBeta - hess.inverse()*first;
         }catch(...){
-            printWarning("Error while trying to invert matrix in logistic regression");
-            throw variant_exception( "Failed to invert" );
+            throwError(ERROR_SOURCE, "Error while trying to invert matrix in logistic regression");
         }
 
         bool stop = true;
@@ -304,8 +285,7 @@ VectorXd logisticRegression(VectorXd &Y, MatrixXd &X) {
     }
 
     if(iteration > 50){
-        printWarning("Logistic regression failed to converge after 50 iterations.");
-        throw variant_exception( "Regression failed to converge" );
+        throwError(ERROR_SOURCE, "Logistic regression failed to converge after 50 iterations.");
     }
 
     return beta;

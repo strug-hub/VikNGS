@@ -3,7 +3,7 @@
 
 
 void TableDisplayWindow::addSampleInfo(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant){
-
+/*
     titles.append("index");
     titles.append("Cohort");
     titles.append("Group ID");
@@ -30,12 +30,12 @@ void TableDisplayWindow::addSampleInfo(int nrow, QStringList &titles, QVector<QV
     table.push_back(groupID);
     if(simulation)
         table.push_back(readDepth);
-
+*/
     return;
 }
 
 void TableDisplayWindow::addSampleGenotypes(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant){
-
+/*
     if(simulation)
         titles.append("True GT");
 
@@ -72,12 +72,12 @@ void TableDisplayWindow::addSampleGenotypes(int nrow, QStringList &titles, QVect
         table.push_back(trueGT);
     table.push_back(calledGT);
     table.push_back(expectedGT);
-
+*/
     return;
 }
 
 void TableDisplayWindow::addVCFData(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant& variant){
-
+/*
     if(simulation)
        return;
 
@@ -100,7 +100,7 @@ void TableDisplayWindow::addVCFData(int nrow, QStringList &titles, QVector<QVect
     table.push_back(info);
     table.push_back(format);
     table.push_back(used);
-
+*/
     return;
 }
 
@@ -126,7 +126,7 @@ void TableDisplayWindow::addInfo(int nrow, QStringList &titles, QVector<QVector<
     QVector<QTableWidgetItem*> pos(nrow);
     QVector<QTableWidgetItem*> ref(nrow);
     QVector<QTableWidgetItem*> alt(nrow);
-
+/*
     for (int i = 0; i < nrow ; i++){
         index[i] = new QTableWidgetItem(QString::number(i));
         chr[i] = new QTableWidgetItem(QString::fromStdString(variants->at(i).chr));
@@ -140,7 +140,7 @@ void TableDisplayWindow::addInfo(int nrow, QStringList &titles, QVector<QVector<
     table.push_back(pos);
     table.push_back(ref);
     table.push_back(alt);
-
+*/
     return;
 }
 
@@ -153,7 +153,7 @@ void TableDisplayWindow::addAlleleProbability(int nrow, QStringList &titles, QVe
     QVector<QTableWidgetItem*> p0(nrow);
     QVector<QTableWidgetItem*> p1(nrow);
     QVector<QTableWidgetItem*> p2(nrow);
-
+/*
     for (int i = 0; i < nrow ; i++){
         p0[i] = new QTableWidgetItem(QString::number(variant.P[0]));
         p1[i] = new QTableWidgetItem(QString::number(variant.P[1]));
@@ -163,14 +163,14 @@ void TableDisplayWindow::addAlleleProbability(int nrow, QStringList &titles, QVe
     table.push_back(p0);
     table.push_back(p1);
     table.push_back(p2);
-
+*/
     return;
 }
 
 void TableDisplayWindow::addPvals(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table){
 
     QColor pvalColour = QColor(234, 183, 53, 255);
-
+/*
     for (int j = 0; j < variants->at(0).nPvals(); j++){
         titles.append(QString::fromStdString(variants->at(0).getPvalSourceShort(j)) + " pval");
 
@@ -185,7 +185,7 @@ void TableDisplayWindow::addPvals(int nrow, QStringList &titles, QVector<QVector
 
         table.push_back(pvals);
     }
-
+*/
     return;
 }
 
@@ -240,7 +240,7 @@ void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<
     for (int i = 0; i < nrow ; i++){
 
         double maf;
-
+/*
         if(gt == "true")
             maf = calculateMaf(variants->at(i).trueGenotype, caseControl=="case", caseControl=="control");
         else if (gt == "calls")
@@ -252,7 +252,7 @@ void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<
         QTableWidgetItem* mcell = new QTableWidgetItem(QString::number(maf));
         mcell->setBackgroundColor(mafColour);
         mafs[i] = mcell;
-
+*/
     }
 
     table.push_back(mafs);
@@ -298,7 +298,7 @@ void TableDisplayWindow::addGtFreq(int nrow, QStringList &titles, QVector<QVecto
         int _1 = 0;
         int _2 = 0;
         double genotype = -1;
-
+/*
         if(gt == "true"){
             for (int j = 0; j < variants->at(i).trueGenotype.rows() ; j++){
                 genotype = variants->at(i).trueGenotype[j];
@@ -320,7 +320,8 @@ void TableDisplayWindow::addGtFreq(int nrow, QStringList &titles, QVector<QVecto
         freq0[i] = new QTableWidgetItem(QString::number(_0));
         freq1[i] = new QTableWidgetItem(QString::number(_1));
         freq2[i] = new QTableWidgetItem(QString::number(_2));
-    }
+  */
+  }
 
     table.push_back(freq0);
     table.push_back(freq1);

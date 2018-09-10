@@ -1,7 +1,6 @@
 #include "PlotWindow.h"
 #include "ui_plotwindow.h"
 
-
 void PlotWindow::mouseMoveWindow(QMouseEvent *event){
 
     if(!ui->plot_chrPlt->underMouse()){
@@ -9,8 +8,8 @@ void PlotWindow::mouseMoveWindow(QMouseEvent *event){
 
         int datapoints = ui->plot_chrPlt->graph()->dataCount();
 
-        if(datapoints > 1 || (!focusedVar.isValid() && datapoints > 0))
-            updateVariantHighlightLayer(nullVariant);
+        if(datapoints > 1 || (!focusedVar->isValid() && datapoints > 0))
+            updateVariantHighlightLayer(&nullVariant);
     }
 
     if(!ui->plot_genomePlt->underMouse()){
@@ -90,12 +89,12 @@ void PlotWindow::mouseClickChromosome(QMouseEvent *event){
 
         double x = event->pos().x();
         double y = event->pos().y();
-        Variant closest = findClosestVariant(x, y, 100);
+        VariantSet* closest = findClosestVariant(x, y, 100);
 
-        if(closest.isValid()){
+        if(closest->isValid()){
 
             if (event->button() == Qt::RightButton)
-                focusedVar = nullVariant;
+                focusedVar = &nullVariant;
             else
                 focusedVar = closest;
 
@@ -105,17 +104,17 @@ void PlotWindow::mouseClickChromosome(QMouseEvent *event){
     }
 }
 
-Variant PlotWindow::findClosestVariant(double x, double y, double maxDist){
+VariantSet* PlotWindow::findClosestVariant(double x, double y, double maxDist){
 
     double dist;
     double minDist = 9999999999;
     int minIndex;
 
     for(int i = 0; i < chromosomes[focusedChr].size(); i++){
-        Variant v = chromosomes[focusedChr].getVariant(i);
+        VariantSet* v = chromosomes[focusedChr].getVariant(i);
 
-        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(-log10(v.getPval(0))) - y, 2) +
-                pow(ui->plot_chrPlt->xAxis->coordToPixel(v.pos) - x, 2);
+        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(-log10(v->getPval(0))) - y, 2) +
+                pow(ui->plot_chrPlt->xAxis->coordToPixel(v->getMidPos()) - x, 2);
         if(dist < minDist){
             minDist = dist;
             minIndex = i;
@@ -125,7 +124,7 @@ Variant PlotWindow::findClosestVariant(double x, double y, double maxDist){
     if(minDist < maxDist)
         return chromosomes[focusedChr].getVariant(minIndex);
 
-    return nullVariant;
+    return &nullVariant;
 }
 
 void PlotWindow::mouseMoveGenome(QMouseEvent *event){
@@ -148,7 +147,7 @@ void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
     double coordy = ui->plot_chrPlt->yAxis->pixelToCoord(event->pos().y());
 
     updateVariantInfo(focusedVar);
-    Variant closest = nullVariant;
+    VariantSet* closest = &nullVariant;
 
     if(coordy > 0 && coordx > 0){
         double x = event->pos().x();
@@ -156,11 +155,9 @@ void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
 
         closest = findClosestVariant(x, y, 100);
 
-        if(closest.isValid())
+        if(closest->isValid())
             updateVariantInfo(closest);
     }
 
     updateVariantHighlightLayer(closest);
-
-     return;
 }

@@ -1,16 +1,10 @@
 #pragma once
 #include "../vikNGS.h"
-#include "../Request.h"
 #include "File.h"
-#include "../SampleInfo.h"
-#include "../Variant.h"
 #include "../Math/Math.h"
 
 #include <iostream>  
-#include <vector>
-#include <string>
 #include <algorithm>
-#include <map>
 
 SampleInfo parseSampleInfo(Request & req);
 
@@ -21,11 +15,11 @@ static const int DEPTH_COL = 3;
 static const int COV_COL = 4;
 static const char SAMPLE_SEP = '\t';
 
-//SampleInfoParser.cpp
+//SampleParser.cpp
 bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap);
 VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> &IDmap);
 VectorXi parseSampleGroupID(std::string sampleDir, std::map<std::string, int> &IDmap);
-std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::string, int> &IDmap, VectorXd& G, int highLowCutOff);
+std::map<int, Depth> parseSampleReadDepth(std::string sampleDir, std::map<std::string, int> &IDmap, VectorXi& G, int highLowCutOff);
 MatrixXd parseSampleCovariates(std::string sampleDir, std::map<std::string, int> &IDmap);
 
 static const int CHROM = 0;
@@ -52,17 +46,6 @@ IntervalSet parseBEDLines(std::string bedDir, CollapseType collapse);
 Interval lineToGene(std::vector<std::string> lineSplit, int lineNumber);
 std::vector<Interval> lineToExons(std::vector<std::string> lineSplit, int lineNumber);
 
-
-
-
-
-
-
-
-
-
-
-
 //StringTools.cpp
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
 std::string extractString(MemoryMapped &charArray, int start, int end);
@@ -72,6 +55,3 @@ std::vector<std::string> splitString(std::string &s, char sep, int stop);
 
 //VariantFilter.cpp
 void printFilterResults(Request &req, std::vector<std::string> variantInfo, std::vector<int> failCode, int total);
-bool isIn(std::string &vcfLine, int minPos, int maxPos, std::string &chr);
-int isIn(std::string &vcfLine, int minPos, int maxPos, std::string &chr, std::vector<Interval> &intervals);
-

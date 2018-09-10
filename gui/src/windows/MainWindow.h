@@ -3,7 +3,8 @@
 
 #include "../src/vikNGS.h"
 #include "../src/Variant.h"
-#include "../simulation/simulation.h"
+#include "../src/Log.h"
+#include "../simulation/Simulation.h"
 #include "../AsyncJob.h"
 
 #include <QMainWindow>
@@ -49,12 +50,11 @@ private slots:
     void on_main_runBtn_clicked();
 
     void on_main_testRareCastBtn_toggled(bool checked);
-    void on_main_testRareCalphaBtn_toggled(bool checked);
+    void on_main_testRareSkatBtn_toggled(bool checked);
     void on_main_testBootChk_stateChanged(int arg1);
     void on_main_testBootChk_toggled(bool checked);
     void on_main_vcfWholeFileChk_toggled(bool checked);
 
-    void on_main_randomBtn_pressed();
 
     //-----------
     //SimulationTab.cpp
@@ -72,9 +72,9 @@ private slots:
 
     void simEnableRare(bool valid);
     void on_sim_testRareCastBtn_toggled(bool checked);
-    void on_sim_testRareCalphaBtn_toggled(bool checked);
+    void on_sim_testRareSkatBtn_toggled(bool checked);
 
-    void simulationFinished(std::vector<std::vector<Variant>> variants, SimulationRequest reqs);
+    void simulationFinished(Data results, SimulationRequest reqs);
 
     //-----------
     //qSimulationTab.cpp
@@ -93,7 +93,9 @@ private slots:
     void on_qsim_stopBtn_clicked();
 
     void on_qsim_testRareCastBtn_toggled(bool checked);
-    void on_qsim_testRareCalphaBtn_toggled(bool checked);
+    void on_qsim_testRareSkatBtn_toggled(bool checked);
+
+
 
 signals:
     void sendPlotData(QVector<double> values);
@@ -106,16 +108,6 @@ private:
     QColor grey = QColor::fromRgb(204, 205, 209);
     int plotCount = 1;
 
-    void warningDialog(QString message){
-
-        QMessageBox *dialog = new QMessageBox;
-        dialog->setWindowTitle("Warning");
-        dialog->setIcon(QMessageBox::Warning);
-        dialog->setText(message);
-        dialog->show();
-        return;
-
-    }
 };
 
 #endif // MAINWINDOW_H

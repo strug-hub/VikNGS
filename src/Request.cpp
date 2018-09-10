@@ -1,4 +1,5 @@
 #include "Request.h"
+
 #include <fstream>
 
 static const std::string ERROR_SOURCE = "REQUEST_BUILDER";
@@ -65,22 +66,24 @@ bool Request::validate() {
         throwError(ERROR_SOURCE, "Output directory is invalid.", outputDir);
 
 
-    for(int i = 0; i < tests.size(); i++){
-        if (nboot < 1 && useBootstrap(i) )
+    for(size_t i = 0; i < tests.size(); i++){
+        if (nboot < 1 && tests[i].isRareTest() )
             throwError(ERROR_SOURCE, "Requested a bootstrap test but number of permutions is less than 1.", std::to_string(nboot));
 
-        if (shouldCollapseK() && useRare(i) && collapseSize < 2)
+        if (shouldCollapseK() && tests[i].isRareTest() && collapseSize < 2)
             throwError(ERROR_SOURCE, "Please set variant collapse value to a number greater than 1.", std::to_string(collapseSize));
     }
 
     if (nthreads < 1)
-        throwError(REQUEST_BUILDER, "Number of threads should be greater than 0.", std::to_string(nthreads));
+        throwError(ERROR_SOURCE, "Number of threads should be greater than 0.", std::to_string(nthreads));
     if(batchSize < 1)
-        throwError(REQUEST_BUILDER, "Batch size should be greater than 0.", std::to_string(batch));
+        throwError(ERROR_SOURCE, "Batch size should be greater than 0.", std::to_string(batchSize));
     if (highLowCutOff < 1)
-        throwError(REQUEST_BUILDER, "High-low read depth threshold should be greater than 0.", std::to_string(highLowCutOff));
+        throwError(ERROR_SOURCE, "High-low read depth threshold should be greater than 0.", std::to_string(highLowCutOff));
     if (mafCutoff < 0 || mafCutoff > 0.5)
-        throwError(REQUEST_BUILDER, "Minor allele frequency threshold should be a value between 0 and 0.5.", std::to_string(mafCutoff));
+        throwError(ERROR_SOURCE, "Minor allele frequency threshold should be a value between 0 and 0.5.", std::to_string(mafCutoff));
     if (missingThreshold < 0 || missingThreshold > 1)
-        throwError(REQUEST_BUILDER, "Missing threshold should be a value between 0 and 1.", std::to_string(missingThreshold));
+        throwError(ERROR_SOURCE, "Missing threshold should be a value between 0 and 1.", std::to_string(missingThreshold));
+
+    return true;
 }

@@ -30,24 +30,12 @@ void MainWindow::on_main_bedDirBtn_clicked()
         ui->main_bedDirTxt->setText(fileName);
 }
 
-void MainWindow::on_main_randomBtn_pressed(){
-
-        PlotWindow *plotter = new PlotWindow();
-        QString title = "Random Plot " + QString::number(plotCount);
-        plotCount++;
-        int nvariants = ui->main_nrandomTxt->text().toInt();
-        plotter->initialize(nvariants, title);
-        printOutput("Showing random plot in " + title.toLower(), green);
-        plotter->show();
-}
-
-
 void MainWindow::on_main_testRareCastBtn_toggled(bool checked){
     if(checked)
         ui->main_testBootChk->setChecked(true);
 }
 
-void MainWindow::on_main_testRareCalphaBtn_toggled(bool checked){
+void MainWindow::on_main_testRareSkatBtn_toggled(bool checked){
     if(checked)
         ui->main_testBootChk->setChecked(true);
 }
@@ -218,24 +206,23 @@ Request MainWindow::createRequest(){
     if(ui->main_testRareCastBtn->isChecked()){
 
         if(ui->main_rvsChk->isChecked())
-            req.addTest(Test(Genotype::EXPECTED, Statistic::SKAT));
+            req.addTest(Test(Genotype::EXPECTED, Statistic::CAST));
         if(ui->main_gtChk->isChecked())
-            req.addTest(Test(Genotype::CALL, Statistic::SKAT));
+            req.addTest(Test(Genotype::CALL, Statistic::CAST));
 
-        //todo: change to SKAT?
         printInfo("Preparing to run rare variant association (CAST p-values)...");
         commands.push_back("-r cast");
     }
 
-    if(ui->main_testRareCalphaBtn->isChecked()){
+    if(ui->main_testRareSkatBtn->isChecked()){
 
         if(ui->main_rvsChk->isChecked())
-            req.addTest(Test(Genotype::EXPECTED, Statistic::CALPHA));
+            req.addTest(Test(Genotype::EXPECTED, Statistic::SKAT));
         if(ui->main_gtChk->isChecked())
-            req.addTest(Test(Genotype::CALL, Statistic::CALPHA));
+            req.addTest(Test(Genotype::CALL, Statistic::SKAT));
 
-        printInfo("Preparing to run rare variant association (C-alpha p-values)...");
-        commands.push_back("-r calpha");
+        printInfo("Preparing to run rare variant association (SKAT p-values)...");
+        commands.push_back("-r skat");
 
     }
 
