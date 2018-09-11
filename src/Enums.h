@@ -5,6 +5,16 @@ enum class Statistic { NONE, COMMON, CAST, SKAT };
 inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT;}
 
 enum class Genotype { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
+inline std::string genotypeToString(Genotype g){
+    switch(g) {
+        case Genotype::EXPECTED: return "Expected";
+        case Genotype::TRUE: return "True";
+        case Genotype::CALL: return "Call";
+        case Genotype::VCF_CALL: return "VCF Call";
+        default: return "_";
+    }
+}
+
 enum class Family { NORMAL, BINOMIAL, NONE };
 enum class Depth { HIGH, LOW };
 

@@ -4,7 +4,6 @@
 #include "ui_mainwindow.h"
 #include <iostream>
 #include "../log/qlog.h"
-#include "../src/vikNGS.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -60,7 +59,7 @@ void MainWindow::greyOutput(){
 }
 
 void MainWindow::stopJob(){
-    STOP_RUNNING_THREAD=true;
+    STOP_RUNNING_THREAD = true;
     while(!jobThread->isFinished()){
         jobThread->quit();
     }

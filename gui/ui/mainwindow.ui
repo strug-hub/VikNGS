@@ -27,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="movable">
        <bool>true</bool>
@@ -656,7 +656,7 @@
              <item row="0" column="0">
               <widget class="QLineEdit" name="sim_variantSizeTxt">
                <property name="text">
-                <string>100</string>
+                <string>5000</string>
                </property>
               </widget>
              </item>
@@ -786,7 +786,7 @@
                     <string>Rare (CAST)</string>
                    </property>
                    <property name="checked">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -796,7 +796,7 @@
                     <string>Rare (SKAT)</string>
                    </property>
                    <property name="checked">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>
@@ -834,7 +834,7 @@
                         <bool>true</bool>
                        </property>
                        <property name="text">
-                        <string>100</string>
+                        <string>1000</string>
                        </property>
                       </widget>
                      </item>
@@ -860,6 +860,9 @@
                    <property name="text">
                     <string>Stop Early</string>
                    </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -871,7 +874,7 @@
                <item>
                 <widget class="QLineEdit" name="sim_threadsTxt">
                  <property name="text">
-                  <string>1</string>
+                  <string>12</string>
                  </property>
                 </widget>
                </item>

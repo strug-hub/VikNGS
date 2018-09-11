@@ -83,6 +83,7 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
 
 
        (g.meanDepth >= highLow) ? g.readDepth = Depth::HIGH : g.readDepth = Depth::LOW;
+
         g.family=Family::BINOMIAL;
         groups.push_back(g);
     }
@@ -141,7 +142,7 @@ void MainWindow::simulationFinished(Data results, SimulationRequest req){
 }
 
 void MainWindow::on_sim_stopBtn_clicked(){
-    STOP_RUNNING_THREAD=true;
+    STOP_RUNNING_THREAD = true;
     while(!jobThread->isFinished()){
         jobThread->quit();
     }

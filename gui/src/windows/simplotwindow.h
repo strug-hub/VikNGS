@@ -36,7 +36,7 @@ private slots:
 
     void on_simplot_alphaDial_valueChanged(int value);
     void on_simplot_alphaTxt_textChanged(const QString &arg1);
-    void on_pushButton_pressed();
+    void on_pushButton_clicked(bool checked);
 
 private:
     Ui::SimPlotWindow *ui;

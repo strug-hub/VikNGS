@@ -4,7 +4,7 @@
 #include <QWidget>
 #include "../src/Variant.h"
 #include "../widgets/qcustomplot.h"
-#include "./tabledisplaywindow.h"
+#include "./TableDisplayWindow.h"
 #include "Chromosome.h"
 
 namespace Ui {

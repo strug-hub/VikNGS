@@ -33,6 +33,10 @@ struct Data {
     inline int size(){ return static_cast<int>(variants.size()); }
 };
 
+//========================================================
+// Global variable for thread stopping
+//========================================================
+extern bool STOP_RUNNING_THREAD;
 
 //========================================================
 // Main functions that have different implementations
@@ -41,12 +45,6 @@ struct Data {
 
 Data startVikNGS(Request req);
 void processVCF(Request &req, SampleInfo &input, std::vector<VariantSet>* results);
-
-//========================================================
-// Global variable for thread stopping
-//========================================================
-
-extern bool STOP_RUNNING_THREAD;
 
 //========================================================
 // Output functions

@@ -38,14 +38,14 @@ MatrixXd groupwiseShuffleWithReplacement(MatrixXd& M, VectorXi& G, std::map<int,
     MatrixXd shuffled(M.rows(), M.cols());
     int g, n, rand;
 
-    for(int i = 0; i < M.cols(); i++){
-        for(int j = 0; j < M.rows(); j++){
+    for(int j = 0; j < M.cols(); j++){
+        for(int i = 0; i < M.rows(); i++){
 
-            g = G[j]; n = static_cast<int>(group[g].size());
+            g = G[i]; n = static_cast<int>(group[g].size());
             rand = randomInt(0, n - 1);
             rand = group[g][static_cast<size_t>(rand)];
 
-            shuffled(j, i) = M(rand, i);
+            shuffled(i, j) = M(rand, j);
         }
     }
 

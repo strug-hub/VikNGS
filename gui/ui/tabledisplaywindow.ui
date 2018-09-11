@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>704</width>
+    <width>1023</width>
     <height>620</height>
    </rect>
   </property>
@@ -44,7 +44,7 @@
          <property name="title">
           <string>Variant - Genotype Frequency</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="100,1">
+         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="100">
           <item>
            <widget class="QTableWidget" name="table_variantTbl">
             <property name="showDropIndicator" stdset="0">
@@ -68,30 +68,6 @@
             <property name="sortingEnabled">
              <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="title">
-             <string>GroupBox</string>
-            </property>
-            <layout class="QFormLayout" name="formLayout">
-             <item row="0" column="0">
-              <widget class="QTreeWidget" name="table_checkTre">
-               <property name="enabled">
-                <bool>false</bool>
-               </property>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>
@@ -121,70 +97,6 @@
             <property name="columnCount">
              <number>0</number>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="table_callGrp">
-            <property name="title">
-             <string>Base Calls</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout">
-               <item>
-                <widget class="QLabel" name="table_refLabelLbl">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;REF:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="textFormat">
-                  <enum>Qt::AutoText</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="table_refLbl">
-                 <property name="text">
-                  <string>_</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="table_altLabelLbl">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;ALT:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="table_altLbl">
-                 <property name="text">
-                  <string>_</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="table_callsTxt">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>

@@ -31,12 +31,8 @@ SOURCES += \
     src/widgets/qzoombar.cpp \
     src/widgets/qcustomplot.cpp \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
-    src/global.cpp \
     src/windows/qsimulationtab.cpp \
-    src/windows/tabledisplaywindow.cpp \
-    src/windows/tabledisplaywindowcolumns.cpp \
     ../src/Request.cpp \
-    src/windows/MainWindow.cpp \
     src/windows/MainTab.cpp \
     src/windows/SimulationTab.cpp \
     ../src/vikNGS.cpp \
@@ -53,14 +49,18 @@ SOURCES += \
     ../src/Test/Test.cpp \
     ../src/Test/TestCommonHelper.cpp \
     ../src/Test/TestRareHelper.cpp \
-    src/windows/PlotWindow.cpp \
     src/windows/PlotWindowPlotter.cpp \
     src/windows/PlotWindowMouse.cpp \
-    src/windows/SimPlotWindow.cpp \
     src/simulation/Simulation.cpp \
-    src/simulation/SimulationHelper.cpp \
     src/windows/SimPlotWindowPlotter.cpp \
-    ./src/log/Log.cpp
+    ./src/log/Log.cpp \
+    src/windows/TableDisplayWindow.cpp \
+    src/windows/TableDisplayWindowColumns.cpp \
+    src/simulation/SimulationHelper.cpp \
+    src/windows/SimPlotWindow.cpp \
+    src/windows/MainWindow.cpp \
+    src/windows/PlotWindow.cpp \
+    ../src/Global.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \
@@ -270,8 +270,6 @@ HEADERS += \
     ../src/Output/OutputHandler.h \
     ../src/Request.h \
     ../src/Parser/File.h \
-    src/windows/tabledisplaywindow.h \
-    src/windows/checktree.h \
     ../src/vikNGS.h \
     src/windows/MainWindow.h \
     src/windows/PlotWindow.h \
@@ -491,10 +489,11 @@ HEADERS += \
     ../src/Eigen/src/SVD/SVDBase.h \
     ../src/Eigen/src/SVD/UpperBidiagonalization.h \
     src/windows/Chromosome.h \
-    src/simulation/Simulation.h \
-    src/windows/SimPlotWindow.h \
     ../src/Log.h \
-    ../src/Math/CompQuadForm.h
+    ../src/Math/CompQuadForm.h \
+    src/windows/TableDisplayWindow.h \
+    src/simulation/Simulation.h \
+    src/windows/SimPlotWindow.h
 
 
 FORMS += \

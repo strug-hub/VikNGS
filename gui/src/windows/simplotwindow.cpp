@@ -1,6 +1,6 @@
 #include "SimPlotWindow.h"
 #include "ui_simplotwindow.h"
-#include "tabledisplaywindow.h"
+#include "TableDisplayWindow.h"
 
 SimPlotWindow::SimPlotWindow(QWidget *parent) :
     QWidget(parent),
@@ -92,14 +92,6 @@ void SimPlotWindow::updateSampleSize(int index){
     ui->simplot_ncasesDgt->display(this->request.ncase(powerIndex));
     ui->simplot_ncontrolsDgt->display(this->request.ncontrol(powerIndex));
 
-}
-
-void SimPlotWindow::on_pushButton_pressed()
-{
-    TableDisplayWindow *table = new TableDisplayWindow();
-    QString title = "Table";
-    //table->initialize(title, variants[stepIndexForPlot2], request, stepIndexForPlot2);
-    //table->show();
 }
 
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
@@ -241,4 +233,18 @@ void SimPlotWindow::on_simplot_alphaTxt_textChanged(const QString &arg1){
         updateAlphaLine();
         updatePowerValues(powerIndex);
     }
+}
+
+void SimPlotWindow::on_pushButton_clicked(bool checked)
+{
+    TableDisplayWindow *table = new TableDisplayWindow();
+    QString title = "Table";
+
+    std::vector<int> testsToShow;
+
+    for(int i = 0; i < this->testsPerStep; i++)
+        testsToShow.push_back(this->powerIndex * this->testsPerStep + i);
+
+    table->initialize(title, &result, testsToShow);
+    table->show();
 }

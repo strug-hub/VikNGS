@@ -12,10 +12,10 @@ VectorXi simulateG(SimulationRequest& simReq) {
     int index = 0;
 
     for(int i = 0; i < simReq.steps; i++)
-        for (SimulationRequestGroup srg : simReq.groups){
-            int n = srg.getIncreaseSize(i);
-            for (int j = 0; j < n; j++){
-                G[index] = srg.index;
+        for(size_t j = 0; j < simReq.groups.size(); j++){
+            int n = simReq.groups[j].getIncreaseSize(i);
+            for (int k = 0; k < n; k++){
+                G[index] = simReq.groups[j].index;
                 index++;
             }
         }
@@ -35,10 +35,10 @@ VectorXd simulateY(SimulationRequest& simReq) {
     int index = 0;
 
     for(int i = 0; i < simReq.steps; i++)
-        for (SimulationRequestGroup srg : simReq.groups){
-            int n = srg.getIncreaseSize(i);
-            for (int j = 0; j < n; j++){
-                Y[index] = srg.generatePhenotype();
+        for(size_t j = 0; j < simReq.groups.size(); j++){
+            int n = simReq.groups[j].getIncreaseSize(i);
+            for (int k = 0; k < n; k++){
+                Y[index] = simReq.groups[j].generatePhenotype();
                 index++;
             }
         }
@@ -120,8 +120,6 @@ MatrixXd simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
                 for(int p = 0; p< index; p++)
                     sum += X(p, h);
 
-                if(sum < 1e-4)
-                    std::cout << "why";
             }
         }
 

@@ -58,6 +58,9 @@ public:
     inline void setTrueMaf(double maf) { this->trueMaf = maf; }
 
     inline std::string getChromosome() { return this->chrom; }
+    inline std::string getRef() { return this->ref; }
+    inline std::string getAlt() { return this->alt; }
+
     inline int getPosition() { return this->pos; }
 
     inline std::vector<Genotype> getAllGenotypes(){

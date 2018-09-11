@@ -44,7 +44,7 @@ double getVarianceBinomial(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
     std::map<int, double> var_y;
     int gmax = 0;
 
-    for (int i = 0; i < Ycenter.rows(); i++)
+    for (int i = 0; i < Ycenter.rows(); i++){
         if(var_y.count(G[i]) > 0)
             var_y[G[i]] += Ycenter[i] * Ycenter[i];
         else{
@@ -52,6 +52,7 @@ double getVarianceBinomial(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
             if(G[i] > gmax)
                 gmax = G[i];
         }
+    }
 
     for(int i = 0; i <= gmax; i++){
 

@@ -38,11 +38,12 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
 
     double ym_hrd = 0; double ym_lrd = 0;
 
-    for (int i = 0; i < Ycenter.rows(); i++)
+    for (int i = 0; i < Ycenter.rows(); i++){
         if (d[G[i]] == Depth::HIGH)
-            ym_hrd += Ycenter[i] * Ycenter[i];
+            ym_hrd += std::pow(Ycenter[i], 2);
         else
-            ym_lrd += Ycenter[i] * Ycenter[i];
+            ym_lrd += std::pow(Ycenter[i], 2);
+    }
 
     MatrixXd diagYm_hrd = VectorXd::Constant(nsnp, sqrt(ym_hrd)).asDiagonal();
     MatrixXd diagYm_lrd = VectorXd::Constant(nsnp, sqrt(ym_lrd)).asDiagonal();
@@ -54,8 +55,7 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
 
         if (d[i] == Depth::HIGH) {
             if (rvs) {
-                MatrixXd cor = correlation(x[i]);
-                MatrixXd var_hrd = diagRobustVar.transpose() * cor * diagRobustVar;
+                MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
                 diagS += diagYm_hrd * var_hrd * diagYm_hrd;
             }
             else

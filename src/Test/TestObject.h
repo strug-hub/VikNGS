@@ -179,7 +179,6 @@ private:
         groupVectorCache = true;
     }
 
-
     bool XcenterCache;
     MatrixXd Xcenter;
     inline void calculateXcenter() {
@@ -202,7 +201,6 @@ private:
 
         Ycenter = Yboot - MU;
     }
-
 };
 
 

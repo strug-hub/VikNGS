@@ -78,9 +78,6 @@ public:
 };
 
 
-
-
-
 Data startSimulation(SimulationRequest& simReq) {
 
     printInfo("Simulating data.");

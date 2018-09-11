@@ -39,9 +39,11 @@ void PlotWindow::initialize(Data& result, QString title){
     buildChromosomePlot(focusedChr);
 
     this->result = result;
+    std::vector<int> testsToShow;
+    for(int i = 0; i < result.tests.size(); i++) testsToShow.push_back(i);
 
     QString table_title = "Table";
-    tableView->initialize(table_title, &this->result);
+    tableView->initialize(table_title, &this->result, testsToShow);
 }
 
 void PlotWindow::createChromosomes(std::vector<VariantSet>& variantSets){

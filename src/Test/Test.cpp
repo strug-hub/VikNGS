@@ -23,8 +23,8 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family) {
         VectorXd scoreV = getScoreVector(*o.getYcenter(), *o.getX());
         MatrixXd diagS = getVarianceMatrix(o, test, family);
 
-        std::string tre = test.toString();
-        MatrixXd xxx = *o.getX();
+        //std::string tre = test.toString();
+        //MatrixXd xxx = *o.getX();
 
         if(s == Statistic::CAST)
             return pnorm(scoreV.sum() / sqrt(diagS.sum()));
@@ -32,12 +32,11 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family) {
         else if(s == Statistic::SKAT){
             VectorXd A = o.mafWeightVector();
             double quad = 0;
-            for(int i = 0; i<scoreV.rows(); i++)
+            for(int i = 0; i < scoreV.rows(); i++)
                 quad += scoreV[i]*A[i]*scoreV[i];
 
-            auto g = diagS.eigenvalues();
-            VectorXd f = diagS.eigenvalues().real();
-
+            //auto g = diagS.eigenvalues();
+            //VectorXd f = diagS.eigenvalues().real();
 
             MatrixXd sigma = diagS.sqrt() * A.asDiagonal() * diagS.sqrt();
             VectorXd e = sigma.eigenvalues().real();
@@ -100,11 +99,6 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
             MatrixXd z = Z.block(0, 0, size, Z.cols()); Z = z;
         }
         VectorXi g = G.block(0, 0, size, G.cols()); G = g;
-    }
-
-    for(int i = 0; i< X.cols(); i++){
-        if(X.col(i).sum() < 1e-4)
-            std::string why = "wtf";
     }
 
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());

@@ -55,7 +55,6 @@ private slots:
     void on_main_testBootChk_toggled(bool checked);
     void on_main_vcfWholeFileChk_toggled(bool checked);
 
-
     //-----------
     //SimulationTab.cpp
     //-----------
@@ -94,8 +93,6 @@ private slots:
 
     void on_qsim_testRareCastBtn_toggled(bool checked);
     void on_qsim_testRareSkatBtn_toggled(bool checked);
-
-
 
 signals:
     void sendPlotData(QVector<double> values);
