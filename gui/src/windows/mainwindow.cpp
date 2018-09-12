@@ -87,8 +87,7 @@ void MainWindow::disableRun(){
 }
 
 void MainWindow::jobFinished(Data result){
-    ui->main_runBtn->setEnabled(true);
-
+    enableRun();
     if(result.size() > 0){
         PlotWindow *plotter = new PlotWindow();
         QString title = "Plot " + QString::number(plotCount);

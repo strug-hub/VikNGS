@@ -41,6 +41,9 @@ public:
                MatrixXd& frequency, Family distribution, VectorXi& groups, std::map<int, Depth>& depths, bool rareVariant) :
         X(genotypes), Y(phenotypes), Z(covariates), G(groups), d(depths), P(frequency), family(distribution) {
 
+
+
+
         //Filter NAN
         VectorXi toRemove = whereNAN(Y);
         if(!rareVariant)

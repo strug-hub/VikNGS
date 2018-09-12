@@ -25,7 +25,7 @@ public slots:
   //  void initialize(int n, QString title);
     void createChromosomes(std::vector<VariantSet>& variants);
 
-    void updateVariantInfo(VariantSet* variant);
+    void updateVariantInfo(int variantIndex);
 
     void mouseMoveWindow(QMouseEvent* event);
     void mouseMoveGenome(QMouseEvent* event);
@@ -38,12 +38,11 @@ public slots:
 
     void buildGenomePlot();
     void buildChromosomePlot(QString chrName);
-    void updateVariantHighlightLayer(VariantSet* variants);
+    void updateVariantHighlightLayer(int variantIndex);
     void moveRectangle(QCPItemRect *rect, QString chrName, double lower=-1, double upper=-1);
 
-
     QCPGraph* getGraphByName(QCustomPlot *plot, QString name);
-    VariantSet* findClosestVariant(double x, double y, double maxDist);
+    int findClosestVariant(double x, double y, double maxDist);
 
 private slots:
     void on_plot_genotypeBtn_pressed();
@@ -67,10 +66,8 @@ private:
     QString highlightChr = "";
     QString focusedChr = "";
 
-    VariantSet* focusedVar;
-    VariantSet nullVariant;
-
-    Variant highlightVar;
+    int focusedVar;
+    int highlightVar;
 
     const QString chrGraphName = "chromgraph";
 

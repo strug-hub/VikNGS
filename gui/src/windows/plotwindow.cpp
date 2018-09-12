@@ -10,10 +10,9 @@ PlotWindow::PlotWindow(QWidget *parent) :
 
     setWindowIcon(QIcon(":icon.svg"));
 
-    VariantSet null;
-    nullVariant = null;
-    focusedVar = &nullVariant;
+    focusedVar = -1;
 
+    connect(ui->plot_chrPlt, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMoveChromosome(QMouseEvent*)));
     connect(ui->plot_genomePlt, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMoveGenome(QMouseEvent*)));
     connect(ui->plot_genomePlt, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(mouseClickGenome(QMouseEvent*)));
     connect(ui->plot_chrPlt, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(mouseClickChromosome(QMouseEvent*)));
@@ -31,16 +30,17 @@ PlotWindow::~PlotWindow()
 
 void PlotWindow::initialize(Data& result, QString title){
 
+    this->result = result;
+
     ui->plot_title->setText(title);
     this->setWindowTitle("Plotter - " + title);
-    createChromosomes(result.variants);
+    createChromosomes(this->result.variants);
     focusedChr = chrNames[0];
     buildGenomePlot();
     buildChromosomePlot(focusedChr);
 
-    this->result = result;
     std::vector<int> testsToShow;
-    for(int i = 0; i < result.tests.size(); i++) testsToShow.push_back(i);
+    for(size_t i = 0; i < this->result.tests.size(); i++) testsToShow.push_back(i);
 
     QString table_title = "Table";
     tableView->initialize(table_title, &this->result, testsToShow);
@@ -49,14 +49,18 @@ void PlotWindow::initialize(Data& result, QString title){
 void PlotWindow::createChromosomes(std::vector<VariantSet>& variantSets){
 
     for(size_t i = 0; i < variantSets.size(); i++){
-        VariantSet* vs = &variantSets[i];
-        QString chr = QString::fromStdString(vs->getChromosome());
-        if(chromosomes.contains(chr))
-            chromosomes[chr].addVariant(vs);
-        else{
-            Chromosome newChr(chr, vs, grey1);
-            chromosomes[chr] = newChr;
-            chrNames.push_back(chr);
+        if(variantSets[i].nPvals() < 1) continue;
+        for(size_t j = 0; j < variantSets[i].size(); j++){
+            Variant* v = &variantSets[i].getVariants()->at(j);
+            if(!v->isValid()) continue;
+            QString chr = QString::fromStdString(v->getChromosome());
+            if(chromosomes.contains(chr))
+                chromosomes[chr].addVariant(v, &variantSets[i]);
+            else{
+                Chromosome newChr(chr, v, &variantSets[i], grey1);
+                chromosomes[chr] = newChr;
+                chrNames.push_back(chr);
+            }
         }
     }
 
@@ -64,13 +68,16 @@ void PlotWindow::createChromosomes(std::vector<VariantSet>& variantSets){
 }
 
 
-void PlotWindow::updateVariantInfo(VariantSet* variant){
+void PlotWindow::updateVariantInfo(int variantIndex){
 
+   if(variantIndex < 0)
+       return;
+
+   Variant* variant = chromosomes[focusedChr].getVariant(variantIndex);
    QString chr = QString::fromStdString(variant->getChromosome());
-   QString pos = QString::number(variant->getMinPos());
-   QString ref = QString::fromStdString("TODO");
-   QString alt = QString::fromStdString("TODO");
-
+   QString pos = QString::number(variant->getPosition());
+   QString ref = QString::fromStdString(variant->getRef());
+   QString alt = QString::fromStdString(variant->getAlt());
 
    if(ui->plot_refTxt->text() != ref)
         ui->plot_refTxt->setText(ref);
@@ -82,23 +89,24 @@ void PlotWindow::updateVariantInfo(VariantSet* variant){
         ui->plot_variantInfoLbl->setText(info);
 }
 
-void PlotWindow::moveRectangle(QCPItemRect *rect, QString chrName, double lower, double upper){
+void PlotWindow::moveRectangle(QCPItemRect* rect, QString chr, double lower, double upper){
 
-    double width = chromosomes[chrName].getSpan();
-    double start = chromosomes[chrName].getOffset();
+    double min = chromosomes[chr].getMinPos();
+    double max = chromosomes[chr].getMaxPos();
+
+    double offset = chromosomes[chr].getOffset();
     double top = ui->plot_genomePlt->yAxis->range().upper;
 
-    double lowerShift = 0;
-    if(lower > 0)
-        lowerShift = lower;
+    if(lower >= 0)
+        rect->topLeft->setCoords(offset + (lower - min), top);
+    else
+        rect->topLeft->setCoords(offset, top);
 
-    rect->topLeft->setCoords( start + lowerShift, top );
+    if(upper >= 0)
+        rect->bottomRight->setCoords(offset + (max - min) - (max - upper), 0);
+    else
+        rect->bottomRight->setCoords(offset + (max - min), 0);
 
-    double upperShift = 0;
-    if(upper > 0)
-        upperShift = std::max(0.0, chromosomes[chrName].getMaxPos() - upper);
-
-    rect->bottomRight->setCoords(start + width - upperShift, 0);
 }
 
 QCPGraph* PlotWindow::getGraphByName(QCustomPlot *plot, QString name){

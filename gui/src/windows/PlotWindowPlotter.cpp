@@ -1,23 +1,18 @@
 #include "PlotWindow.h"
 #include "ui_plotwindow.h"
 
-void PlotWindow::updateVariantHighlightLayer(VariantSet* variants){
+void PlotWindow::updateVariantHighlightLayer(int variantIndex){
     QVector<double> l;
     QVector<double> p;
 
-    if(variants->isValid()){
-        std::vector<Variant>* vPointer = variants->getVariants();
-        for(size_t i = 0; i < vPointer->size(); i++){
-            l.push_back(vPointer->at(i).getPosition());
-            p.push_back(-log10(variants->getPval(0)));
-        }
+    if(variantIndex >= 0){
+        l.push_back(chromosomes[focusedChr].getPosition(variantIndex));
+        p.push_back(chromosomes[focusedChr].getPval(variantIndex));
     }
-    if(focusedVar->isValid()){
-        std::vector<Variant>* vPointer = focusedVar->getVariants();
-        for(size_t i = 0; i < vPointer->size(); i++){
-            l.push_back(vPointer->at(i).getPosition());
-            p.push_back(-log10(focusedVar->getPval(0)));
-        }
+
+    if(focusedVar >= 0){
+        l.push_back(chromosomes[focusedChr].getPosition(focusedVar));
+        p.push_back(chromosomes[focusedChr].getPval(focusedVar));
     }
 
     ui->plot_chrPlt->graph()->setData(l,p);
@@ -40,7 +35,7 @@ void PlotWindow::buildGenomePlot(){
         Chromosome chr = chromosomes[chrNames[i]];
 
         ui->plot_genomePlt->addGraph();
-        ui->plot_genomePlt->graph()->setData(chr.getPositions(offset), chr.getPvals(0));
+        ui->plot_genomePlt->graph()->setData(chr.getRelativePositions(offset), chr.getPvals(0));
         ui->plot_genomePlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
         ui->plot_genomePlt->graph()->setName(chr.getName());
 
@@ -88,9 +83,9 @@ void PlotWindow::buildGenomePlot(){
 
     QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
     textTicker->addTicks(tickValues, tickLabels);
-    ui->plot_genomePlt->xAxis->setTicker(textTicker);
-    ui->plot_genomePlt->xAxis->setTickLabelRotation(90);
-    ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
+    //ui->plot_genomePlt->xAxis->setTicker(textTicker);
+    //ui->plot_genomePlt->xAxis->setTickLabelRotation(90);
+    //ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
 
     ui->plot_genomePlt->rescaleAxes();
     ui->plot_genomePlt->yAxis->setRangeLower(0);
@@ -125,7 +120,7 @@ void PlotWindow::buildGenomePlot(){
 void PlotWindow::buildChromosomePlot(QString chrName){
     ui->plot_chrPlt->clearPlottables();
 
-    focusedVar = &nullVariant;
+    focusedVar = -1;
     focusedChr = chrName;
     Chromosome chr = chromosomes[chrName];
 
@@ -142,7 +137,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
         pvals_range.push_back(pvals[i]);
     }
 
-    ui->plot_chrPlt->graph()->setData(pos_range,pvals_range);
+    ui->plot_chrPlt->graph()->setData(pos_range, pvals_range);
     ui->plot_chrPlt->graph()->setName(chrGraphName);
     ui->plot_chrPlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
 
@@ -192,7 +187,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
                 QCPScatterStyle(QCPScatterStyle::ssDisc,
                                 highlight, Qt::white, 6));
 
-    updateVariantHighlightLayer(&nullVariant);
+    updateVariantHighlightLayer(-1);
 
     ui->plot_chrPlt->setInteraction(QCP::iRangeDrag, true);
     ui->plot_chrPlt->setInteraction(QCP::iRangeZoom, true);

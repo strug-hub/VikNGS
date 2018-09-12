@@ -95,6 +95,8 @@ void MainWindow::on_main_runBtn_clicked() {
 
 Request MainWindow::createRequest(){
     Request req = getDefaultRequest();
+
+    req.setKeepFiltered(ui->main_keepFilteredChk->isChecked());
     QVector<std::string> commands;
     commands.push_back("vikNGS");
 

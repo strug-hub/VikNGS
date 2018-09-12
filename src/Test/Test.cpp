@@ -81,7 +81,7 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
 
     if(STOP_RUNNING_THREAD)
         return NAN;
-    if(variant->size() < 1)
+    if(variant->validSize() < 1)
         return NAN;
 
     MatrixXd X = variant->getX(test.getGenotype());

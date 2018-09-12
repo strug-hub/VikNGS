@@ -50,7 +50,6 @@ SOURCES += \
     ../src/Test/TestCommonHelper.cpp \
     ../src/Test/TestRareHelper.cpp \
     src/windows/PlotWindowPlotter.cpp \
-    src/windows/PlotWindowMouse.cpp \
     src/simulation/Simulation.cpp \
     src/windows/SimPlotWindowPlotter.cpp \
     ./src/log/Log.cpp \
@@ -60,7 +59,8 @@ SOURCES += \
     src/windows/SimPlotWindow.cpp \
     src/windows/MainWindow.cpp \
     src/windows/PlotWindow.cpp \
-    ../src/Global.cpp
+    ../src/Global.cpp \
+    src/windows/PlotWindowMouse.cpp
 
 HEADERS += \
     src/widgets/qcustomplot.h \

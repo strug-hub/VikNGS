@@ -27,7 +27,7 @@ Data startVikNGS(Request req) {
 
     result.tests = req.getTests();
     result.sampleInfo = parseSampleInfo(req);
-    processVCF(req, result.sampleInfo, &result.variants);
+    result.variants = processVCF(req, result.sampleInfo);
 
     return result;
 }

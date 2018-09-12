@@ -11,7 +11,8 @@ Request getDefaultRequest() {
     r.setInputFiles("", "");
     r.setOutputDir(".");
 
-    r.setCollapse(5);
+    r.setCollapse(1);
+    r.setBootstrap(0);
     r.setStopEarly(false);
     r.setNumberThreads(1);
     r.setBatchSize(1000);
@@ -26,7 +27,6 @@ Request getDefaultRequest() {
     r.setMaxPos(-1);
     r.setMinPos(-1);
     r.setChromosomeFilter("");
-
 	return r;
 }
 

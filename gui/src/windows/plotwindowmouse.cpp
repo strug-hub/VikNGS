@@ -8,8 +8,8 @@ void PlotWindow::mouseMoveWindow(QMouseEvent *event){
 
         int datapoints = ui->plot_chrPlt->graph()->dataCount();
 
-        if(datapoints > 1 || (!focusedVar->isValid() && datapoints > 0))
-            updateVariantHighlightLayer(&nullVariant);
+        if(datapoints > 1 || (focusedVar < 0 && datapoints > 0))
+            updateVariantHighlightLayer(-1);
     }
 
     if(!ui->plot_genomePlt->underMouse()){
@@ -18,7 +18,6 @@ void PlotWindow::mouseMoveWindow(QMouseEvent *event){
             moveRectangle(focusRect, focusedChr);
             highlightChr = "";
             ui->plot_genomePlt->layer("overlay")->replot();
-
         }
     }
 }
@@ -61,20 +60,31 @@ void PlotWindow::updateChromosomeRange(const QCPRange &newRange){
     adjusted.lower = newRange.lower;
 
     double max = chromosomes[focusedChr].getMaxPos();
-    max = max + max * 0.01;
+    double min = chromosomes[focusedChr].getMinPos();
+    double buffer = (max-min) * 0.05;
+    min = min - buffer;
+    max = max + buffer;
 
-    if(newRange.lower < 0){
-        adjusted.lower = 0;
+    if(adjusted.lower < min && adjusted.upper > max){
+        adjusted.lower = min;
+        adjusted.upper = max;
+    }
+
+    if(adjusted.lower < min){
+        adjusted.lower = min;
         if(!isZoom)
-            adjusted.upper = std::min(max, oldSize);
-    }
-    if(newRange.upper > max){
-          adjusted.upper = max;
-          if(!isZoom)
-              adjusted.lower = std::max(0.0, max-oldSize);
+            adjusted.upper = oldSize + min;
     }
 
-    moveRectangle(zoomRect, focusedChr, adjusted.lower, adjusted.upper);
+    if(adjusted.upper > max){
+        adjusted.upper = max;
+        if(!isZoom)
+            adjusted.lower = max - oldSize;
+    }
+
+    moveRectangle(zoomRect, focusedChr,
+                  std::max(adjusted.lower,min),
+                  std::min(max, adjusted.upper));
     ui->plot_genomePlt->layer("overlay")->replot();
 
     ui->plot_chrPlt->xAxis->setRange(adjusted);
@@ -89,12 +99,12 @@ void PlotWindow::mouseClickChromosome(QMouseEvent *event){
 
         double x = event->pos().x();
         double y = event->pos().y();
-        VariantSet* closest = findClosestVariant(x, y, 100);
+        int closest = findClosestVariant(x, y, 100);
 
-        if(closest->isValid()){
+        if(closest >= 0){
 
             if (event->button() == Qt::RightButton)
-                focusedVar = &nullVariant;
+                focusedVar = -1;
             else
                 focusedVar = closest;
 
@@ -104,17 +114,17 @@ void PlotWindow::mouseClickChromosome(QMouseEvent *event){
     }
 }
 
-VariantSet* PlotWindow::findClosestVariant(double x, double y, double maxDist){
+int PlotWindow::findClosestVariant(double x, double y, double maxDist){
 
     double dist;
     double minDist = 9999999999;
-    int minIndex;
+    int minIndex = -1;
 
     for(int i = 0; i < chromosomes[focusedChr].size(); i++){
-        VariantSet* v = chromosomes[focusedChr].getVariant(i);
+        Variant* v = chromosomes[focusedChr].getVariant(i);
 
-        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(-log10(v->getPval(0))) - y, 2) +
-                pow(ui->plot_chrPlt->xAxis->coordToPixel(v->getMidPos()) - x, 2);
+        dist = pow(ui->plot_chrPlt->yAxis->coordToPixel(chromosomes[focusedChr].getPval(i)) - y, 2) +
+                pow(ui->plot_chrPlt->xAxis->coordToPixel(v->getPosition()) - x, 2);
         if(dist < minDist){
             minDist = dist;
             minIndex = i;
@@ -122,9 +132,9 @@ VariantSet* PlotWindow::findClosestVariant(double x, double y, double maxDist){
     }
 
     if(minDist < maxDist)
-        return chromosomes[focusedChr].getVariant(minIndex);
+        return minIndex;
 
-    return &nullVariant;
+    return -1;
 }
 
 void PlotWindow::mouseMoveGenome(QMouseEvent *event){
@@ -147,7 +157,7 @@ void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
     double coordy = ui->plot_chrPlt->yAxis->pixelToCoord(event->pos().y());
 
     updateVariantInfo(focusedVar);
-    VariantSet* closest = &nullVariant;
+    int closest = -1;
 
     if(coordy > 0 && coordx > 0){
         double x = event->pos().x();
@@ -155,7 +165,7 @@ void PlotWindow::mouseMoveChromosome(QMouseEvent *event){
 
         closest = findClosestVariant(x, y, 100);
 
-        if(closest->isValid())
+        if(closest >= 0)
             updateVariantInfo(closest);
     }
 

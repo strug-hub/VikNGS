@@ -6,7 +6,8 @@
 
 class Chromosome{
 private:
-    QVector<VariantSet*> variants;
+    QVector<Variant*> variants;
+    QVector<VariantSet*> collapse;
     QColor colour;
     QString name;
     double maxPos;
@@ -20,51 +21,62 @@ public:
         minPos = 2100000000;
     }
 
-    Chromosome(QString name, VariantSet* first, QColor c){
+    Chromosome(QString name, Variant* first,  VariantSet* set, QColor c){
         this->name = name;
         variants.push_back(first);
-        maxPos = first->getMaxPos();
-        minPos = first->getMinPos();
+        collapse.push_back(set);
+        maxPos = first->getPosition();
+        minPos = first->getPosition();
         colour = c;
     }
 
-    void addVariant(VariantSet* toAdd){
+    void addVariant(Variant* toAdd, VariantSet* set){
         variants.push_back(toAdd);
-        if(maxPos < toAdd->getMaxPos())
-            maxPos = toAdd->getMaxPos();
-        if(minPos > toAdd->getMinPos())
-            minPos = toAdd->getMinPos();
+        collapse.push_back(set);
+        if(maxPos < variants.back()->getPosition())
+            maxPos = variants.back()->getPosition();
+        if(minPos > variants.back()->getPosition())
+            minPos = variants.back()->getPosition();
     }
 
-    QVector<double> getPositions(double offset){
-
+    QVector<double> getRelativePositions(double offset){
         QVector<double> pos;
-        double meanPos;
-        for(int i = 0; i < variants.size(); i++){
-            meanPos = (variants[i]->getMinPos() + variants[i]->getMaxPos())/2;
-            pos.push_back(offset + meanPos);
-        }
+        double min = getMinPos();
+        for(int i = 0; i < variants.size(); i++)
+            pos.push_back(offset + variants[i]->getPosition() - min);
+
         return pos;
     }
-    QVector<double> getPositions(){ return getPositions(0); }
 
-    QVector<double> getPvals(int index){
-
-        QVector<double> pvals;
+    QVector<double> getPositions(){
+        QVector<double> pos;
         for(int i = 0; i < variants.size(); i++)
-            pvals.push_back(-log10(variants[i]->getPval(static_cast<size_t>(index))));
+            pos.push_back(offset + variants[i]->getPosition());
 
+        return pos;
+    }
+
+    inline double getPosition(int index){ return variants[index]->getPosition(); }
+
+    QVector<double> getPvals(int index=0){
+        QVector<double> pvals; pvals.reserve(collapse.size());
+        for(VariantSet* vs : collapse)
+            pvals.push_back(-log10(vs->getPval(index)));
         return pvals;
     }
 
-    VariantSet* getVariant(int i){return variants[i];}
+    inline double getPval(int index){
+        return -log10(collapse[index]->getPval(0));
+    }
+
+    Variant* getVariant(int i){return variants[i];}
     void setColour(QColor c){ this->colour = c; }
     double getOffset(){ return this->offset; }
     void setOffset(double offset){ this->offset = offset; }
     QColor getColour(){ return this->colour; }
     int size(){ return variants.size(); }
     double getSpan(){ return maxPos - minPos; }
-    double getMaxPos(){ return maxPos; }
+    double getMaxPos(){return maxPos; }
     double getMinPos(){ return minPos; }
     QString getName(){ return name; }
     void setName(QString n){ this->name = n; }

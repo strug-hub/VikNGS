@@ -107,7 +107,7 @@ private:
     int nvalid = 0;
     Interval *interval;
 public:
-    VariantSet(Variant& v) { variants.push_back(v); }
+    VariantSet(Variant& v) { variants.push_back(v); if(v.isValid()) nvalid++; }
     VariantSet() { }
 
     inline void setInterval(Interval * inv) { interval = inv; }
@@ -120,8 +120,20 @@ public:
 
     inline std::vector<Variant>* getVariants() { return &variants; }
     inline std::string getChromosome() { return (variants.size() < 1) ? "na" : variants[0].getChromosome(); }
-    inline int getMinPos() { return (variants.size() < 1) ? -1 : variants[0].getPosition(); }
-    inline int getMaxPos() { return (variants.size() < 1) ? -1 : variants.back().getPosition(); }
+    inline int getMinPos() {
+        for(size_t i = 0; i < variants.size(); i++)
+            if(variants[i].isValid())
+                return variants[i].getPosition();
+
+        return -1;
+    }
+    inline int getMaxPos() {
+        for(size_t i = variants.size()-1; i <= 0; i++)
+            if(variants[i].isValid())
+                return variants[i].getPosition();
+
+        return -1;
+    }
     inline double getMidPos() { return (variants.size() < 1) ? -1 :
                                                             (variants[0].getPosition() + variants.back().getPosition())/2.0; }
 
@@ -135,7 +147,7 @@ public:
 
     inline MatrixXd getX(Genotype gt){
         std::vector<VectorXd*> x;
-        for (size_t i = 0; i < static_cast<size_t>(validSize()); i++)
+        for (size_t i = 0; i < variants.size(); i++)
             if(variants[i].isValid())
                 x.push_back(variants[i].getGenotype(gt));
 
@@ -151,7 +163,7 @@ public:
 
     inline MatrixXd getP(Genotype gt){
         std::vector<Vector3d*> p;
-        for (size_t i = 0; i < static_cast<size_t>(validSize()); i++)
+        for (size_t i = 0; i < variants.size(); i++)
             if(variants[i].isValid())
                 p.push_back(variants[i].getP(gt));
 

@@ -118,15 +118,11 @@ std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& var
         }
         variantSet.push_back(leftover);
 
-        int counter = 0;
         for(size_t i = startFrom; i < variants.size(); i++){
-            if(counter == 0)
+            if(variantSet.back().validSize() == k)
                 variantSet.emplace_back(VariantSet(variants[i]));
-            else if(counter < k)
+            else
                 variantSet.back().addVariant(variants[i]);
-
-            counter++;
-            if(counter == k) counter = 0;
         }
     }
     else if(collapse == CollapseType::COLLAPSE_EXON || collapse == CollapseType::COLLAPSE_GENE){
@@ -217,9 +213,17 @@ public:
     inline bool isTesting(){ return testing; }
 
     //---------------------------------------------------
-    void parseAndFilter(std::vector<std::string> & lns){
+    void parseAndFilter(std::deque<std::string>& lns, size_t n){
+        n = (lns.size() < n) ? lns.size() : n;
+        if(n < 1) return;
+        lines.clear(); lines.reserve(n);
+
         parsing = true;
-        this->lines = lns;
+
+        for(size_t i = 0; i < n; i++){
+            lines.push_back(lns.front());
+            lns.pop_front();
+        }
 
         futureVariants = std::async(std::launch::async,
                 [this] { return constructVariants(req, sampleInfo, lines); }) ;
@@ -235,9 +239,18 @@ public:
     }
     //---------------------------------------------------
 
-    void collapse(std::vector<Variant>& v, VariantSet& leftovers){
+    void collapse(std::deque<Variant>& v, VariantSet& leftovers, size_t n){
+        n = (v.size() < n) ? v.size() : n;
+        if(n < 1) return;
+        variants.clear(); variants.reserve(n);
+
         collapsing = true;
-        this->variants = v;
+
+        for(size_t i = 0; i < n; i++){
+            variants.push_back(v.front());
+            v.pop_front();
+        }
+
         this->leftover = leftovers;
         futureVariantSets = std::async(std::launch::async,
                 [this] { return collapseVariants(req, variants, leftover); }) ;
@@ -252,9 +265,17 @@ public:
     }
     //---------------------------------------------------
 
-    void beginAssociationTest(std::vector<VariantSet*>& variants){
+    void beginAssociationTest(std::deque<VariantSet*>& vs, size_t n){
+        n = (vs.size() < n) ? vs.size() : n;
+        if(n < 1) return;
+        pointers.clear(); pointers.reserve(n);
+
         testing = true;
-        this->pointers = variants;
+
+        for(size_t i = 0; i < n; i++){
+            pointers.push_back(vs.front());
+            vs.pop_front();
+        }
 
         testingDone = std::async(std::launch::async,
                 [this] { return testBatch(req, sampleInfo, pointers); }) ;
@@ -265,17 +286,19 @@ public:
     inline void setDone(){
         testing = false;
         pointers.clear();
+        return;
     }
 };
 
-void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* results) {
+std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
 
     size_t nthreads = static_cast<size_t>(req.getNumberThreads());
     std::vector<ParallelProcess> threads;
     for(size_t i = 0; i < nthreads; i++)
         threads.emplace_back(&req, &sampleInfo);
 
-    std::queue<ParallelProcess*> filterOrder;
+    std::queue<ParallelProcess*> parseOrder;
+    std::queue<ParallelProcess*> collapseOrder;
 
     File vcf;
     vcf.open(req.getVCFDir());
@@ -283,12 +306,12 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
     size_t totalLineCount = 0;
     size_t batchSize = static_cast<size_t>(req.getBatchSize());
 
-    std::vector<std::string> lines;
-    std::vector<Variant> constructedVariants;
-    std::vector<VariantSet*> readyToRun;
+    std::deque<std::string> lines;
+    std::deque<Variant> constructedVariants;
+    std::deque<VariantSet> collapsedVariants;
+    std::deque<VariantSet*> readyToRun;
 
     VariantSet leftover;
-    bool readyToCollapse = false;
 
     //skips header
     extractHeaderLine(vcf);
@@ -312,39 +335,38 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
         }
 
         //check if parse thread is done
-        if(filterOrder.size() > 0 && filterOrder.front()->isParseDone()){
-            std::vector<Variant> v = filterOrder.front()->getFilterResults();
-            filterOrder.pop();
+        if(parseOrder.size() > 0 && parseOrder.front()->isParseDone()){
+            std::vector<Variant> v = parseOrder.front()->getFilterResults();
+            parseOrder.pop();
             constructedVariants.insert(constructedVariants.end(), v.begin(), v.end());
-
-            if(lines.size() == 0 && filterOrder.size() == 0 && !vcf.hasNext())
-                allParsingDone = true;
+        }
+        if(lines.size() == 0 && parseOrder.size() == 0 && !vcf.hasNext()){
+            if(!allParsingDone)
+                printInfo("A total of " + std::to_string(totalLineCount) + " variants were parsed from the VCF file.");
+            allParsingDone = true;
         }
 
-        bool collapseRunning = false;
         //check if collapse thread is done
-        for(size_t m = 0; m < nthreads; m++){
-            if(threads[m].isCollapseDone()){
-                std::vector<VariantSet> v = threads[m].getCollapseResults();
+        if(collapseOrder.size() > 0 && collapseOrder.front()->isCollapseDone()){
+            std::vector<VariantSet> v = collapseOrder.front()->getCollapseResults();
+            collapseOrder.pop();
 
-                leftover = v.back();
-                v.pop_back();
+            leftover = v.back();
+            v.pop_back();
 
-                results->insert(results->end(), v.begin(), v.end());
+            collapsedVariants.insert(collapsedVariants.end(), v.begin(), v.end());
 
-                size_t n = results->size() - 1;
-                for(size_t i = 0; i < v.size(); i++)
-                    readyToRun.emplace_back(&results->at(n-i));
-                readyToCollapse = true;
-            }
-            collapseRunning = collapseRunning || threads[m].isCollapsing();
-        }
+            size_t n = collapsedVariants.size() - 1;
+            for(size_t i = 0; i < v.size(); i++)
+                readyToRun.push_back(&collapsedVariants[n - i]);
+       }
 
-        if(!collapseRunning && allParsingDone && constructedVariants.size() == 0){
+        if(collapseOrder.size() == 0 && allParsingDone && constructedVariants.size() == 0){
             allCollapsingDone = true;
             if(leftover.size() > 0){
-                results->push_back(leftover);
-                readyToRun.push_back(&results->back());
+                collapsedVariants.push_back(leftover);
+                readyToRun.push_back(&collapsedVariants.back());
+                VariantSet empty; leftover = empty;
             }
         }
 
@@ -369,8 +391,8 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
             //start new thread
             for(size_t m = 0; m < nthreads; m++){
                  if(!threads[m].isRunning()){
-                     threads[m].parseAndFilter(lines);
-                     filterOrder.push(&threads[m]);
+                     threads[m].parseAndFilter(lines, batchSize);
+                     parseOrder.push(&threads[m]);
                      lines.clear();
                      break;
                  }
@@ -378,14 +400,14 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
         }
 
         //set up collapse thread
-        if(readyToCollapse && (constructedVariants.size() >= batchSize ||
+        if(collapseOrder.size() == 0 && (constructedVariants.size() >= batchSize ||
                 (constructedVariants.size() > 0 && allParsingDone))){
             for(size_t m = 0; m < nthreads; m++){
                  if(!threads[m].isRunning()){
-                     threads[m].collapse(constructedVariants, leftover);
-                     filterOrder.push(&threads[m]);
+                     threads[m].collapse(constructedVariants, leftover, batchSize);
+                     collapseOrder.push(&threads[m]);
                      constructedVariants.clear();
-                     readyToCollapse=false;
+                     VariantSet empty; leftover = empty;
 
                      break;
                  }
@@ -393,10 +415,12 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
         }
 
         //set up test thread
-        if(readyToRun.size() >= batchSize || (readyToRun.size() > 0 && allParsingDone)){
+        if(readyToRun.size() >= batchSize || (readyToRun.size() > 0 && allCollapsingDone)){
             for(size_t m = 0; m < nthreads; m++){
                  if(!threads[m].isRunning()){
-                     threads[m].beginAssociationTest(readyToRun);
+                     int size = batchSize;
+                     if(allCollapsingDone) size = readyToRun.size();
+                     threads[m].beginAssociationTest(readyToRun, size);
                      readyToRun.clear();
                      break;
                  }
@@ -404,8 +428,12 @@ void processVCF(Request &req, SampleInfo &sampleInfo, std::vector<VariantSet>* r
         }
     }
 
-    printInfo("A total of " + std::to_string(totalLineCount) + " variants were parsed from the VCF file.");
+    std::vector<VariantSet> results;
+    while(collapsedVariants.size() > 0){
+        results.push_back(collapsedVariants.front());
+        collapsedVariants.pop_front();
+    }
 
-    return;
+    return results;
 }
 

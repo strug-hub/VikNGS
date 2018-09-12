@@ -44,7 +44,7 @@ extern bool STOP_RUNNING_THREAD;
 //========================================================
 
 Data startVikNGS(Request req);
-void processVCF(Request &req, SampleInfo &input, std::vector<VariantSet>* results);
+std::vector<VariantSet> processVCF(Request &req, SampleInfo &input);
 
 //========================================================
 // Output functions

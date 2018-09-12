@@ -55,6 +55,7 @@ public:
     inline void setCollapseExon(){ collapse = CollapseType::COLLAPSE_EXON; }
     inline void setCollapse(int k) { collapse = CollapseType::COLLAPSE_K; collapseSize = k; }
 
+    inline void setBootstrap(int value) { nboot = value; }
     inline void setStopEarly(bool value) { stopEarly = value; }
     inline void setNumberThreads(int nthreads) { this->nthreads = nthreads; }
     inline void setBatchSize(int size) { this->batchSize = size; }
@@ -118,7 +119,7 @@ public:
     inline double getMissingThreshold() { return missingThreshold; }
     inline double getMAFCutOff() { return mafCutoff; }
 
-    inline bool filterByChromosome() { return !(filterChrName.size() > 0); }
+    inline bool filterByChromosome() { return filterChrName.size() > 0; }
     inline bool filterByMinPosition() { return minPos >= 0; }
     inline bool filterByMaxPosition() { return maxPos >= 0; }
     inline std::string getFilterChromosome() { return filterChrName; }
