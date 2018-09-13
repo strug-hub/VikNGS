@@ -1,6 +1,5 @@
 #include "Simulation.h"
 
-
 /*
 Simulates sample information used for an association test.
 @param simReq Parameters required to simulate a dataset.
@@ -51,7 +50,6 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq) {
 
         for (int j = 0; j < collapseSize; j++){
             Variant v = randomVariant();
-            v.setTrueMaf(maf[j]);
 
             VectorXd trueX = X.col(j);
             v.setTrueGenotypes(trueX);

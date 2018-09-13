@@ -74,6 +74,8 @@ void PlotWindow::updateVariantInfo(int variantIndex){
        return;
 
    Variant* variant = chromosomes[focusedChr].getVariant(variantIndex);
+
+   QString pval = QString::number(std::pow(10, -chromosomes[focusedChr].getPval(variantIndex)));
    QString chr = QString::fromStdString(variant->getChromosome());
    QString pos = QString::number(variant->getPosition());
    QString ref = QString::fromStdString(variant->getRef());
@@ -84,7 +86,7 @@ void PlotWindow::updateVariantInfo(int variantIndex){
    if(ui->plot_altTxt->text() != alt)
         ui->plot_altTxt->setText(alt);
 
-    QString info = chr + " - " + pos + ":";
+    QString info = chr + " - " + pos + ": " + pval;
     if(ui->plot_variantInfoLbl->text() != info)
         ui->plot_variantInfoLbl->setText(info);
 }

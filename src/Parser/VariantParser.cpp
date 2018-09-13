@@ -232,10 +232,17 @@ Vector3d getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, in
 
         if (l.size() == 3 && l[0][0] != '.') {
             try {
+
+                if(l[0] == "-nan" || l[0] == "-1.4013e-45") l[0] = "-100";
+                if(l[1] == "-nan" || l[1] == "-1.4013e-45") l[1] = "-100";
+                if(l[2] == "-nan" || l[2] == "-1.4013e-45") l[2] = "-100";
+
                 gl[0] = pow(10, std::stod(l[0]));
                 gl[1] = pow(10, std::stod(l[1]));
                 gl[2] = pow(10, std::stod(l[2]));
-                return gl;
+
+                if(gl.sum() > 0)
+                    return gl;
             }
             catch (...) {
                 gl[0] = NAN;
@@ -249,16 +256,24 @@ Vector3d getGenotypeLikelihood(std::string &column, int indexPL, int indexGL, in
     if (indexPL > -1 && size > indexPL) {
         std::vector<std::string> l = splitString(split[static_cast<size_t>(indexPL)], ',');
 
-        try {
-            gl[0] = pow(10, -std::stod(l[0])*0.1);
-            gl[1] = pow(10, -std::stod(l[1])*0.1);
-            gl[2] = pow(10, -std::stod(l[2])*0.1);
-            return gl;
-        }
-        catch (...) {
-            gl[0] = NAN;
-            gl[1] = NAN;
-            gl[2] = NAN;
+        if (l.size() == 3 && l[0][0] != '.') {
+            try {
+                if(l[0] == "-nan" || l[0] == "-1.4013e-45") l[0] = "10";
+                if(l[1] == "-nan" || l[1] == "-1.4013e-45") l[1] = "10";
+                if(l[2] == "-nan" || l[2] == "-1.4013e-45") l[2] = "10";
+
+                gl[0] = pow(10, -std::stod(l[0])*0.1);
+                gl[1] = pow(10, -std::stod(l[1])*0.1);
+                gl[2] = pow(10, -std::stod(l[2])*0.1);
+
+                if(gl.sum() > 0)
+                    return gl;
+            }
+            catch (...) {
+                gl[0] = NAN;
+                gl[1] = NAN;
+                gl[2] = NAN;
+            }
         }
     }
 

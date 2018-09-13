@@ -5,7 +5,7 @@
 #include <fstream>
 
 static const std::string dfile = "/debug.txt";
-static const std::string pfile = "/pvalues_.txt";
+static const std::string pfile = "/pvalues.txt";
 static const std::string ffile = "/filtered.txt";
 
 void initializeOutputFiles (std::string outputDir){
@@ -20,22 +20,15 @@ void initializeOutputFiles (std::string outputDir){
 	filtered.close();
 }
 
-void outputPvals(std::vector<VariantSet> &variants, std::string outputDir) {
+void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<Test>& test) {
 	
-    //std::string pfile = outputDir + "/pvalues_.txt";
     std::ofstream pvals(outputDir + pfile, std::ios_base::app);
 
 	if (pvals.is_open())
 	{
-        for (size_t i = 0; i < variants.size(); i++) {
+        for (size_t i = 0; i < variants.size(); i++)
+            pvals << variants[i].toString(test[0].toShortString(), 0, i) << '\n';
 
-            //todo
-
-            //pvals << variants[i].toString() << '\t';
-            //pvals << variants[i].getPval(0) << '\t';
-            //pvals << variants[i].getPvalSourceShort(0) << '\n';
-
-		}
 		pvals.close();
 	}
 }

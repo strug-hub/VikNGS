@@ -180,6 +180,7 @@ Request MainWindow::createRequest(){
         n = toInt("Bootstrap iterations", nboot);
 
         if(n > 1){
+            req.setBootstrap(n);
             nboot = toString(n);
             req.setStopEarly(stopEarly);
             if(stopEarly){

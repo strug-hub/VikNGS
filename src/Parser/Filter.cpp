@@ -45,7 +45,7 @@ Checks for missing data and filters data for common or rare test.
 */
 Filter filterByGenotypes(Request* req, Variant& variant, VectorXd& Y, Family family) {
 
-    std::vector<Genotype> genotypes;
+    std::vector<Genotype> genotypes = variant.getAllGenotypes();
     //must pass filter for all genotype sets
 
     for (Genotype gt : genotypes){
@@ -84,7 +84,7 @@ bool missingTestCaseControl(VectorXd* X, VectorXd &Y, double missingThreshold){
     for (int i = 0; i < nsamp; i++) {
 
         if (std::isnan(X->coeff(i))){
-            if(Y[i] < 1e4)
+            if(Y[i] < 1e-4)
                 missingControl++;
             else if(Y[i] > 0.9999)
                 missingCase++;

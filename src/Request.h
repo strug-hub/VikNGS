@@ -93,7 +93,7 @@ public:
     inline bool useCommon(){
         bool result = false;
         for(Test t : tests)
-            result = result || t.needVCFCalls();
+            result = result || t.isCommonTest();
         return result;
     }
     inline std::vector<Test> getTests() { return tests; }

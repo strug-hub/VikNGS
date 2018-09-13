@@ -2,6 +2,7 @@
 #include "./src/simulation/Simulation.h"
 #include "Parser/Parser.h"
 #include "Test/Test.h"
+#include "Output/OutputHandler.h"
 
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ Data startVikNGS(Request req) {
 
     printInfo("Starting vikNGS...");
 
-   // initializeOutputFiles(req.getOutputDir());
+    initializeOutputFiles(req.getOutputDir());
 
     printInfo("Parsing files...");
 
@@ -22,12 +23,14 @@ Data startVikNGS(Request req) {
 
     if(req.shouldCollapseBed()){
         result.intervals = parseBEDLines(req.getBEDDir(), req.getCollapseType());
-        req.setIntervals(& result.intervals);
+        req.setIntervals(&result.intervals);
     }
 
     result.tests = req.getTests();
     result.sampleInfo = parseSampleInfo(req);
     result.variants = processVCF(req, result.sampleInfo);
+
+    outputPvals(result.variants, req.getOutputDir(), result.tests);
 
     return result;
 }

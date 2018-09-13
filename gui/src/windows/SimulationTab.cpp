@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 #include "SimPlotWindow.h"
-
 #include "ui_mainwindow.h"
 
 const QString sep = ":";

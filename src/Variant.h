@@ -23,17 +23,19 @@ private:
     std::string alt;
 
     Filter filter;
-    double trueMaf;
+    bool isShrunk;
 
 public:
 
     Variant(std::string chromosome, int position, std::string unique_id, std::string reference, std::string alternative) :
         chrom(chromosome), pos(position), id(unique_id), ref(reference), alt(alternative) {
         filter = Filter::VALID;
+        isShrunk = false;
     }
 
     Variant() {
         filter = Filter::INVALID;
+        isShrunk = false;
     }
     ~Variant() { }
 
@@ -55,7 +57,6 @@ public:
     }
 
     inline void setFilter(Filter f) { this->filter = f; }
-    inline void setTrueMaf(double maf) { this->trueMaf = maf; }
 
     inline std::string getChromosome() { return this->chrom; }
     inline std::string getRef() { return this->ref; }
@@ -95,6 +96,11 @@ public:
         genotypes.clear();
     }
 
+    inline void shrink(){
+        genotypes.clear();
+        P.clear();
+        isShrunk = true;
+    }
 
 };
 
@@ -106,11 +112,12 @@ private:
     std::vector<double> pval;
     int nvalid = 0;
     Interval *interval;
+    bool hasInterval = false;
 public:
     VariantSet(Variant& v) { variants.push_back(v); if(v.isValid()) nvalid++; }
     VariantSet() { }
 
-    inline void setInterval(Interval * inv) { interval = inv; }
+    inline void setInterval(Interval * inv) { interval = inv; hasInterval = true;}
     inline bool isIn(Variant &variant) { return interval->isIn(variant.getChromosome(), variant.getPosition()); }
 
     inline void addVariant(Variant &variant) {
@@ -175,5 +182,36 @@ public:
             P.row(static_cast<int>(i)) = *p[i];
 
         return P;
+    }
+
+    inline void shrink(){
+        for (size_t i = 0; i < variants.size(); i++)
+            variants[i].shrink();
+    }
+
+    inline std::string toString(std::string test, int pvalIndex, int setID){
+
+        std::string str = "";
+
+        if(variants.size() < 1 || pvalIndex >= nPvals())
+            return  str;
+
+        for(size_t i = 0; i < variants.size(); i++){
+            str += variants[i].toString();
+            str += "\t" + std::to_string(pval[pvalIndex]);
+            str += "\t" + test;
+
+            if(variants.size() > 1){
+                if(hasInterval)
+                    str += "\t" + interval->id;
+                else
+                    str += "\t" + std::to_string(setID);
+            }
+
+            if(i != variants.size() - 1)
+                str+= "\n";
+        }
+
+        return str;
     }
 };

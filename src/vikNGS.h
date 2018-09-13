@@ -45,6 +45,7 @@ extern bool STOP_RUNNING_THREAD;
 
 Data startVikNGS(Request req);
 std::vector<VariantSet> processVCF(Request &req, SampleInfo &input);
+std::vector<VariantSet> processVCFNoCollapse(Request &req, SampleInfo &input);
 
 //========================================================
 // Output functions
@@ -53,5 +54,5 @@ void outputDebug(std::string line, std::string outputDir);
 void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir);
 void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
                            std::vector<std::string> codeMap, std::string outputDir);
-void outputPvals(std::vector<VariantSet> &variants, std::string outputDir);
+void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<Test>& test);
 void initializeOutputFiles (std::string outputDir);

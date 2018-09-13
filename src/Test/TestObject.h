@@ -144,10 +144,11 @@ private:
 
        if(hasCovariates()){
 
-           if(!bootstrapped)
+           if(!bootstrapped){
                Xboot = X;
                Zboot = Z;
                Ycenter_original = Ycenter;
+           }
 
            VectorXd residuals = groupwiseShuffleWithoutReplacement(Ycenter_original, G, groupVector);
            Yboot = Y - Ycenter_original + residuals;

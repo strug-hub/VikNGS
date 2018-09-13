@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>C:/Users/scott/Desktop/small.test.vcf</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/chr7.merged.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>C:/Users/scott/Desktop/test.info.txt</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/threegroups_.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -288,7 +288,7 @@
                <item>
                 <widget class="QLineEdit" name="main_bedDirTxt">
                  <property name="text">
-                  <string/>
+                  <string>/home/scott/chr7.hg37.ccds.bed</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -331,7 +331,7 @@
                      <string>Entire gene</string>
                     </property>
                     <property name="checked">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -341,7 +341,7 @@
                      <string>Every k </string>
                     </property>
                     <property name="checked">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -377,7 +377,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -387,7 +387,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -405,13 +405,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testBootChk">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -420,10 +420,10 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
-                    <string>10000</string>
+                    <string>10</string>
                    </property>
                   </widget>
                  </item>
@@ -439,13 +439,13 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -485,7 +485,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>6000</string>
+                  <string>100</string>
                  </property>
                 </widget>
                </item>
@@ -531,11 +531,14 @@
                </item>
                <item row="4" column="1">
                 <widget class="QCheckBox" name="main_keepFilteredChk">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="text">
                   <string>Retain Filtered</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>

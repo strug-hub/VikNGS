@@ -26,8 +26,11 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family) {
         //std::string tre = test.toString();
         //MatrixXd xxx = *o.getX();
 
-        if(s == Statistic::CAST)
+        if(s == Statistic::CAST){
+
+
             return pnorm(scoreV.sum() / sqrt(diagS.sum()));
+        }
 
         else if(s == Statistic::SKAT){
             VectorXd A = o.mafWeightVector();
