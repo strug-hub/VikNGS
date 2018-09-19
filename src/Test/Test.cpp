@@ -61,6 +61,10 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
     double tsamp;
 
     for (int h = 0; h < nboot; h++) {
+
+        if(STOP_RUNNING_THREAD)
+            return NAN;
+
         o.bootstrap(bootTest, bootFam);
 
         tsamp = calculateTestStatistic(o, bootTest, bootFam);

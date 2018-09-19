@@ -194,7 +194,6 @@ Request MainWindow::createRequest(){
         }
     }
 
-
     if(ui->main_testCommonBtn->isChecked()){
 
         if(ui->main_rvsChk->isChecked())
@@ -232,7 +231,16 @@ Request MainWindow::createRequest(){
     std::string bedDir = ui->main_bedDirTxt->text().toStdString();
     bool collapseGene = ui->main_bedCollapseGeneBtn->isChecked();
     bool collapseExon = ui->main_bedCollapseExonBtn->isChecked();
-    bool collapseK = ui->main_bedCollapseKBtn->isChecked();
+    //bool collapseK = ui->main_bedCollapseKBtn->isChecked();
+
+    if(req.useBootstrap()){
+        std::string everyk = ui->main_bedCollapseKTxt->text().toStdString();
+        int k = toInt("Collapse k value", everyk);
+        everyk = toString(k);
+        commands.push_back("-k " + everyk);
+        printInfo("Collapse to " + everyk + " variants");
+        req.setCollapse(k);
+    }
 
     if(bedDir.size() > 0){
 
@@ -251,15 +259,6 @@ Request MainWindow::createRequest(){
             commands.push_back("--exon");
             req.setCollapseExon();
         }
-    }
-
-    if(ui->main_testRareCastBtn->isChecked() && collapseK){
-        std::string everyk = ui->main_bedCollapseKTxt->text().toStdString();
-        int k = toInt("Collapse k value", everyk);
-        everyk = toString(k);
-        commands.push_back("-k " + everyk);
-        printInfo("Collapse every " + everyk + " variants");
-        req.setCollapse(k);
     }
 
     std::string batchSize = ui->main_batchSizeTxt->text().toStdString();

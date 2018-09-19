@@ -8,3 +8,5 @@ void throwError(std::string source, std::string message);
 void throwError(std::string source, std::string message, std::string valueGiven);
 void printWarning(std::string source, std::string message, std::string valueGiven);
 void printWarning(std::string source, std::string message);
+
+void printBedIDWarning(std::string chr);

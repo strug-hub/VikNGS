@@ -46,6 +46,9 @@ std::vector<Variant> constructVariants(Request* req, SampleInfo* sampleInfo, std
     //contruct variants
     for(size_t i = 0; i < lines.size(); i++){
 
+        if(STOP_RUNNING_THREAD)
+            return variants;
+
         //extract to the FILTER column
         std::vector<std::string> info = splitString(lines[i], VCF_SEP, FILTER + 1);
 
@@ -77,6 +80,10 @@ std::vector<Variant> constructVariants(Request* req, SampleInfo* sampleInfo, std
 int findInterval(IntervalSet * is, std::string chr, int pos, int searchHint){
     size_t hint = static_cast<size_t>(searchHint);
     std::vector<Interval>* intervals = is->get(chr);
+    if(intervals->size() < 1) {
+        printBedIDWarning(chr);
+        return -1;
+    }
     size_t left = 0; size_t right = intervals->size();
     size_t middle = hint;
     if(hint <= left || hint >= right)
@@ -103,8 +110,8 @@ int findInterval(IntervalSet * is, std::string chr, int pos, int searchHint){
 
 std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& variants, VariantSet& leftover){
 
-    IntervalSet * is = req->getIntervals();
     CollapseType collapse = req->getCollapseType();
+    int k = req->getCollapseSize();
     std::vector<VariantSet> variantSet;
 
     if(collapse == CollapseType::NONE){
@@ -115,7 +122,6 @@ std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& var
     }
 
     else if(collapse == CollapseType::COLLAPSE_K){
-        int k = req->getCollapseSize();
 
         size_t startFrom = 0;
         while(leftover.validSize() < k && startFrom < variants.size()){
@@ -132,6 +138,8 @@ std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& var
         }
     }
     else if(collapse == CollapseType::COLLAPSE_EXON || collapse == CollapseType::COLLAPSE_GENE){
+
+        IntervalSet* is = req->getIntervals();
 
         size_t startFrom = 0;
         int hint = -1;
@@ -151,7 +159,7 @@ std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& var
 
         for(size_t i = startFrom; i < variants.size(); i++){
 
-            if(variantSet.back().isIn(variants[i]))
+            if(variantSet.back().isIn(variants[i]) && variantSet.back().size() < k)
                 variantSet.back().addVariant(variants[i]);
             else{
                 int index = findInterval(is, variants[i].getChromosome(), variants[i].getPosition(), hint);
@@ -160,6 +168,7 @@ std::vector<VariantSet> collapseVariants(Request* req, std::vector<Variant>& var
 
                 VariantSet newSet(variants[i]);
                 newSet.setInterval(&is->get(variants[i].getChromosome())->at(index));
+                variantSet.push_back(newSet);
                 hint = index+1;
             }
         }
@@ -182,14 +191,13 @@ bool testBatch(Request* req, SampleInfo* sampleInfo, std::vector<VariantSet*> &v
             if(variants[i]->validSize() > 0){
                 double pval = runTest(sampleInfo, variants[i], t, nboot, req->useStopEarly());
                 variants[i]->addPval(pval);
+                printInfo(std::to_string(pval) + " " + std::to_string(variants.size()-i) + " left.");
             }
         }
     }
 
     //todo?
     //outputPvals(results, req.outputDir);
-
-
 
     return true;
 }
@@ -311,6 +319,7 @@ public:
 
         for(size_t i = 0; i < n; i++){
             pointers.push_back(vs.front());
+            printInfo( "nsnp: " + std::to_string(pointers.back()->size()));
             vs.pop_front();
         }
 
@@ -331,37 +340,12 @@ public:
         return;
     }
 
-    //---------------------------------------------------
-
-    void process(std::deque<std::string>& lns, size_t n){
-        n = (lns.size() < n) ? lns.size() : n;
-        if(n < 1) return;
-        lines.clear(); lines.reserve(n);
-
-        parsing = true; collapsing = true; testing = true;
-
-        for(size_t i = 0; i < n; i++){
-            lines.push_back(lns.front());
-            lns.pop_front();
-        }
-
-        futureVariantSets = std::async(std::launch::async,
-                [this] { return parseAndTest(req, sampleInfo, lines); }) ;
-    }
-    inline bool isProcessingDone(){
-        return parsing && collapsing && testing && futureVariantSets.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-    }
-
-    inline std::vector<VariantSet> getProcessingResults(){
-        return futureVariantSets.get();
-    }
-
 };
 
 std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
     std::vector<VariantSet> results;
 
-    size_t nthreads = static_cast<size_t>(req.getNumberThreads());
+    size_t nthreads = std::max(1, req.getNumberThreads());
     std::vector<ParallelProcess> threads;
     for(size_t i = 0; i < nthreads; i++)
         threads.emplace_back(&req, &sampleInfo);
@@ -388,14 +372,17 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
     bool allCollapsingDone = false;
     bool allTestingDone = false;
 
-    while ((!allParsingDone || !allCollapsingDone || !allTestingDone) && results.size() < 20){
+    while (!allParsingDone || !allCollapsingDone || !allTestingDone){
+
+        if(STOP_RUNNING_THREAD)
+            break;
 
         //read in line if batch not full
         if(vcf.hasNext() && lines.size() < batchSize){
             lines.emplace_back(vcf.nextLine());
             totalLineCount++;
 
-            if(totalLineCount % 10000 == 0){
+            if(totalLineCount % batchSize == 0){
                 if(totalLineCount == 0)
                     printInfo("Parsing VCF file...");
                 else
@@ -424,7 +411,7 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
                 leftover = v.back();
                 v.pop_back();
 
-                for(size_t i = 0; i< v.size(); i++){
+                for(size_t i = 0; i < v.size(); i++){
                     collapsedVariants.push_back(v[i]);
                     readyToRun.push_back(&collapsedVariants.back());
                 }
@@ -446,13 +433,12 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
 
             if(threads[m].isTestingDone()){
                 threads[m].setDone();
-                while(collapsedVariants.front().nPvals() > 0 &&
+                while(collapsedVariants.size() > 0 && collapsedVariants.front().nPvals() > 0 &&
                       (collapsedVariants.size() < batchSize || collapsedVariants[batchSize-1].nPvals() > 0)){
                     results.push_back(collapsedVariants.front());
                     collapsedVariants.pop_front();
                     results.back().shrink();
                 }
-                printInfo(std::to_string(results.size()));
             }
 
             if(threads[m].isRunning())
@@ -501,76 +487,40 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
                  }
              }
         }
+
+        //set up small test thread
+        if(readyToRun.size() > 0){
+            if(req.getCollapseType() == CollapseType::COLLAPSE_EXON ||
+                    req.getCollapseType() == CollapseType::COLLAPSE_GENE){
+                for(size_t m = 0; m < nthreads; m++){
+                     if(!threads[m].isRunning()){
+                         int size = (readyToRun.size() < 3) ? readyToRun.size() : 3;
+                         threads[m].beginAssociationTest(readyToRun, size);
+                         break;
+                     }
+                }
+            }
+        }
+
+    }
+
+    while(true){
+        bool threadsDone = true;
+        for(size_t m = 0; m < nthreads; m++){
+             if(threads[m].isRunning()){
+                 threadsDone = false;
+                 if(threads[m].isTestingDone())
+                     threads[m].setDone();
+                 if(threads[m].isCollapseDone())
+                     threads[m].getCollapseResults();
+                 if(threads[m].isParseDone())
+                     threads[m].getFilterResults();
+             }
+        }
+
+        if(threadsDone)
+            break;
     }
 
     return results;
 }
-
-std::vector<VariantSet> processVCFNoCollapse(Request &req, SampleInfo &sampleInfo) {
-
-    std::vector<VariantSet> result;
-    size_t nthreads = static_cast<size_t>(req.getNumberThreads());
-    std::vector<ParallelProcess> threads;
-    for(size_t i = 0; i < nthreads; i++)
-        threads.emplace_back(&req, &sampleInfo);
-
-    std::queue<ParallelProcess*> order;
-
-    File vcf;
-    vcf.open(req.getVCFDir());
-
-    size_t totalLineCount = 0;
-    size_t batchSize = static_cast<size_t>(req.getBatchSize());
-
-    std::deque<std::string> lines;
-
-    //skips header
-    extractHeaderLine(vcf);
-    bool allDone = false;
-
-    while (!allDone //|| totalLineCount > 400000
-           ){
-
-        //read in line if batch not full
-        if(vcf.hasNext() && lines.size() < batchSize){
-            lines.emplace_back(vcf.nextLine());
-            totalLineCount++;
-
-            if(totalLineCount % 10000 == 0){
-                if(totalLineCount == 0)
-                    printInfo("Parsing VCF file...");
-                else
-                    printInfo(std::to_string(totalLineCount) + " variant lines have been parsed so far.");
-            }
-        }
-
-        //check if thread is done
-        if(order.size() > 0 && order.front()->isProcessingDone()){
-            std::vector<VariantSet> vs = order.front()->getProcessingResults();
-            order.pop();
-            result.insert(result.end(), vs.begin(), vs.end());
-        }
-
-        //set up thread
-        if(lines.size() >= batchSize || (!vcf.hasNext() && lines.size() > 0)){
-            //start new thread
-            for(size_t m = 0; m < nthreads; m++){
-
-                 if(!threads[m].isRunning()){
-                     threads[m].process(lines, batchSize);
-                     order.push(&threads[m]);
-                     break;
-                 }
-             }
-        }
-
-        if(lines.size() == 0 && !vcf.hasNext() && order.size() == 0){
-            if(!allDone)
-                printInfo("A total of " + std::to_string(totalLineCount) + " variants were parsed from the VCF file.");
-            allDone = true;
-        }
-    }
-
-    return result;
-}
-

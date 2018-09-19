@@ -72,3 +72,11 @@ void printWarning(std::string source, std::string message, std::string valueGive
 void printWarning(std::string source, std::string message) {
 	printWarning(message);
 }
+
+static bool BED_WARNING_PRINTED=false;
+void printBedIDWarning(std::string chr){
+    if(!BED_WARNING_PRINTED)
+        printWarning("There was a chromosome name in the VCF file (" + chr + ") which was not found in the BED file provided. Names should match exactly.");
+    BED_WARNING_PRINTED = true;
+}
+

@@ -94,6 +94,14 @@ private slots:
     void on_qsim_testRareCastBtn_toggled(bool checked);
     void on_qsim_testRareSkatBtn_toggled(bool checked);
 
+    void on_main_stopBtn_clicked();
+
+    void on_main_bedCollapseKBtn_toggled(bool checked);
+
+    void on_main_bedCollapseExonBtn_toggled(bool checked);
+
+    void on_main_bedCollapseGeneBtn_toggled(bool checked);
+
 signals:
     void sendPlotData(QVector<double> values);
 

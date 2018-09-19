@@ -97,3 +97,33 @@ void MainWindow::jobFinished(Data result){
         plotter->show();
     }
 }
+
+void MainWindow::on_main_stopBtn_clicked()
+{
+    STOP_RUNNING_THREAD = true;
+    while(!jobThread->isFinished()){
+        jobThread->quit();
+    }
+    greyOutput();
+    printInfo("Job stopped.");
+    enableRun();
+    STOP_RUNNING_THREAD=false;
+}
+
+void MainWindow::on_main_bedCollapseKBtn_toggled(bool checked)
+{
+    if(checked)
+        ui->main_bedCollapseKTxt->setText("5");
+}
+
+void MainWindow::on_main_bedCollapseExonBtn_toggled(bool checked)
+{
+    if(checked)
+        ui->main_bedCollapseKTxt->setText("100");
+}
+
+void MainWindow::on_main_bedCollapseGeneBtn_toggled(bool checked)
+{
+    if(checked)
+        ui->main_bedCollapseKTxt->setText("100");
+}

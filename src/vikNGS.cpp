@@ -21,15 +21,15 @@ Data startVikNGS(Request req) {
 
     Data result;
 
+    result.tests = req.getTests();
+    result.sampleInfo = parseSampleInfo(req);
+
     if(req.shouldCollapseBed()){
         result.intervals = parseBEDLines(req.getBEDDir(), req.getCollapseType());
         req.setIntervals(&result.intervals);
     }
 
-    result.tests = req.getTests();
-    result.sampleInfo = parseSampleInfo(req);
     result.variants = processVCF(req, result.sampleInfo);
-
     outputPvals(result.variants, req.getOutputDir(), result.tests);
 
     return result;

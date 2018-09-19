@@ -56,12 +56,12 @@ SOURCES += \
     src/windows/TableDisplayWindowColumns.cpp \
     src/simulation/SimulationHelper.cpp \
     src/windows/SimPlotWindow.cpp \
-    src/windows/MainWindow.cpp \
     src/windows/PlotWindow.cpp \
     ../src/Global.cpp \
     src/windows/RequestConstructor.cpp \
     src/log/Log.cpp \
-    src/windows/PlotWindowMouse.cpp
+    src/windows/PlotWindowMouse.cpp \
+    src/windows/MainWindow.cpp
 
 HEADERS += \
     ../src/Eigen/src/Cholesky/LDLT.h \

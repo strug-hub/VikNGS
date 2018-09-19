@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/chr7.merged.vcf</string>
+                  <string>C:/Users/scott/Documents/chr7/chr7.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/threegroups_.txt</string>
+                  <string>C:/Users/scott/Documents/chr7/threegroups_.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -288,7 +288,7 @@
                <item>
                 <widget class="QLineEdit" name="main_bedDirTxt">
                  <property name="text">
-                  <string>/home/scott/chr7.hg37.ccds.bed</string>
+                  <string>C:/Users/scott/Documents/chr7/chr7.bed</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -315,7 +315,7 @@
                <property name="title">
                 <string>Collapse By</string>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_13">
+               <layout class="QVBoxLayout" name="verticalLayout_20">
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_5">
                   <item>
@@ -345,10 +345,34 @@
                     </property>
                    </widget>
                   </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_13">
+                  <item>
+                   <spacer name="horizontalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="main_bedCollapseSizeLbl">
+                    <property name="text">
+                     <string>Collapse Size</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <widget class="QLineEdit" name="main_bedCollapseKTxt">
                     <property name="text">
-                     <string>5</string>
+                     <string>100</string>
                     </property>
                    </widget>
                   </item>
