@@ -83,7 +83,7 @@ std::vector<SimulationRequestGroup> MainWindow::qConstructGroups(int test, int n
     return groups;
 }
 
-SimulationRequest MainWindow::qConstructRequest(std::vector<SimulationRequestGroup> groups){
+SimulationRequest MainWindow::qConstructGroups(int ntests);{
 
     SimulationRequest request;
 
@@ -122,60 +122,64 @@ SimulationRequest MainWindow::qConstructRequest(std::vector<SimulationRequestGro
     return request;
 }
 
-
 void MainWindow::on_qsim_stopBtn_clicked(){
     stopJob();
 }
 
 void MainWindow::on_qsim_runBtn_clicked(){
-    if(!ui->qsim_runBtn->isEnabled())
+    if(!ui->sim_runBtn->isEnabled())
         return;
 
-    /*
     greyOutput();
     disableRun();
 
-    int ntest = 1;
+    SimulationRequest request;
+    bool ok=false;
+
     bool multitest = false;
     for(int i = 0; i< ui->sim_groupTbl->rowCount(); i++)
         if(ui->sim_groupTbl->item(i, 0)->text().contains(sep))
             multitest = true;
 
-    if(multitest)
-        ntest = std::max(1, ui->sim_powerStepTxt->text().toInt());
-
-    std::vector<SimulationRequest> requests;
-
     try{
+        int steps = 1;
+        if(multitest){
 
-        for(int run = 0; run < ntest; run++){
-
-            std::vector<SimulationRequestGroup> groups = constructGroups(run, ntest);
-            SimulationRequest request = constructRequest(groups);
-
-            //throws error if invalid
-            request.validate();
-
-            requests.push_back(request);
+            bool ok=false;
+            steps = ui->sim_powerStepTxt->text().toInt(&ok);
+            if(!ok || steps < 1)
+                throwError(ERROR_SOURCE, "Invalid step value. Expected # steps to be an integer greater than 1.", ui->sim_powerStepTxt->text().toStdString());
         }
 
-        QThread* thread = new QThread;
-        Runner* runner = new Runner();
+        std::vector<SimulationRequestGroup> groups = qConstructGroups(steps);
+        request = constructRequest(groups);
+        request.steps = steps;
 
-        runner->setSimulationRequests(requests);
+        int nthreads = ui->sim_threadsTxt->text().toInt(&ok);
+        if(!ok)
+            throwError(ERROR_SOURCE, "Invalid number of threads. Expected an integer greater than or equal to 1.", ui->sim_threadsTxt->text().toStdString());
+
+        request.nthreads = nthreads;
+
+        //throws error if invalid
+        request.validate();
+
+        QThread* thread = new QThread;
+        AsyncJob* runner = new AsyncJob();
+
+        runner->setSimulationRequest(request);
         runner->moveToThread(thread);
         connect(thread, SIGNAL(started()), runner, SLOT(runSimulation()));
         connect(runner, SIGNAL(complete()), thread, SLOT(quit()));
         connect(runner, SIGNAL(complete()), runner, SLOT(deleteLater()));
-        connect(runner, SIGNAL(simulationFinished(std::vector<std::vector<Variant>>, std::vector<SimulationRequest>)),
-                this, SLOT(simulationFinished(std::vector<std::vector<Variant>>, std::vector<SimulationRequest>)));
+        connect(runner, SIGNAL(simulationFinished(Data, SimulationRequest)),
+                this, SLOT(simulationFinished(Data, SimulationRequest)));
         thread->start();
         jobThread = thread;
     }catch(...){
         ui->sim_runBtn->setEnabled(true);
         enableRun();
     }
-    */
 }
 
 void MainWindow::on_qsim_groupRemoveBtn_clicked()
@@ -253,4 +257,6 @@ void MainWindow::qAddGroup(QString n, bool control, QString depth, QString sdDep
 void MainWindow::on_qsim_groupAddBtn_clicked(){
     //addGroup("100", true, "10", "2", "0.01");
 }
+
+
 

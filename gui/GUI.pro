@@ -31,7 +31,6 @@ SOURCES += \
     src/widgets/qzoombar.cpp \
     src/widgets/qcustomplot.cpp \
     ../src/Parser/MemoryMapped/MemoryMapped.cpp \
-    src/windows/qsimulationtab.cpp \
     ../src/Request.cpp \
     src/windows/MainTab.cpp \
     src/windows/SimulationTab.cpp \
@@ -61,7 +60,8 @@ SOURCES += \
     src/windows/RequestConstructor.cpp \
     src/log/Log.cpp \
     src/windows/PlotWindowMouse.cpp \
-    src/windows/MainWindow.cpp
+    src/windows/MainWindow.cpp \
+    src/windows/QSimulationTab.cpp
 
 HEADERS += \
     ../src/Eigen/src/Cholesky/LDLT.h \

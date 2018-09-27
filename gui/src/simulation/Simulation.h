@@ -65,6 +65,8 @@ struct SimulationRequest {
 
     int nsnp;
     double oddsRatio;
+    double r2;
+
     double mafMin;
     double mafMax;
     int steps;

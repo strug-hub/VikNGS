@@ -79,8 +79,8 @@ private slots:
     //qSimulationTab.cpp
     //-----------
 
-    std::vector<SimulationRequestGroup> qConstructGroups(int run, int ntests);
-    SimulationRequest qConstructRequest(std::vector<SimulationRequestGroup> groups);
+    std::vector<SimulationRequestGroup> qConstructGroups(int ntests);
+    SimulationRequest MainWindow::qConstructGroups(int ntests);
     void qAddGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);
 
     void qSimEnableRare(bool value);
@@ -97,9 +97,7 @@ private slots:
     void on_main_stopBtn_clicked();
 
     void on_main_bedCollapseKBtn_toggled(bool checked);
-
     void on_main_bedCollapseExonBtn_toggled(bool checked);
-
     void on_main_bedCollapseGeneBtn_toggled(bool checked);
 
 signals:
