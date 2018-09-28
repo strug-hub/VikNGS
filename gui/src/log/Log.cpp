@@ -46,7 +46,7 @@ void printWarning(std::string message) {
 void printError(std::string message) {
     chill++;
 
-    if(chill < 3){
+    if(chill < 10){
         QString s = "[ERROR] ";
         s.append(QString::fromStdString(message));
         qlog->out(s, error);

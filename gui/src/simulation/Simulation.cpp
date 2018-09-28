@@ -31,6 +31,8 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq) {
     int nsnp = simReq.nsnp;
     int collapseSize = simReq.collapse;
     double oddsRatio = simReq.oddsRatio;
+    double r2 = simReq.r2;
+
     double minMaf = simReq.mafMin;
     double maxMaf = simReq.mafMax;
 

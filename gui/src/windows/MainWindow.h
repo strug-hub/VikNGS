@@ -13,6 +13,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QMessageBox>
 #include <QTextEdit>
+#include <QTableWidget>
 #include <QVector>
 
 namespace Ui {
@@ -59,13 +60,13 @@ private slots:
     //SimulationTab.cpp
     //-----------
     void simulationTabInit();
-    std::vector<SimulationRequestGroup> constructGroups(int ntests);
+    std::vector<SimulationRequestGroup> constructGroups(int ntest, QTableWidget* table, int highLow, Family family);
     SimulationRequest constructRequest(std::vector<SimulationRequestGroup> groups);
 
     void on_sim_runBtn_clicked();
     void on_sim_stopBtn_clicked();
 
-    void addGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);
+    void addGroup(QTableWidget* table, QString n, QString cohort, QString depth, QString sdDepth, QString errorRate);
     void on_sim_groupAddBtn_clicked();
     void on_sim_groupRemoveBtn_clicked();
 
@@ -79,9 +80,7 @@ private slots:
     //qSimulationTab.cpp
     //-----------
 
-    std::vector<SimulationRequestGroup> qConstructGroups(int ntests);
-    SimulationRequest MainWindow::qConstructGroups(int ntests);
-    void qAddGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate);
+    SimulationRequest qConstructRequest(std::vector<SimulationRequestGroup> groups);
 
     void qSimEnableRare(bool value);
 

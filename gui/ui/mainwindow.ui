@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
+    <width>945</width>
     <height>814</height>
    </rect>
   </property>
@@ -603,7 +603,7 @@
        <attribute name="title">
         <string>Power Simulation (case/control)</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="3,2">
+       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="3,1">
         <item>
          <widget class="QGroupBox" name="sim_groupGrp">
           <property name="title">
@@ -679,28 +679,11 @@
             <property name="title">
              <string>Variant Parameters</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_2">
-             <item row="2" column="0">
-              <widget class="QLineEdit" name="sim_variantMafMaxTxt">
-               <property name="text">
-                <string>0.01</string>
-               </property>
-              </widget>
-             </item>
+            <layout class="QFormLayout" name="formLayout_4">
              <item row="0" column="0">
               <widget class="QLineEdit" name="sim_variantSizeTxt">
                <property name="text">
                 <string>5000</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="sim_variantMafMinLbl">
-               <property name="toolTip">
-                <string>Minor allele frequency</string>
-               </property>
-               <property name="text">
-                <string>MAF min</string>
                </property>
               </widget>
              </item>
@@ -714,6 +697,30 @@
                </property>
               </widget>
              </item>
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="sim_variantMafMinTxt">
+               <property name="text">
+                <string>0.01</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="sim_variantMafMinLbl">
+               <property name="toolTip">
+                <string>Minor allele frequency</string>
+               </property>
+               <property name="text">
+                <string>MAF min</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLineEdit" name="sim_variantMafMaxTxt">
+               <property name="text">
+                <string>0.01</string>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="1">
               <widget class="QLabel" name="sim_variantMafMaxLbl">
                <property name="toolTip">
@@ -721,13 +728,6 @@
                </property>
                <property name="text">
                 <string>MAF max</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="sim_variantMafMinTxt">
-               <property name="text">
-                <string>0.01</string>
                </property>
               </widget>
              </item>
@@ -739,14 +739,11 @@
             <property name="title">
              <string>Run Parameters</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_6">
-             <item row="1" column="1">
-              <widget class="QLabel" name="sim_powerStepLbl">
-               <property name="toolTip">
-                <string>Mean read depth of sequencing group</string>
-               </property>
+            <layout class="QFormLayout" name="formLayout_5">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="sim_groupHighLowTxt">
                <property name="text">
-                <string>Steps</string>
+                <string>30</string>
                </property>
               </widget>
              </item>
@@ -760,20 +757,20 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="0">
-              <widget class="QLineEdit" name="sim_groupHighLowTxt">
+             <item row="1" column="0">
+              <widget class="QLineEdit" name="sim_powerStepTxt">
                <property name="text">
-                <string>30</string>
+                <string>2</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
-              <widget class="QLabel" name="sim_oddsRatioLbl">
+             <item row="1" column="1">
+              <widget class="QLabel" name="sim_powerStepLbl">
                <property name="toolTip">
-                <string>Odds ratio of disease</string>
+                <string>Mean read depth of sequencing group</string>
                </property>
                <property name="text">
-                <string>Odds Ratio</string>
+                <string>Steps</string>
                </property>
               </widget>
              </item>
@@ -784,10 +781,13 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLineEdit" name="sim_powerStepTxt">
+             <item row="2" column="1">
+              <widget class="QLabel" name="sim_oddsRatioLbl">
+               <property name="toolTip">
+                <string>Odds ratio of disease</string>
+               </property>
                <property name="text">
-                <string>2</string>
+                <string>Odds Ratio</string>
                </property>
               </widget>
              </item>
@@ -958,7 +958,7 @@
        <attribute name="title">
         <string>Power Simulation (quantitative)</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="3,2">
+       <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="3,1">
         <item>
          <widget class="QGroupBox" name="qsim_groupGrp">
           <property name="title">
@@ -1298,14 +1298,14 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
-                <widget class="QLineEdit" name="sim_threadsTxt_2">
+                <widget class="QLineEdit" name="qsim_threadsTxt">
                  <property name="text">
                   <string>12</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="sim_threadsLbl_2">
+                <widget class="QLabel" name="qsim_threadsLbl">
                  <property name="text">
                   <string># threads</string>
                  </property>

@@ -5,20 +5,20 @@
 const QString sep = ":";
 
 void MainWindow::simulationTabInit(){
-
-    addGroup("100", false, "32", "8", "0.01");
-    addGroup("100:300", true, "6", "2", "0.01");
+    addGroup(ui->sim_groupTbl, "100", "case", "32", "8", "0.01");
+    addGroup(ui->sim_groupTbl, "100:300", "control", "6", "2", "0.01");
+    addGroup(ui->qsim_groupTbl, "1000", "normal", "32", "8", "0.01");
 }
 
-std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
+std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest, QTableWidget* table, int highLow, Family family){
 
     std::vector<SimulationRequestGroup> groups;
 
-    for(int i = 0; i< ui->sim_groupTbl->rowCount(); i++){
+    for(int i = 0; i < table->rowCount(); i++){
 
         SimulationRequestGroup g;
 
-        QString size = ui->sim_groupTbl->item(i, 0)->text();
+        QString size = table->item(i, 0)->text();
 
         if(size.contains(sep)){
 
@@ -46,10 +46,10 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
             g.n_increment=0;
         }
 
-        QString caseControl = ((QComboBox*)ui->sim_groupTbl->indexWidget(ui->sim_groupTbl->model()->index(i, 1)))->currentText();
-        QString meanDepth = ui->sim_groupTbl->item(i, 2)->text();
-        QString sdDepth = ui->sim_groupTbl->item(i, 3)->text();
-        QString errorRate = ui->sim_groupTbl->item(i, 4)->text();
+        QString cohort = ((QComboBox*)table->indexWidget(table->model()->index(i, 1)))->currentText();
+        QString meanDepth = table->item(i, 2)->text();
+        QString sdDepth = table->item(i, 3)->text();
+        QString errorRate = table->item(i, 4)->text();
 
         g.index = i;
 
@@ -72,18 +72,15 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
             throwError(ERROR_SOURCE, "Invalid group settings. Expected error rate to be a numeric value between 0 and 1", std::to_string(g.errorRate));
 
 
-        g.isCase = (caseControl == "case");
+        if(family == Family::BINOMIAL)
+            g.isCase = (cohort == "case");
+        else if (family == Family::NORMAL){
+            //do nothing?
+        }
 
-        ok=false;
-        int highLow = ui->sim_groupHighLowTxt->text().toInt(&ok);
+        (g.meanDepth >= highLow) ? g.readDepth = Depth::HIGH : g.readDepth = Depth::LOW;
+        g.family=family;
 
-        if(!ok || highLow <= 0)
-            throwError(ERROR_SOURCE, "Expected high-low read depth cutoff to be an integer greater than 0", std::to_string(highLow));
-
-
-       (g.meanDepth >= highLow) ? g.readDepth = Depth::HIGH : g.readDepth = Depth::LOW;
-
-        g.family=Family::BINOMIAL;
         groups.push_back(g);
     }
 
@@ -93,7 +90,7 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest){
 SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGroup> groups){
 
     SimulationRequest request;
-    request.family = Family::BINOMIAL;
+    request.family = Family::NORMAL;
     request.groups = groups;
 
     request.testStatistic = Statistic::COMMON;
@@ -170,13 +167,19 @@ void MainWindow::on_sim_runBtn_clicked(){
         int steps = 1;
         if(multitest){
 
-            bool ok=false;
+            ok=false;
             steps = ui->sim_powerStepTxt->text().toInt(&ok);
             if(!ok || steps < 1)
                 throwError(ERROR_SOURCE, "Invalid step value. Expected # steps to be an integer greater than 1.", ui->sim_powerStepTxt->text().toStdString());
         }
 
-        std::vector<SimulationRequestGroup> groups = constructGroups(steps);
+        ok=false;
+        int highLow = ui->sim_groupHighLowTxt->text().toInt(&ok);
+
+        if(!ok || highLow <= 0)
+            throwError(ERROR_SOURCE, "Expected high-low read depth cutoff to be an integer greater than 0", std::to_string(highLow));
+
+        std::vector<SimulationRequestGroup> groups = constructGroups(steps, ui->sim_groupTbl, highLow, Family::BINOMIAL);
         request = constructRequest(groups);
         request.steps = steps;
 
@@ -239,46 +242,51 @@ void MainWindow::on_sim_testRareSkatBtn_toggled(bool checked){
     simEnableRare(checked);
 }
 
-void MainWindow::addGroup(QString n, bool control, QString depth, QString sdDepth, QString errorRate){
+void MainWindow::addGroup(QTableWidget* table, QString n, QString cohort, QString depth, QString sdDepth, QString errorRate){
 
-    ui->sim_groupTbl->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    int index = ui->sim_groupTbl->rowCount();
+    int index = table->rowCount();
 
-    ui->sim_groupTbl->insertRow(index);
+    table->insertRow(index);
 
     QTableWidgetItem* item;
 
     item = new QTableWidgetItem(n);
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsEditable);
-    ui->sim_groupTbl->setItem(index, 0, item);
+    table->setItem(index, 0, item);
 
-    QComboBox *caseControlBox = new QComboBox();
-    caseControlBox->addItem("case");
-    caseControlBox->addItem("control");
+    QComboBox *cohortBox = new QComboBox();
+    if(cohort == "control" || cohort == "case"){
+        cohortBox->addItem("case");
+        cohortBox->addItem("control");
 
-    if(control)
-        caseControlBox->setCurrentIndex(1);
+        if(cohort == "control")
+            cohortBox->setCurrentIndex(1);
+    }
+    else{
+        cohortBox->addItem("normal");
+    }
 
-    ui->sim_groupTbl->setIndexWidget(ui->sim_groupTbl->model()->index(index, 1), caseControlBox);
+    table->setIndexWidget(table->model()->index(index, 1), cohortBox);
 
     item = new QTableWidgetItem(depth);
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsEditable);
-    ui->sim_groupTbl->setItem(index, 2, item);
+    table->setItem(index, 2, item);
 
     item = new QTableWidgetItem(sdDepth);
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsEditable);
-    ui->sim_groupTbl->setItem(index, 3, item);
+    table->setItem(index, 3, item);
 
     item = new QTableWidgetItem(errorRate);
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsEditable);
-    ui->sim_groupTbl->setItem(index, 4, item);
+    table->setItem(index, 4, item);
 
-    ui->sim_groupTbl->selectRow(index);
-    ui->sim_groupTbl->update();
+    table->selectRow(index);
+    table->update();
 }
 
 void MainWindow::on_sim_groupAddBtn_clicked(){
-    addGroup("100", true, "10", "2", "0.01");
+    addGroup(ui->sim_groupTbl, "100", "control", "10", "2", "0.01");
 }
 

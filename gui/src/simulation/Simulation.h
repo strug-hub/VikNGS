@@ -22,6 +22,8 @@ struct SimulationRequestGroup {
 
     Family family;
     bool isCase;
+    double normalMean;
+    double normalSd;
 
     double meanDepth;
     double sdDepth;
@@ -42,7 +44,8 @@ struct SimulationRequestGroup {
     inline double generatePhenotype(){
         if(family == Family::BINOMIAL)
              return (isCase ? 1 : 0);
-
+        if(family == Family::NORMAL)
+            return randomNormal(normalMean, normalSd);
          return 0;
     }
 
@@ -64,11 +67,12 @@ struct SimulationRequestGroup {
 struct SimulationRequest {
 
     int nsnp;
-    double oddsRatio;
-    double r2;
+    double oddsRatio=1;
+    double r2=0;
 
     double mafMin;
     double mafMax;
+
     int steps;
 
     std::vector<SimulationRequestGroup> groups;
@@ -129,10 +133,6 @@ struct SimulationRequest {
             throwError(ERROR_SOURCE, "Maximum minor allele frequency should be a value between 0 and 0.5.", std::to_string(mafMax));
         if (mafMax < mafMin)
             throwError(ERROR_SOURCE, "Maximum minor allele frequency should greater than or equal to minimum minor allele frequency.");
-
-        if (groups.size() < 2)
-            throwError(ERROR_SOURCE,"Simulation requires at least two groups.");
-
         if (nthreads < 1)
             throwError(ERROR_SOURCE,"Number of threads should be at least 1.");
 
@@ -150,6 +150,8 @@ struct SimulationRequest {
 
             int ncase = 0;
             int ncontrol = 0;
+            if(groups.size() < 2)
+                throwError(ERROR_SOURCE, "At least one group should be specified in the group table in order to simulate case-control data.");
 
             for (SimulationRequestGroup g : groups) {
 
@@ -173,6 +175,25 @@ struct SimulationRequest {
                 throwError(ERROR_SOURCE, "Case/control simulation requires at least one case and one control group (" +
                     std::to_string(ncase) + " case and " +
                     std::to_string(ncontrol) + " control groups given).");
+        }
+        if(family == Family::NORMAL){
+            if (r2 < 0 || r2 > 1)
+                throwError(ERROR_SOURCE, "R² (variance explained) value should be between zero and one.", std::to_string(r2));
+
+            if(groups.size() < 1)
+                throwError(ERROR_SOURCE, "At least one group should be specified in the group table in order to simulate data.");
+
+            for (SimulationRequestGroup g : groups) {
+
+                if(g.n < 1)
+                    throwError(ERROR_SOURCE, "Each group should have a sample size of at least 1.");
+                if (g.meanDepth <= 0)
+                    throwError(ERROR_SOURCE, "Mean depth should be a value greater than zero for all groups.");
+                if (g.sdDepth <= 0)
+                    throwError(ERROR_SOURCE, "Read depth standard deviation should be a value greater than zero for all groups.");
+                if (g.errorRate < 0)
+                    throwError(ERROR_SOURCE, "Mean error rate should be a value greater than or equal to zero for all groups.");
+            }
         }
     }
 
@@ -230,7 +251,9 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq);
 Variant randomVariant();
 VectorXi simulateG(SimulationRequest& simReq);
 VectorXd simulateY(SimulationRequest& simReq);
-MatrixXd simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
+MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
+MatrixXd simulateXNormal(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
+
 double inline generateGenotype(double prob_x0, double prob_x1);
 
 VectorXi generateReadDepths(SimulationRequest& simReq);

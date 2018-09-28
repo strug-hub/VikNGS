@@ -47,15 +47,16 @@ VectorXd simulateY(SimulationRequest& simReq) {
 }
 
 /*
-Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio. Adjusts odds ratio with respect to collapsed region.
+Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
+Adjusts odds ratio with respect to collapsed region. For case-control.
 
 @param simReq Provides information about which groups are case/control and sample size.
-@param oddsRatio Odds ratio of being affected given harmful variant.
+@param oddsRatio Odds ratio of being affected given causitive variant.
 @param maf Vector of minor allele frequencies for each variant.
 
 @return MatrixXd of true genotypes (nsnp x nsamp).
 */
-MatrixXd simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
+MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
     int nsnp = maf.size();
 
     MatrixXd X(simReq.maxSize(), nsnp);
@@ -122,6 +123,42 @@ MatrixXd simulateX(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
 
             }
         }
+
+    return X;
+}
+
+/*
+Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
+Adjusts odds ratio with respect to collapsed region. For normal phenotypes.
+
+@param simReq Provides information about Y mean and SD and sample size.
+@param oddsRatio Odds ratio of being affected given causitive variant.
+@param maf Vector of minor allele frequencies for each variant.
+
+@return MatrixXd of true genotypes (nsnp x nsamp).
+*/
+MatrixXd simulateXNormal(SimulationRequest& simReq, double r2, VectorXd& maf){
+    int nsnp = maf.size();
+
+    MatrixXd X(simReq.maxSize(), nsnp);
+
+    for (int h = 0; h < nsnp; h++) {
+
+        int index = 0;
+        bool ok = false;
+
+        for(int i = 0; i < simReq.steps; i++){
+            for (SimulationRequestGroup srg : simReq.groups){
+
+                int n = srg.getIncreaseSize(i);
+
+                for (int j = 0; j < n; j++){
+                    X(index, h) = randomBinomial(2,maf[h]);
+                    index++;
+                }
+            }
+        }
+    }
 
     return X;
 }
