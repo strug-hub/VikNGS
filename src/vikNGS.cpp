@@ -35,13 +35,15 @@ Data startVikNGS(Request req) {
     return result;
 }
 
-bool testBatch(SampleInfo* sampleInfo, std::vector<VariantSet*>& variants, Test& test, int nboot){
+bool testBatch(SampleInfo* sampleInfo, std::vector<VariantSet*>& variants, std::vector<Test>& tests, int nboot){
     if(variants.size() <= 0)
         return true;
 
     for(VariantSet* vs : variants){
-        double pval = runTest(sampleInfo, vs, test, nboot, (nboot > 1));
-        vs->addPval(pval);
+        for(size_t i=0; i < tests.size(); i++){
+            double pval = runTest(sampleInfo, vs, tests[i], nboot, (nboot > 1));
+            vs->addPval(pval);
+        }
     }
 
     return true;
@@ -50,8 +52,8 @@ bool testBatch(SampleInfo* sampleInfo, std::vector<VariantSet*>& variants, Test&
 class ParallelTest
 {
 private:
-    SampleInfo* sampleInfo;
-    Test test;
+    SampleInfo sampleInfo;
+    std::vector<Test> tests;
 
     bool running;
     std::future<bool> testingDone;
@@ -59,15 +61,19 @@ private:
     int nboot;
 
 public:
-    ParallelTest(SampleInfo *si, Test& t) : sampleInfo(si), test(t) { running = false;}
-
+    ParallelTest(SampleInfo si) : sampleInfo(si) { running = false;}
+    void updateSampleInfoY(VectorXd Y){ this->sampleInfo.setY(Y); }
     void beginAssociationTest(std::vector<VariantSet*>& variants, Test& test, int nboot){
+        std::vector<Test> v; v.push_back(test);
+        beginAssociationTest(variants, v, nboot);
+    }
+    void beginAssociationTest(std::vector<VariantSet*>& variants, std::vector<Test>& tests, int nboot){
         running = true;
         this->pointers = variants;
-        this->test = test;
+        this->tests = tests;
         this->nboot = nboot;
         testingDone = std::async(std::launch::async,
-                [this] { return testBatch(sampleInfo, pointers, this->test, this->nboot); }) ;
+                [this] { return testBatch(&sampleInfo, pointers, this->tests, this->nboot); }) ;
     }
     inline bool isTestingDone(){
         return running && testingDone.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -82,7 +88,10 @@ public:
 
 Data startSimulation(SimulationRequest& simReq) {
 
-    printInfo("Simulating data.");
+    if(simReq.family == Family::NORMAL)
+        return startQuantitativeSimulation(simReq);
+
+    printInfo("Simulating case-control data.");
 
     Data result;
     result.sampleInfo = simulateSampleInfo(simReq);
@@ -109,7 +118,7 @@ Data startSimulation(SimulationRequest& simReq) {
     std::vector<ParallelTest> threads;
     Test null(Genotype::NONE, Statistic::NONE);
     for(size_t i = 0; i < nthreads; i++)
-        threads.emplace_back(&result.sampleInfo, null);
+        threads.emplace_back(result.sampleInfo);
 
     for(int i = 0; i < simReq.steps; i++){
 
@@ -166,6 +175,107 @@ Data startSimulation(SimulationRequest& simReq) {
             }
         }
 
+    }
+
+    return result;
+}
+
+Data startQuantitativeSimulation(SimulationRequest& simReq) {
+
+    printInfo("Simulating quantitative data.");
+
+    Data result;
+    result.sampleInfo = simulateSampleInfo(simReq);
+    result.variants = simulateVariants(simReq);
+
+    MatrixXd Y;
+    if(simReq.family == Family::NORMAL)
+        Y = addEffectOnY(simReq, result.variants);
+
+    printInfo("Starting tests...");
+
+    int nboot = 0;
+    if(simReq.useBootstrap)
+        nboot = simReq.nboot;
+    if(!simReq.useBootstrap)
+        nboot = 1;
+
+    std::vector<Test> tests;
+    Test trueGT(Genotype::TRUE, simReq.testStatistic);
+    Test expectedGT(Genotype::EXPECTED, simReq.testStatistic);
+    Test calledGT(Genotype::CALL, simReq.testStatistic);
+
+    tests.push_back(trueGT);
+    tests.push_back(calledGT);
+    tests.push_back(expectedGT);
+
+    size_t nthreads = simReq.nthreads;
+    std::vector<ParallelTest> threads;
+    Test null(Genotype::NONE, Statistic::NONE);
+    for(size_t i = 0; i < nthreads; i++)
+        threads.emplace_back(result.sampleInfo);
+
+    for(int i = 0; i < simReq.steps; i++){
+
+        printInfo("Running step " + std::to_string(i+1) + " of " + std::to_string(simReq.steps) + ".");
+
+        for(size_t j = 0; j < tests.size(); j++){
+            tests[j].setSampleSize(simReq.nsamp(i));
+            result.tests.push_back(tests[j]);
+        }
+
+        if(nthreads <= 1){
+            for(size_t k = 0; k < result.variants.size(); k++){
+
+                result.sampleInfo.setY(Y.col(k));
+                result.sampleInfo.setFamily(Family::NORMAL);
+
+                for(size_t j = 0; j < tests.size(); j++){
+                    double pval = runTest(&result.sampleInfo, &result.variants[k], tests[j], nboot, simReq.stopEarly);
+                    result.variants[k].addPval(pval);
+                }
+            }
+        }
+
+        //multithreaded
+        else{
+            size_t counter = 0;
+            std::vector<VariantSet*> vs;
+
+            while(counter < result.variants.size()){
+
+                for(size_t k = 0; k < nthreads; k++){
+                    if(threads[k].isTestingDone())
+                        threads[k].setDone();
+
+                    if(!threads[k].isRunning()){
+                        threads[k].updateSampleInfoY(Y.col(counter));
+                        vs.push_back(&result.variants[counter]);
+                        threads[k].beginAssociationTest(vs, tests, nboot);
+                        vs.clear();
+                        counter++;
+                        if(counter >= result.variants.size())
+                            break;
+                    }
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+
+            while(true){
+
+                bool isDone = true;
+                for(size_t k = 0; k < nthreads; k++){
+                    if(threads[k].isTestingDone())
+                        threads[k].setDone();
+                    if(threads[k].isRunning())
+                        isDone = false;
+                }
+
+                if(isDone)
+                    break;
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+        }
     }
 
     return result;

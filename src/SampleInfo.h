@@ -18,7 +18,7 @@ private:
         double epsilon = 1e-8;
         //if a value not 0 or 1 is found, assume quantitative data
         for(int i = 0; i < Y.rows(); i++){
-            if( !(std::abs(Y[i]) > epsilon || std::abs(Y[i] - 1) > epsilon)){
+            if( !(std::abs(Y[i]) < epsilon || std::abs(Y[i] - 1) < epsilon)){
                 family=Family::NORMAL;
                 return;
             }
@@ -38,7 +38,7 @@ public:
     inline VectorXd getY(){ return Y; }
     inline MatrixXd getZ(){ return Z; }
     inline Family getFamily(){ return family; }
-    inline Family setFamily(){ return family; }
+    inline void setFamily(Family fam){ family = fam; }
 
     inline bool hasCovariates() { return Z.rows() > 0 && Z.cols() > 0; }
     inline int ncov() { return Z.cols() -1; }

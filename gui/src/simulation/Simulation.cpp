@@ -31,7 +31,6 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq) {
     int nsnp = simReq.nsnp;
     int collapseSize = simReq.collapse;
     double oddsRatio = simReq.oddsRatio;
-    double r2 = simReq.r2;
 
     double minMaf = simReq.mafMin;
     double maxMaf = simReq.mafMax;
@@ -43,14 +42,19 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq) {
         for (int i = 0; i < collapseSize; i++)
             maf[i] = randomDouble(minMaf, maxMaf);
 
+        MatrixXd X;
         //note: each matrix is nsnp x nsamp
-        MatrixXd X = simulateX(simReq, oddsRatio, maf);
+        if(simReq.family == Family::BINOMIAL)
+            X = simulateXCaseControl(simReq, oddsRatio, maf);
+        else if(simReq.family == Family::NORMAL)
+            X = simulateXNormal(simReq, oddsRatio, maf);
 
         VariantSet vs;
         variants.push_back(vs);
         VariantSet* setPointer = &variants.back();
 
         for (int j = 0; j < collapseSize; j++){
+            setPointer->addTrueMaf(maf[j]);
             Variant v = randomVariant();
 
             VectorXd trueX = X.col(j);

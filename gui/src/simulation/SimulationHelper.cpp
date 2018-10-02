@@ -47,6 +47,59 @@ VectorXd simulateY(SimulationRequest& simReq) {
 }
 
 /*
+Adds the Normal effect of genotype to the phenotypes
+
+@param simReq Provides simulation parameters.
+@param variants Provides genotype and maf information.
+
+@return MatrixXD of phenotypes.
+*/
+MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& variants) {
+
+    int nrow = simReq.maxSize();
+    int ncol = variants.size();
+
+    MatrixXd Y(nrow, ncol);
+
+    double r = std::sqrt(simReq.r2);
+
+    for(size_t h = 0; h < ncol; h++){
+        VectorXd y(nrow);
+
+        double sdX = 1e-12;
+
+        for(size_t m = 0; m < variants[h].size(); m++){
+            double maf = variants[h].getTrueMaf(m);
+            sdX = std::sqrt(2*maf*(1-maf));
+        }
+
+        int index = 0;
+        for(int i = 0; i < simReq.steps; i++){
+            for(size_t j = 0; j < simReq.groups.size(); j++){
+                int n = simReq.groups[j].getIncreaseSize(i);
+
+                double beta0 = simReq.groups[j].normalMean;
+                double sdY = simReq.groups[j].normalSd;
+
+                double beta1 = r*(sdY/sdX);
+
+                for (int k = 0; k < n; k++){
+                    MatrixXd X = variants[h].getX(Genotype::TRUE);
+
+                    //todo: if collapsed?
+
+                    Y(index, h) = randomNormal(beta0+beta1*X(k,0), sdY);
+                    index++;
+                }
+            }
+        }
+
+    }
+
+    return Y;
+}
+
+/*
 Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
 Adjusts odds ratio with respect to collapsed region. For case-control.
 
@@ -61,28 +114,30 @@ MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, Vecto
 
     MatrixXd X(simReq.maxSize(), nsnp);
     std::vector<double> oddsRatios(static_cast<size_t>(nsnp));
-    oddsRatios[0] = oddsRatio;
+//    oddsRatios[0] = oddsRatio;
+
+    double OR = oddsRatio;
 
     //decay odds ratio outward from causitive variant
-    if(nsnp > 1){
-        int effectIndex = randomInt(0, nsnp-1);
-        oddsRatios[static_cast<size_t>(effectIndex)] = oddsRatio;
-
-        double lastOR = oddsRatio;
-        for(int j = effectIndex-1; j >= 0; j--){
-            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-            oddsRatios[static_cast<size_t>(j)] = lastOR;
-        }
-        lastOR = oddsRatio;
-        for(int j = effectIndex+1; j < nsnp; j++){
-            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-            oddsRatios[static_cast<size_t>(j)] = lastOR;
-        }
-    }
+//    if(nsnp > 1){
+//        int effectIndex = randomInt(0, nsnp-1);
+//        oddsRatios[static_cast<size_t>(effectIndex)] = oddsRatio;
+//
+//        double lastOR = oddsRatio;
+//        for(int j = effectIndex-1; j >= 0; j--){
+//            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+//            oddsRatios[static_cast<size_t>(j)] = lastOR;
+//        }
+//        lastOR = oddsRatio;
+//        for(int j = effectIndex+1; j < nsnp; j++){
+//            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
+//            oddsRatios[static_cast<size_t>(j)] = lastOR;
+//        }
+//    }
 
     for (int h = 0; h < nsnp; h++) {
 
-            double OR = oddsRatios[static_cast<size_t>(h)];
+//            double OR = oddsRatios[static_cast<size_t>(h)];
 
             double p_x0_y0 = (1 - maf[h]) * (1 - maf[h]);
             double p_x1_y0 = 2 * maf[h] * (1 - maf[h]);
@@ -145,15 +200,13 @@ MatrixXd simulateXNormal(SimulationRequest& simReq, double r2, VectorXd& maf){
     for (int h = 0; h < nsnp; h++) {
 
         int index = 0;
-        bool ok = false;
-
         for(int i = 0; i < simReq.steps; i++){
             for (SimulationRequestGroup srg : simReq.groups){
 
                 int n = srg.getIncreaseSize(i);
 
                 for (int j = 0; j < n; j++){
-                    X(index, h) = randomBinomial(2,maf[h]);
+                    X(index, h) = randomBinomial(2, maf[h]);
                     index++;
                 }
             }

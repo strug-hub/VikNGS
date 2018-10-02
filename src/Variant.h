@@ -109,6 +109,7 @@ inline bool variantCompare(Variant lhs, Variant rhs) { return lhs < rhs; }
 struct VariantSet{
 private:
     std::vector<Variant> variants;
+    std::vector<double> trueMaf;
     std::vector<double> pval;
     int nvalid = 0;
     Interval *interval;
@@ -145,8 +146,11 @@ public:
                                                             (variants[0].getPosition() + variants.back().getPosition())/2.0; }
 
     inline void addPval(double p) { pval.push_back(p); }
+    inline void addTrueMaf(double maf) { trueMaf.push_back(maf); }
 
     inline double getPval(size_t i) { return pval[i]; }
+    inline double getTrueMaf(size_t i) { return trueMaf[i]; }
+
     inline int nPvals() { return static_cast<int>(this->pval.size()); }
     inline int size(){ return static_cast<int>(variants.size()); }
     inline int validSize(){ return nvalid; }

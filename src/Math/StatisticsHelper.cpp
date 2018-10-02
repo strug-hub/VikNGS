@@ -70,13 +70,19 @@ double chiSquareOneDOF(double statistic) {
         prevSum = sum;
     }
 
+    double minVal = 1e-14;
+
     double p = sum * sc;
-    if (std::isnan(p) || std::isinf(p) || p <= 1e-8)
-        return 1;
+    if (std::isnan(p) || p < 0)
+        return NAN;
+
+    if(std::isinf(p))
+        return minVal;
 
     p /= tgamma(0.5);
 
-    return std::max(1 - p, 1e-14);
+    p = std::max(p, 0.0);
+    return std::max(1 - p, minVal);
 }
 
 //same as doing pairwise.complete.obs in R

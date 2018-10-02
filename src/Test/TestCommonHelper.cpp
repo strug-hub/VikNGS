@@ -87,13 +87,13 @@ double normalVariance(double var_y, VectorXd& X, VectorXi& G,
     for(int i = 0; i <= gmax; i++){
 
         if (rvs && d[i] == Depth::HIGH)
-            var += n[G[i]] * var_y * robustVar;
+            var += n[i] * var_y * robustVar;
         else
-            var += n[G[i]] * var_y * variance(X, G, i);
-
+            var += n[i] * var_y * variance(X, G, i);
     }
 
-    return var / X.rows();
+    return var;
+    //return var / X.rows();
 }
 
 double getVarianceNormal(VectorXd& Y, VectorXd& X, VectorXi& G,

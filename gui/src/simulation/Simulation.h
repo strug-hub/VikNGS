@@ -45,7 +45,7 @@ struct SimulationRequestGroup {
         if(family == Family::BINOMIAL)
              return (isCase ? 1 : 0);
         if(family == Family::NORMAL)
-            return randomNormal(normalMean, normalSd);
+            return normalMean;
          return 0;
     }
 
@@ -245,12 +245,14 @@ struct SimulationRequest {
 };
 
 Data startSimulation(SimulationRequest& simReq);
+Data startQuantitativeSimulation(SimulationRequest& simReq);
 SampleInfo simulateSampleInfo(SimulationRequest& simReq);
 std::vector<VariantSet> simulateVariants(SimulationRequest& simReq);
 
 Variant randomVariant();
 VectorXi simulateG(SimulationRequest& simReq);
 VectorXd simulateY(SimulationRequest& simReq);
+MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& variants);
 MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
 MatrixXd simulateXNormal(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
 
