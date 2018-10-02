@@ -191,13 +191,9 @@ bool testBatch(Request* req, SampleInfo* sampleInfo, std::vector<VariantSet*> &v
             if(variants[i]->validSize() > 0){
                 double pval = runTest(sampleInfo, variants[i], t, nboot, req->useStopEarly());
                 variants[i]->addPval(pval);
-                printInfo(std::to_string(pval) + " " + std::to_string(variants.size()-i) + " left.");
             }
         }
     }
-
-    //todo?
-    //outputPvals(results, req.outputDir);
 
     return true;
 }
@@ -319,7 +315,6 @@ public:
 
         for(size_t i = 0; i < n; i++){
             pointers.push_back(vs.front());
-            printInfo( "nsnp: " + std::to_string(pointers.back()->size()));
             vs.pop_front();
         }
 

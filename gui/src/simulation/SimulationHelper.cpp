@@ -13,6 +13,10 @@ VectorXi simulateG(SimulationRequest& simReq) {
 
     for(int i = 0; i < simReq.steps; i++)
         for(size_t j = 0; j < simReq.groups.size(); j++){
+
+            if(STOP_RUNNING_THREAD)
+                return G;
+
             int n = simReq.groups[j].getIncreaseSize(i);
             for (int k = 0; k < n; k++){
                 G[index] = simReq.groups[j].index;
@@ -36,6 +40,10 @@ VectorXd simulateY(SimulationRequest& simReq) {
 
     for(int i = 0; i < simReq.steps; i++)
         for(size_t j = 0; j < simReq.groups.size(); j++){
+
+            if(STOP_RUNNING_THREAD)
+                return Y;
+
             int n = simReq.groups[j].getIncreaseSize(i);
             for (int k = 0; k < n; k++){
                 Y[index] = simReq.groups[j].generatePhenotype();
@@ -64,6 +72,10 @@ MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& varian
     double r = std::sqrt(simReq.r2);
 
     for(size_t h = 0; h < ncol; h++){
+
+        if(STOP_RUNNING_THREAD)
+            return Y;
+
         VectorXd y(nrow);
 
         double sdX = 1e-12;

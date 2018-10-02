@@ -69,9 +69,10 @@ void SimPlotWindow::getPvalues(std::vector<VariantSet>& variants){
     for(size_t i = 0; i < variants[0].nPvals(); i++){
         std::vector<double> pval_i(variants.size());
 
-        for(size_t j = 0; j < variants.size(); j++)
-            pval_i[j] = variants[j].getPval(i);
-
+        for(size_t j = 0; j < variants.size(); j++){
+            if(variants[j].nPvals() > i)
+                pval_i[j] = variants[j].getPval(i);
+        }
         std::sort(pval_i.begin(), pval_i.end());
         pvalues.push_back(pval_i);
     }

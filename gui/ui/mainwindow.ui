@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>C:/Users/scott/Documents/chr7/chr7.vcf</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/alspac.slc26a9.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>C:/Users/scott/Documents/chr7/threegroups_.txt</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/ALSPAC_FEVR_cov.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -288,7 +288,7 @@
                <item>
                 <widget class="QLineEdit" name="main_bedDirTxt">
                  <property name="text">
-                  <string>C:/Users/scott/Documents/chr7/chr7.bed</string>
+                  <string/>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -401,7 +401,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -411,7 +411,7 @@
                   <string>Rare (CAST)</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -435,7 +435,7 @@
                   <string>Bootstrap</string>
                  </property>
                  <property name="checked">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -444,7 +444,7 @@
                  <item>
                   <widget class="QLineEdit" name="main_testBootTxt">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string>10</string>
@@ -453,6 +453,9 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="main_testBootLbl">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string># iterations</string>
                    </property>
@@ -463,7 +466,7 @@
                <item>
                 <widget class="QCheckBox" name="main_testStopChk">
                  <property name="enabled">
-                  <bool>true</bool>
+                  <bool>false</bool>
                  </property>
                  <property name="text">
                   <string>Stop Early</string>
@@ -492,7 +495,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>1</string>
+                  <string>12</string>
                  </property>
                 </widget>
                </item>
@@ -509,7 +512,7 @@
                   <bool>true</bool>
                  </property>
                  <property name="text">
-                  <string>100</string>
+                  <string>1000</string>
                  </property>
                 </widget>
                </item>
@@ -526,7 +529,7 @@
                   <string>Plot results</string>
                  </property>
                  <property name="checked">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
@@ -1176,7 +1179,7 @@
                <item row="2" column="0">
                 <widget class="QLineEdit" name="qsim_R2Txt">
                  <property name="text">
-                  <string>1.0</string>
+                  <string>0</string>
                  </property>
                 </widget>
                </item>

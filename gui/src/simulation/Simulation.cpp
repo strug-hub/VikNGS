@@ -39,6 +39,9 @@ std::vector<VariantSet> simulateVariants(SimulationRequest& simReq) {
 
     for (int i = 0; i < nsnp; i+=collapseSize){
 
+        if(STOP_RUNNING_THREAD)
+            return variants;
+
         for (int i = 0; i < collapseSize; i++)
             maf[i] = randomDouble(minMaf, maxMaf);
 

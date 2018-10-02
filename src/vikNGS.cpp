@@ -95,7 +95,14 @@ Data startSimulation(SimulationRequest& simReq) {
 
     Data result;
     result.sampleInfo = simulateSampleInfo(simReq);
+
+    if(STOP_RUNNING_THREAD)
+        return result;
+
     result.variants = simulateVariants(simReq);
+
+    if(STOP_RUNNING_THREAD)
+        return result;
 
     printInfo("Starting tests...");
 
@@ -142,6 +149,9 @@ Data startSimulation(SimulationRequest& simReq) {
                 std::vector<VariantSet*> vs;
                 while(counter < result.variants.size()){
 
+                    if(STOP_RUNNING_THREAD)
+                        break;
+
                     vs.push_back(&result.variants[counter]);
 
                     if(vs.size() >= batchSize && threadsRunning < (nthreads-1)){
@@ -186,11 +196,21 @@ Data startQuantitativeSimulation(SimulationRequest& simReq) {
 
     Data result;
     result.sampleInfo = simulateSampleInfo(simReq);
+
+    if(STOP_RUNNING_THREAD)
+        return result;
+
     result.variants = simulateVariants(simReq);
+
+    if(STOP_RUNNING_THREAD)
+        return result;
 
     MatrixXd Y;
     if(simReq.family == Family::NORMAL)
         Y = addEffectOnY(simReq, result.variants);
+
+    if(STOP_RUNNING_THREAD)
+        return result;
 
     printInfo("Starting tests...");
 
@@ -227,6 +247,9 @@ Data startQuantitativeSimulation(SimulationRequest& simReq) {
         if(nthreads <= 1){
             for(size_t k = 0; k < result.variants.size(); k++){
 
+                if(STOP_RUNNING_THREAD)
+                    return result;
+
                 result.sampleInfo.setY(Y.col(k));
                 result.sampleInfo.setFamily(Family::NORMAL);
 
@@ -243,6 +266,9 @@ Data startQuantitativeSimulation(SimulationRequest& simReq) {
             std::vector<VariantSet*> vs;
 
             while(counter < result.variants.size()){
+
+                if(STOP_RUNNING_THREAD)
+                    break;
 
                 for(size_t k = 0; k < nthreads; k++){
                     if(threads[k].isTestingDone())

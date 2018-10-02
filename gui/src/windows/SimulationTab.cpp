@@ -128,6 +128,23 @@ void MainWindow::simulationFinished(Data results, SimulationRequest req){
     enableRun();
 
     if(results.size() > 0){
+
+        bool showWindow = false;
+        for(VariantSet vs : results.variants){
+            for(int i = 0; i < vs.nPvals(); i++){
+                if(!std::isnan(vs.getPval(i))){
+                    showWindow = true;
+                    goto done;
+                }
+            }
+        }
+
+        done:
+
+        if(!showWindow){
+            printInfo("Simulation stopped");
+            return;
+        }
         SimPlotWindow *plotter = new SimPlotWindow();
         QString title = "Plot " + QString::number(plotCount);
         plotCount++;
