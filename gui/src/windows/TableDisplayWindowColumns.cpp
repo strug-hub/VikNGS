@@ -139,8 +139,8 @@ void TableDisplayWindow::addMafsCaseControl(int nrow, QStringList &titles, QVect
 
     QColor mafColour = QColor(194, 214, 211);
     std::string caseControl = useCases ? " case MAF" : " control MAF";
-    for(size_t j = 0; j < tests->size(); j++){
-        Genotype genotype = tests->at(j).getGenotype();
+    for(size_t j = 0; j < testIndexes.size(); j++){
+        Genotype genotype = tests->at(testIndexes[j]).getGenotype();
         titles.append(QString::fromStdString(genotypeToString(genotype) + caseControl));
 
         QVector<QTableWidgetItem*> mafs(nrow);
@@ -161,5 +161,28 @@ void TableDisplayWindow::addMafsCaseControl(int nrow, QStringList &titles, QVect
     }
 }
 
+void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table){
 
+    QColor mafColour = QColor(194, 214, 211);
+    for(size_t j = 0; j < tests->size(); j++){
+        Genotype genotype = tests->at(j).getGenotype();
+        titles.append(QString::fromStdString(genotypeToString(genotype) + " MAF"));
 
+        QVector<QTableWidgetItem*> mafs(nrow);
+
+        int i = 0;
+        for(size_t n = 0; n < variants->size(); n++){
+            for(size_t m = 0; m < variants->at(n).size(); m++){
+
+                double maf = calculateMaf(variants->at(n).getVariants()->at(m).getGenotype(genotype), false, false);
+                mafColour.setAlpha(std::min(255.0, maf*255.0*2.0));
+                QTableWidgetItem* mcell = new QTableWidgetItem(QString::number(maf));
+                mcell->setBackgroundColor(mafColour);
+                mafs[i] = mcell;
+                i++;
+            }
+        }
+        table.push_back(mafs);
+    }
+
+}

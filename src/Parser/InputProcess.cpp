@@ -71,6 +71,9 @@ std::vector<Variant> constructVariants(Request* req, SampleInfo* sampleInfo, std
 
             variant.setFilter(filter);
         }
+
+        //outputDebug(lines[i], "/media/scott/Rotom/vikngs_paper_data/chr2/");
+
         variants.push_back(variant);
     }
     variants.shrink_to_fit();
@@ -197,28 +200,6 @@ bool testBatch(Request* req, SampleInfo* sampleInfo, std::vector<VariantSet*> &v
 
     return true;
 }
-
-std::vector<VariantSet> parseAndTest(Request* req, SampleInfo* sampleInfo, std::vector<std::string> &lines){
-
-    std::vector<VariantSet> result;
-
-    if(lines.size() <= 0)
-        return result;
-
-    std::vector<Variant> variants = constructVariants(req, sampleInfo, lines);
-    VariantSet leftover;
-    result = collapseVariants(req, variants, leftover);
-    variants.clear();
-
-    std::vector<VariantSet*> vs;
-    for(VariantSet v : result)
-        vs.push_back(&v);
-
-    testBatch(req, sampleInfo, vs);
-
-    return result;
-}
-
 
 class ParallelProcess
 {

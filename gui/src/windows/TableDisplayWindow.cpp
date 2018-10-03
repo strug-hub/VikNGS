@@ -28,6 +28,8 @@ void TableDisplayWindow::initialize(QString title, Data* data, std::vector<int> 
 
     this->g = data->sampleInfo.getG();
     this->y = data->sampleInfo.getY();
+    this->family = data->sampleInfo.getFamily();
+
     if(nsamples > 0){
         VectorXi G = g.block(0, 0, nsamples, g.cols()); this->g = G;
         VectorXd Y = y.block(0, 0, nsamples, y.cols()); this->y = Y;
@@ -88,8 +90,13 @@ void TableDisplayWindow::buildVariantTable(){
     addPvals(nrow, titles, table);
 
     //if caseControl
-    addMafsCaseControl(nrow, titles, table, true);
-    addMafsCaseControl(nrow, titles, table, false);
+    if(this->family == Family::BINOMIAL){
+        addMafsCaseControl(nrow, titles, table, true);
+        addMafsCaseControl(nrow, titles, table, false);
+    }
+    else if(this->family == Family::NORMAL){
+        addMafs(nrow, titles, table);
+    }
 
     int ncol = titles.size();
     ui->table_variantTbl->setColumnCount(ncol);

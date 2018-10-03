@@ -37,10 +37,12 @@ private:
     int nsamples;
     VectorXd y;
     VectorXi g;
+    Family family;
 
     //variants table
     void addInfo(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
     void addPvals(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
+    void addMafs(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table);
     void addMafsCaseControl(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, bool useCases=true);
     double calculateMaf(VectorXd* gt, bool caseOnly=false, bool controlOnly=false);
 

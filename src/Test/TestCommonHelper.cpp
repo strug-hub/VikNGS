@@ -13,7 +13,7 @@ double getVariance(TestObject& o, Test& test, Family family){
                 return getVarianceBinomial(*o.getYcenter(), X, *o.getG(),
                                            *o.getDepths(), o.getRobustVar(), test.isRVS());
             if(family == Family::NORMAL)
-                return getVarianceNormalCovariates(*o.getYcenter(), X, *o.getG(),
+                return getVarianceNormal(*o.getYcenter(), X, *o.getG(),
                                                    *o.getDepths(), o.getRobustVar(), test.isRVS());
         }
         else{
@@ -22,7 +22,7 @@ double getVariance(TestObject& o, Test& test, Family family){
                 return getVarianceBinomial(*o.getYcenter(), X, *o.getG(),
                                            *o.getDepths(), o.getRobustVar(), test.isRVS());
             if(family == Family::NORMAL)
-                return getVarianceNormal(*o.getY(), X, *o.getG(),
+                return getVarianceNormal(*o.getYcenter(), X, *o.getG(),
                                          *o.getDepths(), o.getRobustVar(), test.isRVS());
         }
     }
@@ -92,18 +92,10 @@ double normalVariance(double var_y, VectorXd& X, VectorXi& G,
             var += n[i] * var_y * variance(X, G, i);
     }
 
-    return var;
-    //return var / X.rows();
+    return var / X.rows();
 }
 
-double getVarianceNormal(VectorXd& Y, VectorXd& X, VectorXi& G,
-                          std::map<int, Depth>& d, double robustVar, bool rvs) {
-    double var_y = variance(Y);
-    //TODO: should I divide by # of samples?
-    return normalVariance(var_y, X, G, d, robustVar, rvs);
-}
-
-double getVarianceNormalCovariates(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
+double getVarianceNormal(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
                           std::map<int, Depth>& d, double robustVar, bool rvs) {
         double var_y = Ycenter.array().pow(2).sum();
         return normalVariance(var_y, X, G, d, robustVar, rvs);
@@ -125,8 +117,6 @@ double getVarianceRegular(VectorXd& Ycenter, VectorXd& X, VectorXd& MU, Family f
         double sum2 = 0;
         double sum3 = 0;
         for(int i = 0; i < X.rows(); i++){
-            double x = X[i];
-
             sum1 += var1[i] * X[i] * X[i];
             sum2 += var1[i] * X[i];
             sum3 += var1[i];

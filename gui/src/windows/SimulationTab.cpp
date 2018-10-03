@@ -90,7 +90,6 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int ntest, QTabl
 SimulationRequest MainWindow::constructRequest(std::vector<SimulationRequestGroup> groups){
 
     SimulationRequest request;
-    request.family = Family::NORMAL;
     request.groups = groups;
 
     request.testStatistic = Statistic::COMMON;
@@ -172,7 +171,6 @@ void MainWindow::on_sim_runBtn_clicked(){
     greyOutput();
     disableRun();
 
-    SimulationRequest request;
     bool ok=false;
 
     bool multitest = false;
@@ -197,7 +195,8 @@ void MainWindow::on_sim_runBtn_clicked(){
             throwError(ERROR_SOURCE, "Expected high-low read depth cutoff to be an integer greater than 0", std::to_string(highLow));
 
         std::vector<SimulationRequestGroup> groups = constructGroups(steps, ui->sim_groupTbl, highLow, Family::BINOMIAL);
-        request = constructRequest(groups);
+        SimulationRequest request = constructRequest(groups);
+        request.family = Family::BINOMIAL;
         request.steps = steps;
 
         int nthreads = ui->sim_threadsTxt->text().toInt(&ok);

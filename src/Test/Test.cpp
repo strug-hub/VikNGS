@@ -23,23 +23,34 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family) {
         VectorXd scoreV = getScoreVector(*o.getYcenter(), *o.getX());
         MatrixXd diagS = getVarianceMatrix(o, test, family);
 
-        //std::string tre = test.toString();
-        //MatrixXd xxx = *o.getX();
-
         if(s == Statistic::CAST){
-
-
             return pnorm(scoreV.sum() / sqrt(diagS.sum()));
         }
 
         else if(s == Statistic::SKAT){
+
+            auto g = diagS.eigenvalues();
+            VectorXd f = diagS.eigenvalues().real();
+
+            //todo: temporary solution to eigenvalue issue
+            bool useCalpha = f.sum() < 1e-4;
+            for(int e = 0; e < f.rows(); e++)
+                if(f[e] < 0)
+                    useCalpha = true;
+
+            if(useCalpha){
+                VectorXd e = diagS.eigenvalues().real();
+                std::vector<double> eigenvals(e.data(), e.data() + e.size());
+                CQF pval;
+                return pval.qfc(eigenvals, scoreV.array().pow(2).sum(), scoreV.rows());
+            }
+
+            //skat-Z
+
             VectorXd A = o.mafWeightVector();
             double quad = 0;
             for(int i = 0; i < scoreV.rows(); i++)
                 quad += scoreV[i]*A[i]*scoreV[i];
-
-            //auto g = diagS.eigenvalues();
-            //VectorXd f = diagS.eigenvalues().real();
 
             MatrixXd sigma = diagS.sqrt() * A.asDiagonal() * diagS.sqrt();
             VectorXd e = sigma.eigenvalues().real();

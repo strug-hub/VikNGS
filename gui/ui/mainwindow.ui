@@ -27,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="movable">
        <bool>true</bool>
@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/alspac.slc26a9.vcf</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/chr2/filtered.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/ALSPAC_FEVR_cov.txt</string>
+                  <string>/media/scott/Rotom/vikngs_paper_data/chr2/samples.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -686,7 +686,7 @@
              <item row="0" column="0">
               <widget class="QLineEdit" name="sim_variantSizeTxt">
                <property name="text">
-                <string>5000</string>
+                <string>1000</string>
                </property>
               </widget>
              </item>
@@ -1220,6 +1220,9 @@
                  </item>
                  <item>
                   <widget class="QRadioButton" name="qsim_testRareCastBtn">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string>Rare (CAST)</string>
                    </property>
@@ -1230,6 +1233,9 @@
                  </item>
                  <item>
                   <widget class="QRadioButton" name="qsim_testRareSkatBtn">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="text">
                     <string>Rare (SKAT)</string>
                    </property>

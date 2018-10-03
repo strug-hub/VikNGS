@@ -14,15 +14,10 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
 double getVariance(TestObject& o, Test& test, Family family);
 double getVarianceBinomial(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
                            std::map<int, Depth>& d, double robustVar, bool rvs);
-double getVarianceNormal(VectorXd& Y, VectorXd& X, VectorXi& G,
-                          std::map<int, Depth>& d, double robustVar, bool rvs);
-double getVarianceNormalCovariates(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
+double getVarianceNormal(VectorXd& Ycenter, VectorXd& X, VectorXi& G,
                           std::map<int, Depth>& d, double robustVar, bool rvs);
 double getVarianceRegular(VectorXd& Y, VectorXd& X, VectorXd& MU,  Family family);
 double getVarianceRegularCovariates(VectorXd& Ycenter, VectorXd& X, MatrixXd& Z, VectorXd& MU, Family family);
-
-double getVarianceMatrix(VectorXd* Y, MatrixXd* X, int col, VectorXd* MU,  Family family);
-
 
 //TestRareHelper.cpp
 VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X);

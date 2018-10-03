@@ -10,6 +10,8 @@ SampleInfo simulateSampleInfo(SimulationRequest& simReq) {
     SampleInfo info;
     info.setG(simulateG(simReq));
     info.setY(simulateY(simReq));
+    info.setFamily(simReq.family);
+
 
     std::map<int, Depth> groupDepth;
     for(size_t j = 0; j < simReq.groups.size(); j++)

@@ -7,7 +7,6 @@ const QString sep = ":";
 SimulationRequest MainWindow::qConstructRequest(std::vector<SimulationRequestGroup> groups){
 
     SimulationRequest request;
-    request.family = Family::NORMAL;
     request.groups = groups;
 
     request.testStatistic = Statistic::COMMON;
@@ -53,7 +52,6 @@ void MainWindow::on_qsim_runBtn_clicked(){
     greyOutput();
     disableRun();
 
-    SimulationRequest request;
     bool ok=false;
 
     bool multitest = false;
@@ -77,7 +75,8 @@ void MainWindow::on_qsim_runBtn_clicked(){
             throwError(ERROR_SOURCE, "Expected high-low read depth cutoff to be an integer greater than 0", std::to_string(highLow));
 
         std::vector<SimulationRequestGroup> groups = constructGroups(steps, ui->qsim_groupTbl, highLow, Family::NORMAL);
-        request = qConstructRequest(groups);
+        SimulationRequest request = qConstructRequest(groups);
+        request.family = Family::NORMAL;
 
         ok=false;
         double normalMean = ui->qsim_meanTxt->text().toDouble(&ok);
