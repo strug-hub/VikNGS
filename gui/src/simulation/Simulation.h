@@ -87,7 +87,13 @@ struct SimulationRequest {
 
     inline bool underNull(){
         double epsilon = 1e-8;
-        return (oddsRatio + epsilon > 1 && oddsRatio - epsilon < 1);
+
+        if(family == Family::BINOMIAL)
+            return (oddsRatio + epsilon > 1 && oddsRatio - epsilon < 1);
+        else if (family == Family::NORMAL)
+            return (r2 + epsilon > 0 && r2 - epsilon < 0);
+
+        else return false;
     }
 
     int mxSize;
@@ -248,11 +254,13 @@ Data startSimulation(SimulationRequest& simReq);
 Data startQuantitativeSimulation(SimulationRequest& simReq);
 SampleInfo simulateSampleInfo(SimulationRequest& simReq);
 std::vector<VariantSet> simulateVariants(SimulationRequest& simReq);
+std::vector<VariantSet> simulateVariant(SimulationRequest& simReq);
 
 Variant randomVariant();
 VectorXi simulateG(SimulationRequest& simReq);
 VectorXd simulateY(SimulationRequest& simReq);
 MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& variants);
+VectorXd addEffectOnY(SimulationRequest& simReq, VariantSet& variant);
 MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
 MatrixXd simulateXNormal(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
 

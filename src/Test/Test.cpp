@@ -11,7 +11,7 @@ Calculates test statistic.
 
 @return test statistic
 */
-double calculateTestStatistic(TestObject& o, Test& test, Family family) {
+double calculateTestStatistic(TestObject& o, Test& test, Family family, bool print) {
     Statistic s = test.getStatistic();
 
     if(s == Statistic::COMMON){
@@ -22,6 +22,12 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family) {
     else {
         VectorXd scoreV = getScoreVector(*o.getYcenter(), *o.getX());
         MatrixXd diagS = getVarianceMatrix(o, test, family);
+
+       //debugging
+       // if(print && test.getGenotype() == Genotype::EXPECTED){
+       //     outputVector(scoreV, "score");
+       //     outputMatrix(diagS, "var");
+       // }
 
         if(s == Statistic::CAST){
             return pnorm(scoreV.sum() / sqrt(diagS.sum()));
@@ -78,7 +84,7 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
 
         o.bootstrap(bootTest, bootFam);
 
-        tsamp = calculateTestStatistic(o, bootTest, bootFam);
+        tsamp = calculateTestStatistic(o, bootTest, bootFam, false);
 
         if (std::abs(tsamp) <= std::abs(testStatistic))
             tcount++;
@@ -121,7 +127,14 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
 
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());
 
-    double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily());
+    double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
+
+    //debugging
+    //if(test.getGenotype() == Genotype::EXPECTED){
+    //    outputMatrix(*o.getX(), "X");
+    //    outputVector(*o.getY(), "Y");
+    //    outputMatrix(*o.getP(), "P");
+    //}
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);

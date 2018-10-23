@@ -27,7 +27,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="movable">
        <bool>true</bool>
@@ -53,7 +53,7 @@
                <item>
                 <widget class="QLineEdit" name="main_vcfDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/chr2/filtered.vcf</string>
+                  <string>C:/Users/scott/Desktop/small.test.vcf</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -204,7 +204,7 @@
                <item>
                 <widget class="QLineEdit" name="main_sampleDirTxt">
                  <property name="text">
-                  <string>/media/scott/Rotom/vikngs_paper_data/chr2/samples.txt</string>
+                  <string>C:/Users/scott/Desktop/test.info.txt</string>
                  </property>
                  <property name="readOnly">
                   <bool>true</bool>
@@ -590,6 +590,13 @@
                 <widget class="QPushButton" name="main_stopBtn">
                  <property name="text">
                   <string>STOP</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton">
+                 <property name="text">
+                  <string>Random</string>
                  </property>
                 </widget>
                </item>
@@ -1221,7 +1228,7 @@
                  <item>
                   <widget class="QRadioButton" name="qsim_testRareCastBtn">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
                     <string>Rare (CAST)</string>
@@ -1234,7 +1241,7 @@
                  <item>
                   <widget class="QRadioButton" name="qsim_testRareSkatBtn">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
                     <string>Rare (SKAT)</string>

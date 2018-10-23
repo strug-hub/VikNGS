@@ -2,6 +2,7 @@
 
 #include "../vikNGS.h"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 static const std::string dfile = "/debug.txt";
@@ -79,4 +80,40 @@ void outputDebug(std::string line, std::string outputDir) {
         debug.close();
     }
 }
+
+
+static std::string dir = "C:/Users/scott/Desktop/test";
+void outputMatrix(MatrixXd M, std::string filename) {
+    std::ofstream m(dir + "/" + filename + ".txt", std::ios_base::app);
+
+    for(int i=0; i < M.rows(); i++){
+        std::string line = "";
+
+        for(int j=0; j < M.cols(); j++){
+
+            m << std::setprecision(24) << M(i,j);
+
+            if(j < M.cols() -1)
+                m << "\t";
+        }
+        m << std::endl;
+    }
+    if (m.is_open())
+        m.close();
+
+}
+
+void outputVector(VectorXd V, std::string filename) {
+    std::ofstream v(dir + "/" + filename + ".txt", std::ios_base::app);
+
+    for(int i=0; i < V.rows(); i++){
+        v << std::setprecision(24) << V[i] << std::endl;
+    }
+
+    if (v.is_open())
+        v.close();
+
+}
+
+
 

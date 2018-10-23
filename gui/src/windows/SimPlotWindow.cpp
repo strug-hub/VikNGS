@@ -20,8 +20,8 @@ SimPlotWindow::SimPlotWindow(QWidget *parent) :
     QColor green = QColor(106, 150, 71);
 
     colours.push_back(blue);
-    colours.push_back(orange);
     colours.push_back(pink);
+    colours.push_back(orange);
     colours.push_back(green);
 }
 

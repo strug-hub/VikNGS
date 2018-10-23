@@ -57,9 +57,13 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
             if (rvs) {
                 MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
                 diagS += diagYm_hrd * var_hrd * diagYm_hrd;
+                //outputMatrix(var_hrd, "corr");
+                //outputMatrix(diagS, "corr2");
+
             }
-            else
+            else{
                 diagS += diagYm_hrd * covariance(x[i]) * diagYm_hrd;
+            }
         }
         else
             diagS += diagYm_lrd * covariance(x[i]) * diagYm_lrd;

@@ -32,7 +32,7 @@ double getVariance(TestObject& o, Test& test, Family family){
             return getVarianceRegularCovariates(*o.getYcenter(), X, *o.getZ(),
                                                     *o.getMU(), family);
         else
-            return getVarianceRegular(*o.getY(), X, *o.getMU(), family);
+            return getVarianceRegular(*o.getYcenter(), X, *o.getMU(), family);
 
     }
     throwError("TEST", "Don't know how to compute variance during test, this error should not happen.");

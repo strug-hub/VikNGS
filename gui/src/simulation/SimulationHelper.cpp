@@ -78,11 +78,13 @@ MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& varian
 
         VectorXd y(nrow);
 
-        double sdX = 1e-12;
+        MatrixXd X = variants[h].getX(Genotype::TRUE);
 
-        for(size_t m = 0; m < variants[h].size(); m++){
+        VectorXd sdX(X.cols());
+
+        for(size_t m = 0; m < X.cols(); m++){
             double maf = variants[h].getTrueMaf(m);
-            sdX = std::sqrt(2*maf*(1-maf));
+            sdX[m] = std::sqrt(2*maf*(1-maf));
         }
 
         int index = 0;
@@ -92,24 +94,72 @@ MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& varian
 
                 double beta0 = simReq.groups[j].normalMean;
                 double sdY = simReq.groups[j].normalSd;
-
-                double beta1 = r*(sdY/sdX);
+                VectorXd beta(sdX.size());
+                for(int b = 0; b < sdX.size(); b++)
+                    beta[b] = r*(sdY/sdX[b]);
 
                 for (int k = 0; k < n; k++){
-                    MatrixXd X = variants[h].getX(Genotype::TRUE);
 
-                    //todo: if collapsed?
+                    double m = beta0;
+                    for(int b = 0; b < beta.size(); b++)
+                        m += beta[b]*X(index,0);
 
-                    Y(index, h) = randomNormal(beta0+beta1*X(k,0), sdY);
+                    Y(index, h) = randomNormal(m, sdY);
                     index++;
                 }
             }
         }
-
     }
 
     return Y;
 }
+
+
+/*
+Adds the Normal effect of genotype to the phenotypes
+
+@param simReq Provides simulation parameters.
+@param variants Provides genotype and maf information.
+
+@return MatrixXD of phenotypes.
+*/
+VectorXd addEffectOnY(SimulationRequest& simReq, VariantSet& variant) {
+
+    int nrow = simReq.maxSize();
+
+    VectorXd Y(nrow);
+
+    double r = std::sqrt(simReq.r2);
+
+    double sdX = 1e-12;
+    double maf = variant.getTrueMaf(0);
+    sdX = std::sqrt(2*maf*(1-maf));
+
+
+    int index = 0;
+    for(int i = 0; i < simReq.steps; i++){
+        for(size_t j = 0; j < simReq.groups.size(); j++){
+            int n = simReq.groups[j].getIncreaseSize(i);
+
+            double beta0 = simReq.groups[j].normalMean;
+            double sdY = simReq.groups[j].normalSd;
+
+            double beta1 = r*(sdY/sdX);
+
+            for (int k = 0; k < n; k++){
+                MatrixXd X = variant.getX(Genotype::TRUE);
+
+                //todo: if collapsed?
+
+                Y[index] = randomNormal(beta0+beta1*X(k,0), sdY);
+                index++;
+            }
+        }
+    }
+
+    return Y;
+}
+
 
 /*
 Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
@@ -209,21 +259,9 @@ MatrixXd simulateXNormal(SimulationRequest& simReq, double r2, VectorXd& maf){
 
     MatrixXd X(simReq.maxSize(), nsnp);
 
-    for (int h = 0; h < nsnp; h++) {
-
-        int index = 0;
-        for(int i = 0; i < simReq.steps; i++){
-            for (SimulationRequestGroup srg : simReq.groups){
-
-                int n = srg.getIncreaseSize(i);
-
-                for (int j = 0; j < n; j++){
-                    X(index, h) = randomBinomial(2, maf[h]);
-                    index++;
-                }
-            }
-        }
-    }
+    for (int h = 0; h < X.cols(); h++)
+        for (int j = 0; j < X.rows(); j++)
+                X(j, h) = randomBinomial(2, maf[h]);
 
     return X;
 }

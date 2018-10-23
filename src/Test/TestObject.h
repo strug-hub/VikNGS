@@ -41,9 +41,6 @@ public:
                MatrixXd& frequency, Family distribution, VectorXi& groups, std::map<int, Depth>& depths, bool rareVariant) :
         X(genotypes), Y(phenotypes), Z(covariates), G(groups), d(depths), P(frequency), family(distribution) {
 
-
-
-
         //Filter NAN
         VectorXi toRemove = whereNAN(Y);
         if(!rareVariant)
@@ -94,6 +91,7 @@ public:
     inline VectorXd* getY(){ return (bootstrapped) ? &Yboot : &Y; }
     inline MatrixXd* getZ(){ return (bootstrapped) ? &Zboot : &Z; }
     inline VectorXi* getG(){ return &G; }
+    inline MatrixXd* getP(){ return &P; }
     inline VectorXd* getMU(){ return &MU; }
     inline VectorXd* getYcenter(){ return &Ycenter; }
 
@@ -190,6 +188,7 @@ private:
             return;
 
         Xcenter = subtractGroupMean(X, G);
+        XcenterCache = true;
     }
 
     inline void calculateYCenterBoot() {

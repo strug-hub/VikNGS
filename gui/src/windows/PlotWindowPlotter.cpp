@@ -126,7 +126,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
 
     ui->plot_chrPlt->addGraph();
 
-    QVector<double> pos = chr.getPositions();
+    QVector<double> pos = chr.getRelativePositions(0);
     QVector<double> pvals = chr.getPvals(0);
 
     QVector<double> pos_range;

@@ -99,6 +99,8 @@ private slots:
     void on_main_bedCollapseExonBtn_toggled(bool checked);
     void on_main_bedCollapseGeneBtn_toggled(bool checked);
 
+    void on_pushButton_pressed();
+
 signals:
     void sendPlotData(QVector<double> values);
 

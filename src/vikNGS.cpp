@@ -99,7 +99,7 @@ Data startSimulation(SimulationRequest& simReq) {
     if(STOP_RUNNING_THREAD)
         return result;
 
-    result.variants = simulateVariants(simReq);
+    result.variants = simulateVariant(simReq);
 
     if(STOP_RUNNING_THREAD)
         return result;
@@ -118,8 +118,9 @@ Data startSimulation(SimulationRequest& simReq) {
     Test calledGT(Genotype::CALL, simReq.testStatistic);
 
     tests.push_back(trueGT);
-    tests.push_back(calledGT);
     tests.push_back(expectedGT);
+    if(simReq.underNull())
+        tests.push_back(calledGT);
 
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
@@ -207,7 +208,11 @@ Data startQuantitativeSimulation(SimulationRequest& simReq) {
 
     MatrixXd Y;
     if(simReq.family == Family::NORMAL)
-        Y = addEffectOnY(simReq, result.variants);
+       Y = addEffectOnY(simReq, result.variants);
+
+    //VectorXd Y;
+    //if(simReq.family == Family::NORMAL)
+    //    Y = addEffectOnY(simReq, result.variants.at(0));
 
     if(STOP_RUNNING_THREAD)
         return result;
@@ -224,10 +229,14 @@ Data startQuantitativeSimulation(SimulationRequest& simReq) {
     Test trueGT(Genotype::TRUE, simReq.testStatistic);
     Test expectedGT(Genotype::EXPECTED, simReq.testStatistic);
     Test calledGT(Genotype::CALL, simReq.testStatistic);
+    Test rvsFalse(Genotype::EXPECTED, simReq.testStatistic);
+    rvsFalse.setRVSFalse();
 
     tests.push_back(trueGT);
-    tests.push_back(calledGT);
     tests.push_back(expectedGT);
+    //if(simReq.underNull())
+        tests.push_back(calledGT);
+    //tests.push_back(rvsFalse);
 
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
