@@ -6,9 +6,14 @@ void SimPlotWindow::buildPowerPlot(){
     ui->simplot_power->clearPlottables();
     ui->simplot_power->addGraph();
 
-    QVector<double> index;
-    for(int i = 1; i <= nsteps; i++)
-        index.push_back(i);
+    QVector<double> size;
+    for(int i = 1; i <= nsteps; i++){
+        int n = 0;
+        for(SimulationRequestGroup srg : request.groups)
+            n+=srg.getSampleSize(i);
+
+        size.push_back(n);
+    }
 
 
     for(int i = 0; i < testsPerStep; i++){
@@ -16,7 +21,7 @@ void SimPlotWindow::buildPowerPlot(){
         for(int j = 0; j < nsteps; j++)
             power.push_back(calculatePower(j*testsPerStep + i, alpha));
 
-        ui->simplot_power->graph()->setData(index, power);
+        ui->simplot_power->graph()->setData(size, power);
         ui->simplot_power->graph()->setPen(QPen(colours[i], 2));
         ui->simplot_power->graph()->setScatterStyle(QCPScatterStyle::ssDisc);
         //last layer is highlight layer

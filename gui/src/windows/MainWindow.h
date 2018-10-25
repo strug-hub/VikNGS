@@ -60,8 +60,7 @@ private slots:
     //SimulationTab.cpp
     //-----------
     void simulationTabInit();
-    std::vector<SimulationRequestGroup> constructGroups(int ntest, QTableWidget* table, int highLow, Family family);
-    SimulationRequest constructRequest(std::vector<SimulationRequestGroup> groups);
+    std::vector<SimulationRequestGroup> constructGroups(int nsteps, int highLow, Family family);
 
     void on_sim_runBtn_clicked();
     void on_sim_stopBtn_clicked();
@@ -76,23 +75,6 @@ private slots:
 
     void simulationFinished(Data results, SimulationRequest reqs);
 
-    //-----------
-    //qSimulationTab.cpp
-    //-----------
-
-    SimulationRequest qConstructRequest(std::vector<SimulationRequestGroup> groups);
-
-    void qSimEnableRare(bool value);
-
-    void on_qsim_runBtn_clicked();
-    void on_qsim_groupAddBtn_clicked();
-    void on_qsim_groupRemoveBtn_clicked();
-
-    void on_qsim_stopBtn_clicked();
-
-    void on_qsim_testRareCastBtn_toggled(bool checked);
-    void on_qsim_testRareSkatBtn_toggled(bool checked);
-
     void on_main_stopBtn_clicked();
 
     void on_main_bedCollapseKBtn_toggled(bool checked);
@@ -101,6 +83,12 @@ private slots:
 
     void on_pushButton_pressed();
 
+    void switchToCaseControl();
+    void switchToQuantitative();
+    void on_sim_caseControlBtn_pressed();
+    void on_sim_quantitativeBtn_pressed();
+    void on_sim_simulationSld_valueChanged(int value);
+
 signals:
     void sendPlotData(QVector<double> values);
 
@@ -108,10 +96,22 @@ private:
     Ui::MainWindow *ui;
     QThread* jobThread;
 
+    int getNumberOfStepsSim();
+    int getHighLowCutoffSim();
+    Family getFamilySim();
+    int getNumberOfThreadsSim();
+    Statistic getTestSim();
+    int getBootstrapIterationsSim();
+    int getCollapseSizeSim();
+    bool getEarlyStopSim();
+
     QColor green = QColor::fromRgb(82, 145, 87);
     QColor grey = QColor::fromRgb(204, 205, 209);
     int plotCount = 1;
 
+    QString prevOddsRatio = "1.0";
+    QString prevR2 = "0.0";
+    QVector<QString> prevCaseControlValues;
 };
 
 #endif // MAINWINDOW_H

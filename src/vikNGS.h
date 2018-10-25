@@ -29,6 +29,8 @@ struct Data {
     IntervalSet intervals;
     std::vector<Test> tests;
     std::vector<VariantSet> variants;
+    double processingTime;
+    double evaluationTime;
 
     inline int size(){ return static_cast<int>(variants.size()); }
 };

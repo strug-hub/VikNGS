@@ -25,7 +25,7 @@ public slots:
     void buildPowerPlot();
     void buildLegend();
 
-    void updateSampleSize(int index);
+    void updateSampleTable(int index);
 
     void mouseMovePlot1(QMouseEvent *event);
     void mouseMovePlot2(QMouseEvent *event);

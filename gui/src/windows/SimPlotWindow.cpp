@@ -29,6 +29,27 @@ SimPlotWindow::~SimPlotWindow(){
     delete ui;
 }
 
+QString timeToString(double time){
+
+    if(time < 120)
+        return QString::number(time, 'g', 2) + " sec";
+
+    int t = std::round(time);
+    int hour = t/3600; t = t%3600;
+    int min = t/60; t = t%60;
+    int sec = t;
+
+    QString str = "";
+    if(hour > 0)
+        str = str + QString::number(hour) + " hr ";
+    if(hour > 0 || min > 0)
+        str = str + QString::number(min) + " min ";
+
+    str = str + QString::number(sec) + " sec";
+
+    return str;
+}
+
 void SimPlotWindow::initialize(Data& results, SimulationRequest& req, QString title){
 
     this->nsteps = req.steps;
@@ -42,9 +63,15 @@ void SimPlotWindow::initialize(Data& results, SimulationRequest& req, QString ti
     else{
         this->yAxisLabel = "Power";
         ui->simplot_measureGrp->setTitle("Power");
+        ui->simplot_plotTab->setTabEnabled(1, false);
     }
 
-    this->xAxisLabel = "Test";
+    QString timing = "Simulation time: " + timeToString(results.processingTime) + "\n"
+            "Testing time: " + timeToString(results.evaluationTime);
+
+    ui->simplot_timeLbl->setText(timing);
+
+    this->xAxisLabel = "Sample Size";
     this->setWindowTitle("Plotter - " + title);
 
     getPvalues(results.variants);
@@ -78,21 +105,32 @@ void SimPlotWindow::getPvalues(std::vector<VariantSet>& variants){
     }
 }
 
-void SimPlotWindow::updateSampleSize(int index){
+void SimPlotWindow::updateSampleTable(int index){
 
-    if(index < 0){
-        if(powerIndex < 0){
-            ui->simplot_ncontrolsDgt->display(0);
-            ui->simplot_ncasesDgt->display(0);
-            return;
-        }
-        else
-            index = powerIndex;
+    if(index < 0) index = 0;
+
+    QTableWidget* table = ui->simplot_sampleTbl;
+
+    for(int i = 0; i < request.groups.size(); i++){
+
+        if(table->rowCount() < i+1)
+            table->insertRow(i);
+
+        //table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].index)));
+        table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].getSampleSize(index))));
+
+        if(request.family == Family::BINOMIAL)
+            table->setItem(i+1, 1, new QTableWidgetItem(request.groups[i].isCase ? "case" : "control"));
+        else if (request.family == Family::NORMAL)
+            table->setItem(i+1, 1, new QTableWidgetItem("normal"));
+
+        QString depth = "N(" + QString::number(request.groups[i].meanDepth) + ", " +
+                QString::number(request.groups[i].sdDepth) + ")";
+
+        table->setItem(i+1, 2, new QTableWidgetItem(depth));
+        table->setItem(i+1, 3, new QTableWidgetItem(QString::number(request.groups[i].errorRate)));
+
     }
-
-    ui->simplot_ncasesDgt->display(this->request.ncase(powerIndex));
-    ui->simplot_ncontrolsDgt->display(this->request.ncontrol(powerIndex));
-
 }
 
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
@@ -115,7 +153,7 @@ void SimPlotWindow::mouseClickPlot2(QMouseEvent *event){
 void SimPlotWindow::mouseMovePlot1(QMouseEvent *event){
 
     int closestIndex = findClosestPoint(ui->simplot_power, event);
-    updateSampleSize(closestIndex);
+    updateSampleTable(closestIndex);
 
     if(closestIndex >= 0){
 
@@ -134,7 +172,7 @@ void SimPlotWindow::mouseMovePlot1(QMouseEvent *event){
         ui->simplot_power->graph()->setData(x, y);
         ui->simplot_power->graph()->setScatterStyle(
                     QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                    highlight, Qt::white, 8));
+                                    highlight, Qt::white, 12));
         ui->simplot_power->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
 
         ui->simplot_power->replot();

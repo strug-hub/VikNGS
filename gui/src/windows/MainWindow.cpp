@@ -72,16 +72,12 @@ void MainWindow::stopJob(){
 void MainWindow::enableRun(){
     ui->main_runBtn->setEnabled(true);
     ui->main_stopBtn->setEnabled(false);
-    ui->qsim_runBtn->setEnabled(true);
-    ui->qsim_stopBtn->setEnabled(false);
     ui->sim_runBtn->setEnabled(true);
     ui->sim_stopBtn->setEnabled(false);
 }
 void MainWindow::disableRun(){
     ui->main_runBtn->setEnabled(false);
     ui->main_stopBtn->setEnabled(true);
-    ui->qsim_runBtn->setEnabled(false);
-    ui->qsim_stopBtn->setEnabled(true);
     ui->sim_runBtn->setEnabled(false);
     ui->sim_stopBtn->setEnabled(true);
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../src/vikNGS.h"
+#include "../src/vikNGS.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -33,10 +33,11 @@ struct SimulationRequestGroup {
     inline int getSampleSize(int step){ return n + n_increment*step; }
 
     inline int getIncreaseSize(int step){
-        if(step == 0)
+        if(step < 1e-12)
             return n;
         if(step > 0)
             return n_increment;
+
 
         return 0;
     }
@@ -67,8 +68,7 @@ struct SimulationRequestGroup {
 struct SimulationRequest {
 
     int nsnp;
-    double oddsRatio=1;
-    double r2=0;
+    double effectSize;
 
     double mafMin;
     double mafMax;
@@ -89,9 +89,9 @@ struct SimulationRequest {
         double epsilon = 1e-8;
 
         if(family == Family::BINOMIAL)
-            return (oddsRatio + epsilon > 1 && oddsRatio - epsilon < 1);
+            return (effectSize + epsilon > 1 && effectSize - epsilon < 1);
         else if (family == Family::NORMAL)
-            return (r2 + epsilon > 0 && r2 - epsilon < 0);
+            return (effectSize + epsilon > 0 && effectSize - epsilon < 0);
 
         else return false;
     }
@@ -105,19 +105,27 @@ struct SimulationRequest {
         return mxSize;
     }
 
-    VectorXi getGroups(int step){
-
-        VectorXi G(nsamp(step));
+    VectorXi getGroupVector(){
+        VectorXi G(maxSize());
         int index = 0;
-        for (int i = 0; i <= step; i++){
-            for (int j = 0; j < groups.size(); j++){
-                for (int k = 0; k < groups[j].getIncreaseSize(i); k++){
-                    G[index] = static_cast<int>(j);
+
+        for(int i = 0; i < steps; i++)
+            for(size_t j = 0; j < groups.size(); j++){
+                int n = groups[j].getIncreaseSize(i);
+                for (int k = 0; k < n; k++){
+                    G[index] = groups[j].index;
                     index++;
                 }
             }
-        }
+
         return G;
+    }
+
+    std::map<int, Depth> getReadDepthMap(){
+        std::map<int, Depth> groupDepth;
+        for(size_t j = 0; j < groups.size(); j++)
+            groupDepth[groups[j].index] = groups[j].readDepth;
+        return groupDepth;
     }
 
     void validate(){
@@ -151,8 +159,8 @@ struct SimulationRequest {
 
 
         if(family == Family::BINOMIAL){
-            if (oddsRatio <= 0)
-                throwError(ERROR_SOURCE, "Odds ratio should be a value greater than zero.", std::to_string(oddsRatio));
+            if (effectSize <= 0)
+                throwError(ERROR_SOURCE, "Odds ratio should be a value greater than zero.", std::to_string(effectSize));
 
             int ncase = 0;
             int ncontrol = 0;
@@ -183,8 +191,8 @@ struct SimulationRequest {
                     std::to_string(ncontrol) + " control groups given).");
         }
         if(family == Family::NORMAL){
-            if (r2 < 0 || r2 > 1)
-                throwError(ERROR_SOURCE, "R² (variance explained) value should be between zero and one.", std::to_string(r2));
+            if (effectSize < 0 || effectSize > 1)
+                throwError(ERROR_SOURCE, "R² (variance explained) value should be between zero and one.", std::to_string(effectSize));
 
             if(groups.size() < 1)
                 throwError(ERROR_SOURCE, "At least one group should be specified in the group table in order to simulate data.");
@@ -239,7 +247,7 @@ struct SimulationRequest {
     //for debugging
     void print() {
         printInfo("nsnp = " + std::to_string(nsnp));
-        printInfo("oddsRatio = " + std::to_string(oddsRatio));
+        printInfo("effectSize = " + std::to_string(effectSize));
         printInfo("MAFmin = " + std::to_string(mafMin));
         printInfo("MAFmax = " + std::to_string(mafMax));
 
@@ -251,20 +259,18 @@ struct SimulationRequest {
 };
 
 Data startSimulation(SimulationRequest& simReq);
-Data startQuantitativeSimulation(SimulationRequest& simReq);
-SampleInfo simulateSampleInfo(SimulationRequest& simReq);
 std::vector<VariantSet> simulateVariants(SimulationRequest& simReq);
 std::vector<VariantSet> simulateVariant(SimulationRequest& simReq);
 
 Variant randomVariant();
-VectorXi simulateG(SimulationRequest& simReq);
-VectorXd simulateY(SimulationRequest& simReq);
-MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& variants);
-VectorXd addEffectOnY(SimulationRequest& simReq, VariantSet& variant);
-MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
-MatrixXd simulateXNormal(SimulationRequest& simReq, double oddsRatio, VectorXd& maf);
+MatrixXd simulateYCaseControl(SimulationRequest& simReq);
+MatrixXd simulateYNormal(SimulationRequest& simReq, MatrixXd& X, VectorXd& mafs);
+VectorXd generateMafs(SimulationRequest& simReq);
+MatrixXd simulateXCaseControl(SimulationRequest& simReq, VectorXd& mafs);
+MatrixXd simulateXNormal(SimulationRequest& simReq, VectorXd& mafs);
+std::vector<std::vector<Vector3d>> simulateSequencing(SimulationRequest& simReq, MatrixXd& Xtrue);
 
-double inline generateGenotype(double prob_x0, double prob_x1);
+double generateGenotype(double prob_x0, double prob_x1);
 
 VectorXi generateReadDepths(SimulationRequest& simReq);
 std::vector<std::vector<int>> generateBaseCalls(SimulationRequest& simReq, VectorXd& X, VectorXi& readDepths);
