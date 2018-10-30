@@ -83,6 +83,11 @@ struct SimulationRequest {
 
     int steps;
 
+    //for covariates...
+    double covariate = -1;
+    bool corX = true; //otherwise corY = true
+    //...
+
     std::vector<SimulationRequestGroup> groups;
 
     Family family;
@@ -273,6 +278,7 @@ std::vector<VariantSet> simulateVariant(SimulationRequest& simReq);
 Variant randomVariant();
 MatrixXd simulateYCaseControl(SimulationRequest& simReq);
 MatrixXd simulateYNormal(SimulationRequest& simReq, MatrixXd& X, VectorXd& mafs);
+MatrixXd simulateZ(MatrixXd M, SimulationRequest& simReq);
 VectorXd generateMafs(SimulationRequest& simReq);
 MatrixXd simulateXCaseControl(SimulationRequest& simReq, VectorXd& mafs);
 MatrixXd simulateXNormal(SimulationRequest& simReq, VectorXd& mafs);

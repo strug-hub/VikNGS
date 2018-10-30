@@ -861,6 +861,9 @@
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_19">
                <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+               </item>
+               <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -914,16 +917,6 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="1" column="1">
-                      <widget class="QLabel" name="sim_collapseLbl">
-                       <property name="enabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="text">
-                        <string>Collapse </string>
-                       </property>
-                      </widget>
-                     </item>
                      <item row="0" column="0">
                       <widget class="QLineEdit" name="sim_testBootTxt">
                        <property name="enabled">
@@ -944,9 +937,62 @@
                        </property>
                       </widget>
                      </item>
+                     <item row="2" column="1">
+                      <widget class="QCheckBox" name="sim_covariateChk">
+                       <property name="text">
+                        <string>Covar</string>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="sim_collapseLbl">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="text">
+                        <string>Collapse </string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QLineEdit" name="sim_covariateTxt">
+                       <property name="text">
+                        <string>0.5</string>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </item>
                   </layout>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="sim_covariateXYGrp">
+                   <property name="title">
+                    <string>Correlated to</string>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <item>
+                     <widget class="QRadioButton" name="sim_covariateXRdo">
+                      <property name="text">
+                       <string>X</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="sim_covariateYRdo">
+                      <property name="text">
+                       <string>Y</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QCheckBox" name="sim_testStopChk">

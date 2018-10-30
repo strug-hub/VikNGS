@@ -104,6 +104,7 @@ private:
     int getBootstrapIterationsSim();
     int getCollapseSizeSim();
     bool getEarlyStopSim();
+    bool checkFamily(Family fam);
 
     QColor green = QColor::fromRgb(82, 145, 87);
     QColor grey = QColor::fromRgb(204, 205, 209);

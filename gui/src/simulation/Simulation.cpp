@@ -4,18 +4,30 @@
 #include <thread>
 #include <chrono>
 
-bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, std::vector<VariantSet*>& variants, Test& test, int nboot){
+bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<VariantSet*>& variants, Test& test, int nboot){
     if(variants.size() <= 0)
         return true;
 
     sampleInfo->setY(Y.col(0));
-    int counter = 0;
+    MatrixXd covariates(Z.rows(), 2);
+    if(Z.rows() > 0){
+        covariates.col(0) = VectorXd::Constant(covariates.rows(), 1);
+        covariates.col(1) = Z.col(0);
+        sampleInfo->setZ(covariates);
+    }
+    int counterY = 0;
+    int counterZ = 0;
 
     for(VariantSet* vs : variants){
 
         if(Y.cols() > 1){
-            sampleInfo->setY(Y.col(counter));
-            counter++;
+            sampleInfo->setY(Y.col(counterY));
+            counterY++;
+        }
+        if(Z.cols() > 1){
+            covariates.col(1) = Z.col(counterZ);
+            sampleInfo->setZ(covariates);
+            counterZ++;
         }
 
         double pval = runTest(sampleInfo, vs, test, nboot, (nboot > 1));
@@ -32,7 +44,13 @@ private:
     SampleInfo sampleInfo;
     std::vector<Test> tests;
     MatrixXd* Y;
+
+    bool useZ = false;
+    MatrixXd* Z;
+
     MatrixXd Ysubset;
+    MatrixXd Zsubset;
+
     Test t = Test(Genotype::NONE, Statistic::NONE);
 
     bool running;
@@ -43,20 +61,25 @@ private:
 public:
     ParallelTest(SampleInfo si, MatrixXd* phenotypes) : sampleInfo(si), Y(phenotypes) { running = false;}
     void updateSampleInfoY(VectorXd Y){ this->sampleInfo.setY(Y); }
+    void addZ(MatrixXd* Z){ this->Z = Z; useZ = true; }
     void beginAssociationTest(int startIdx, std::vector<VariantSet*>& variants, Test& test, int nboot){
         running = true;
         this->pointers = variants;
         this->nboot = nboot;
         t = test;
 
-        MatrixXd tempY = *Y;
         if(Y->cols() > 1)
             Ysubset = Y->block(0, startIdx, Y->rows(), variants.size());
         else
             Ysubset = Y->col(0);
 
+        if(useZ && Z->rows() > 0 && Z->cols() > 1)
+            Zsubset = Z->block(0, startIdx, Z->rows(), variants.size());
+        else if (useZ && Z->rows() > 0)
+            Zsubset = Z->col(0);
+
         testingDone = std::async(std::launch::async,
-                [this] { return testBatch(&sampleInfo, Ysubset, pointers, t, this->nboot); }) ;
+                [this] { return testBatch(&sampleInfo, Ysubset, Zsubset, pointers, t, this->nboot); }) ;
     }
     inline bool isTestingDone(){
         return running && testingDone.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -137,6 +160,15 @@ Data startSimulation(SimulationRequest& simReq) {
         Y = simulateYNormal(simReq, X, mafs);
     info.setY(Y.col(0));
 
+    MatrixXd Z;
+    bool useZ = false;
+    if(simReq.covariate >= 0){
+        if(simReq.corX)
+            Z = simulateZ(X, simReq);
+        else
+            Z = simulateZ(Y, simReq);
+        useZ = true;
+    }
 
     if(STOP_RUNNING_THREAD){ Data empty; return empty; }
 
@@ -161,8 +193,11 @@ Data startSimulation(SimulationRequest& simReq) {
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
     Test null(Genotype::NONE, Statistic::NONE);
-    for(size_t i = 0; i < nthreads; i++)
+    for(size_t i = 0; i < nthreads; i++){
         threads.emplace_back(info, &Y);
+        if(useZ)
+            threads[i].addZ(&Z);
+    }
 
     result.sampleInfo = info;
 
@@ -185,6 +220,11 @@ Data startSimulation(SimulationRequest& simReq) {
                 for(size_t k = 0; k < result.variants.size(); k++){
                     if(Y.cols() > 1)
                         result.sampleInfo.setY(Y.col(k));
+                    if(useZ && Z.cols() > 1)
+                        result.sampleInfo.setZ(Z.col(k));
+                    if(useZ && Z.cols() == 1)
+                        result.sampleInfo.setZ(Z.col(0));
+
                     double pval = runTest(&result.sampleInfo, &result.variants[k], tests[j], nboot, simReq.stopEarly);
                     result.variants[k].addPval(pval);
                 }

@@ -73,6 +73,33 @@ MatrixXd simulateYNormal(SimulationRequest& simReq, MatrixXd& X, VectorXd& mafs)
     return Y;
 }
 
+MatrixXd simulateZ(MatrixXd M, SimulationRequest& simReq) {
+    MatrixXd Z(M.rows(), M.cols());
+    VectorXd ones = VectorXd::Constant(Z.rows(), 1);
+
+    double rho = simReq.covariate;
+
+    for(int i = 0; i < M.cols(); i++){
+
+        for(int j = 0; j < Z.rows(); j++)
+            Z(j,i) = randomNormal(0,1);
+
+        MatrixXd z(Z.rows(), 2);
+        z << ones, Z.col(i);
+        VectorXd x = z.colPivHouseholderQr().solve(M.col(i));
+        VectorXd residuals = x[1] * Z.col(i).array();
+        residuals = residuals + VectorXd::Constant(Z.rows(), x[0]) - Z.col(i);
+
+        double rstd = std::sqrt(variance(residuals));
+        double std = std::sqrt(variance(M, i));
+
+
+        Z.col(i) = rho * rstd * M.col(i) + residuals * std * sqrt(1 - rho*rho);
+    }
+
+    return Z;
+}
+
 /*
 Generates a vector of minor allele frequencies.
 

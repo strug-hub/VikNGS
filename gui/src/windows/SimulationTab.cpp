@@ -12,6 +12,23 @@ void MainWindow::simulationTabInit(){
     prevR2 = "0.0";
     prevOddsRatio = "1.0";
 
+    bool showCov = true;
+    ui->sim_covariateChk->setVisible(showCov);
+    //ui->sim_covariateChk->setCheckState(Qt::Unchecked);
+    ui->sim_covariateTxt->setVisible(showCov);
+    ui->sim_covariateXRdo->setVisible(showCov);
+    ui->sim_covariateYRdo->setVisible(showCov);
+    ui->sim_covariateXYGrp->setVisible(showCov);
+
+}
+
+bool MainWindow::checkFamily(Family fam){
+    if(fam == Family::BINOMIAL && ui->sim_simulationSld->value() == 0)
+        return true;
+    if(fam == Family::NORMAL && ui->sim_simulationSld->value() == 1)
+        return true;
+
+    return false;
 }
 
 void MainWindow::on_sim_runBtn_clicked(){
@@ -42,6 +59,11 @@ void MainWindow::on_sim_runBtn_clicked(){
         int highLow = getHighLowCutoffSim();
 
         request.groups = constructGroups(request.steps, highLow, request.family);
+
+        if(ui->sim_covariateChk->isChecked()){
+            request.covariate = ui->sim_covariateTxt->text().toDouble();
+            request.corX = ui->sim_covariateXRdo->isChecked();
+        }
 
         //throws error if invalid
         request.validate();
@@ -158,7 +180,6 @@ std::vector<SimulationRequestGroup> MainWindow::constructGroups(int nsteps, int 
                 throwError(ERROR_SOURCE, "Invalid quantitative phenotype standard deviation. Expected a numeric value", phenoSd.toStdString());
         }
 
-
         groups.push_back(g);
     }
 
@@ -241,17 +262,19 @@ void MainWindow::addGroup(QTableWidget* table, QString n, QString cohort, QStrin
     item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsEditable);
     table->setItem(index, 0, item);
 
+
     QComboBox *cohortBox = new QComboBox();
-    if(cohort == "control" || cohort == "case"){
+    if(checkFamily(Family::BINOMIAL)){
         cohortBox->addItem("case");
         cohortBox->addItem("control");
 
         if(cohort == "control")
             cohortBox->setCurrentIndex(1);
     }
-    else{
+    else if(checkFamily(Family::NORMAL)){
         cohortBox->addItem("normal");
     }
+
 
     table->setIndexWidget(table->model()->index(index, 1), cohortBox);
 
