@@ -29,6 +29,14 @@ struct SimulationRequestGroup {
     double sdDepth;
     double errorRate;
 
+    inline std::string getCohort(){
+        if(family == Family::BINOMIAL)
+            return isCase ? "case" : "control";
+        else if (family == Family::NORMAL)
+            return "normal";
+
+        return "none";
+    }
 
     inline int getSampleSize(int step){ return n + n_increment*step; }
 

@@ -15,7 +15,6 @@ void SimPlotWindow::buildPowerPlot(){
         size.push_back(n);
     }
 
-
     for(int i = 0; i < testsPerStep; i++){
         QVector<double> power;
         for(int j = 0; j < nsteps; j++)
@@ -34,7 +33,11 @@ void SimPlotWindow::buildPowerPlot(){
     ui->simplot_power->xAxis->setLabelFont(axisFont);
     ui->simplot_power->yAxis->setLabelFont(axisFont);
     ui->simplot_power->yAxis->setRange(0, 1.05);
-    ui->simplot_power->xAxis->setRange(0.95, ui->simplot_power->xAxis->range().upper + 0.05);
+
+    float minXSize = size[0];
+    float maxXSize = size.back();
+    float xRange = maxXSize - minXSize;
+    ui->simplot_power->xAxis->setRange(minXSize - 0.025*xRange, maxXSize + 0.025*xRange);
 
     ui->simplot_power->replot();
 }

@@ -1,39 +1,12 @@
 ﻿#include "Simulation.h"
 
 /*
-Produces a VectorXd holding the group ID for all samples.
-
-@param simReq Provides information about sample size and group ID
-@return VectorXd for group ID
-*/
-VectorXi simulateG(SimulationRequest& simReq) {
-
-    VectorXi G(simReq.maxSize());
-    int index = 0;
-
-    for(int i = 0; i < simReq.steps; i++)
-        for(size_t j = 0; j < simReq.groups.size(); j++){
-
-            if(STOP_RUNNING_THREAD)
-                return G;
-
-            int n = simReq.groups[j].getIncreaseSize(i);
-            for (int k = 0; k < n; k++){
-                G[index] = simReq.groups[j].index;
-                index++;
-            }
-        }
-
-    return G;
-}
-
-/*
-Produces a VectorXd of phenotypes for each sample.
+Produces a MatrixXd of phenotypes for each sample. For case-control.
 
 @param simReq Provides information about group phenotype and step sample size.
-@return VectorXd of phenotypes.
+@return MatrixXd of phenotypes.
 */
-VectorXd simulateY(SimulationRequest& simReq) {
+MatrixXd simulateYCaseControl(SimulationRequest& simReq) {
 
     VectorXd Y(simReq.maxSize());
     int index = 0;
@@ -55,215 +28,176 @@ VectorXd simulateY(SimulationRequest& simReq) {
 }
 
 /*
-Adds the Normal effect of genotype to the phenotypes
+Produces a VectorXd of phenotypes for each sample. For quantative normal data.
 
-@param simReq Provides simulation parameters.
-@param variants Provides genotype and maf information.
-
-@return MatrixXD of phenotypes.
+@param simReq Provides information about group phenotype and step sample size.
+@param X Matrix of true genotypes.
+@param mafs Vector of minor allele frequencies.
+@return VectorXd of phenotypes.
 */
-MatrixXd addEffectOnY(SimulationRequest& simReq, std::vector<VariantSet>& variants) {
+MatrixXd simulateYNormal(SimulationRequest& simReq, MatrixXd& X, VectorXd& mafs) {
 
     int nrow = simReq.maxSize();
-    int ncol = variants.size();
+    int ncol = simReq.nsnp;
+    int collapseSize = simReq.collapse;
 
     MatrixXd Y(nrow, ncol);
+    double r = std::sqrt(simReq.effectSize);
 
-    double r = std::sqrt(simReq.r2);
+    double beta0 = simReq.groups[0].normalMean;
+    double sdY = simReq.groups[0].normalSd;
+    VectorXd beta(mafs.size());
 
-    for(size_t h = 0; h < ncol; h++){
+    for(int m = 0; m < mafs.size(); m++){
+        double sdX = std::sqrt(2*mafs[m]*(1-mafs[m]));
+        beta[m] = r*(sdY/sdX);
+    }
+
+    int index = 0;
+    for(int h = 0; h < ncol; h += collapseSize){
 
         if(STOP_RUNNING_THREAD)
             return Y;
 
-        VectorXd y(nrow);
+        for(int i = 0; i < X.rows(); i++){
 
-        MatrixXd X = variants[h].getX(Genotype::TRUE);
+            double m = beta0;
+            for(int j = h; j < h+collapseSize; j++)
+                m += beta[j]*X(i,j);
 
-        VectorXd sdX(X.cols());
-
-        for(size_t m = 0; m < X.cols(); m++){
-            double maf = variants[h].getTrueMaf(m);
-            sdX[m] = std::sqrt(2*maf*(1-maf));
+            Y(i, index) = randomNormal(m, sdY);
         }
-
-        int index = 0;
-        for(int i = 0; i < simReq.steps; i++){
-            for(size_t j = 0; j < simReq.groups.size(); j++){
-                int n = simReq.groups[j].getIncreaseSize(i);
-
-                double beta0 = simReq.groups[j].normalMean;
-                double sdY = simReq.groups[j].normalSd;
-                VectorXd beta(sdX.size());
-                for(int b = 0; b < sdX.size(); b++)
-                    beta[b] = r*(sdY/sdX[b]);
-
-                for (int k = 0; k < n; k++){
-
-                    double m = beta0;
-                    for(int b = 0; b < beta.size(); b++)
-                        m += beta[b]*X(index,0);
-
-                    Y(index, h) = randomNormal(m, sdY);
-                    index++;
-                }
-            }
-        }
+        index++;
     }
 
     return Y;
 }
 
-
 /*
-Adds the Normal effect of genotype to the phenotypes
+Generates a vector of minor allele frequencies.
 
-@param simReq Provides simulation parameters.
-@param variants Provides genotype and maf information.
-
-@return MatrixXD of phenotypes.
+@param simReq Provides min/max maf values.
+@return VectorXd of MAFs.
 */
-VectorXd addEffectOnY(SimulationRequest& simReq, VariantSet& variant) {
+VectorXd generateMafs(SimulationRequest& simReq){
 
-    int nrow = simReq.maxSize();
+    int nsnp = simReq.nsnp;
+    VectorXd mafs(nsnp);
 
-    VectorXd Y(nrow);
+    double minMaf = simReq.mafMin;
+    double maxMaf = simReq.mafMax;
 
-    double r = std::sqrt(simReq.r2);
+    for (int h = 0; h < nsnp; h++)
+        mafs[h] = randomDouble(minMaf, maxMaf);
 
-    double sdX = 1e-12;
-    double maf = variant.getTrueMaf(0);
-    sdX = std::sqrt(2*maf*(1-maf));
-
-
-    int index = 0;
-    for(int i = 0; i < simReq.steps; i++){
-        for(size_t j = 0; j < simReq.groups.size(); j++){
-            int n = simReq.groups[j].getIncreaseSize(i);
-
-            double beta0 = simReq.groups[j].normalMean;
-            double sdY = simReq.groups[j].normalSd;
-
-            double beta1 = r*(sdY/sdX);
-
-            for (int k = 0; k < n; k++){
-                MatrixXd X = variant.getX(Genotype::TRUE);
-
-                //todo: if collapsed?
-
-                Y[index] = randomNormal(beta0+beta1*X(k,0), sdY);
-                index++;
-            }
-        }
-    }
-
-    return Y;
+    return mafs;
 }
 
-
 /*
-Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
-Adjusts odds ratio with respect to collapsed region. For case-control.
+Produces a matrix of true genotypes using minor allele frequency and odds ratio.
+For case-control.
 
 @param simReq Provides information about which groups are case/control and sample size.
-@param oddsRatio Odds ratio of being affected given causitive variant.
-@param maf Vector of minor allele frequencies for each variant.
-
-@return MatrixXd of true genotypes (nsnp x nsamp).
+@param mafs Vector of minor allele frequencies.
+@return MatrixXd of true genotypes.
 */
-MatrixXd simulateXCaseControl(SimulationRequest& simReq, double oddsRatio, VectorXd& maf) {
-    int nsnp = maf.size();
+MatrixXd simulateXCaseControl(SimulationRequest& simReq, VectorXd& mafs) {
+
+    int nsnp = simReq.nsnp;
+    double oddsRatio = simReq.effectSize;
 
     MatrixXd X(simReq.maxSize(), nsnp);
-    std::vector<double> oddsRatios(static_cast<size_t>(nsnp));
-//    oddsRatios[0] = oddsRatio;
-
-    double OR = oddsRatio;
-
-    //decay odds ratio outward from causitive variant
-//    if(nsnp > 1){
-//        int effectIndex = randomInt(0, nsnp-1);
-//        oddsRatios[static_cast<size_t>(effectIndex)] = oddsRatio;
-//
-//        double lastOR = oddsRatio;
-//        for(int j = effectIndex-1; j >= 0; j--){
-//            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-//            oddsRatios[static_cast<size_t>(j)] = lastOR;
-//        }
-//        lastOR = oddsRatio;
-//        for(int j = effectIndex+1; j < nsnp; j++){
-//            lastOR = randomDouble(std::min(1.0, lastOR), std::max(1.0, lastOR));
-//            oddsRatios[static_cast<size_t>(j)] = lastOR;
-//        }
-//    }
 
     for (int h = 0; h < nsnp; h++) {
 
-//            double OR = oddsRatios[static_cast<size_t>(h)];
+        if(STOP_RUNNING_THREAD)
+            return X;
 
-            double p_x0_y0 = (1 - maf[h]) * (1 - maf[h]);
-            double p_x1_y0 = 2 * maf[h] * (1 - maf[h]);
+        double p_x0_y0 = (1 - mafs[h]) * (1 - mafs[h]);
+        double p_x1_y0 = 2 * mafs[h] * (1 - mafs[h]);
 
-            double beta0 = 1 / (pow(maf[h] * (1 - OR) - 1, 2));
+        double beta0 = 1 / (pow(mafs[h] * (1 - oddsRatio) - 1, 2));
 
-            double p_x0_y1 = beta0 * p_x0_y0;
-            double p_x1_y1 = (beta0 * OR) * p_x1_y0;
+        double p_x0_y1 = beta0 * p_x0_y0;
+        double p_x1_y1 = (beta0 * oddsRatio) * p_x1_y0;
 
-        generate:
-            int index = 0;
-            bool ok = false;
+    generate:
+        int index = 0;
+        bool ok = false;
 
-            for(int i = 0; i < simReq.steps; i++){
-                for (SimulationRequestGroup srg : simReq.groups){
-                    int n = srg.getIncreaseSize(i);
+        for(int i = 0; i < simReq.steps; i++){
+            for (SimulationRequestGroup srg : simReq.groups){
+                int n = srg.getIncreaseSize(i);
 
-                    if(srg.isCase)
-                        for (int j = 0; j < n; j++){
-                            X(index, h) = generateGenotype(p_x0_y1, p_x1_y1);
-                            ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
-                            index++;
-                        }
-                    else
-                        for (int j = 0; j < n; j++){
-                            X(index, h) = generateGenotype(p_x0_y0, p_x1_y0);
-                            ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
-                            index++;
-                        }
-                }
-
-                if(!ok)
-                    goto generate;
-
-                double sum = 0;
-                for(int p = 0; p< index; p++)
-                    sum += X(p, h);
-
+                if(srg.isCase)
+                    for (int j = 0; j < n; j++){
+                        X(index, h) = generateGenotype(p_x0_y1, p_x1_y1);
+                        ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
+                        index++;
+                    }
+                else
+                    for (int j = 0; j < n; j++){
+                        X(index, h) = generateGenotype(p_x0_y0, p_x1_y0);
+                        ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
+                        index++;
+                    }
             }
+
+            if(!ok)
+                goto generate;
+
+            double sum = 0;
+            for(int p = 0; p< index; p++)
+                sum += X(p, h);
         }
+    }
 
     return X;
 }
 
 /*
-Produces a set of matrices (one per step) of true genotypes using minor allele frequency and odds ratio.
-Adjusts odds ratio with respect to collapsed region. For normal phenotypes.
+Produces a matrix of true genotypes using minor allele frequency and odds ratio.
+For normal phenotypes.
 
 @param simReq Provides information about Y mean and SD and sample size.
-@param oddsRatio Odds ratio of being affected given causitive variant.
-@param maf Vector of minor allele frequencies for each variant.
-
-@return MatrixXd of true genotypes (nsnp x nsamp).
+@param mafs Vector of minor allele frequencies.
+@return MatrixXd of true genotypes.
 */
-MatrixXd simulateXNormal(SimulationRequest& simReq, double r2, VectorXd& maf){
-    int nsnp = maf.size();
+MatrixXd simulateXNormal(SimulationRequest& simReq, VectorXd& mafs){
+    int nsnp = simReq.nsnp;
 
     MatrixXd X(simReq.maxSize(), nsnp);
 
-    for (int h = 0; h < X.cols(); h++)
+    for (int h = 0; h < X.cols(); h++){
+        if(STOP_RUNNING_THREAD)
+            return X;
+
         for (int j = 0; j < X.rows(); j++)
-                X(j, h) = randomBinomial(2, maf[h]);
+                X(j, h) = randomBinomial(2, mafs[h]);
+    }
 
     return X;
+}
+
+/*
+Simulates sequencing experiment and produces genotype likelihood.
+@param simReq Simulation paramters
+@return Vector of likelihoods.
+*/
+std::vector<std::vector<Vector3d>> simulateSequencing(SimulationRequest& simReq, MatrixXd& Xtrue) {
+
+    std::vector<std::vector<Vector3d>> likelihoods;
+    likelihoods.reserve(Xtrue.cols());
+
+    for (int j = 0; j < Xtrue.cols(); j++){
+        VectorXd x = Xtrue.col(j);
+
+        VectorXi readDepths = generateReadDepths(simReq);
+        std::vector<std::vector<int>> baseCalls = generateBaseCalls(simReq, x, readDepths);
+        likelihoods.push_back(generateLikelihoods(simReq, baseCalls));
+    }
+
+    return likelihoods;
 }
 
 double inline generateGenotype(double prob_x0, double prob_x1) {

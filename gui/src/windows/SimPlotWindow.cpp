@@ -118,11 +118,7 @@ void SimPlotWindow::updateSampleTable(int index){
 
         //table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].index)));
         table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].getSampleSize(index))));
-
-        if(request.family == Family::BINOMIAL)
-            table->setItem(i+1, 1, new QTableWidgetItem(request.groups[i].isCase ? "case" : "control"));
-        else if (request.family == Family::NORMAL)
-            table->setItem(i+1, 1, new QTableWidgetItem("normal"));
+        table->setItem(i+1, 1, new QTableWidgetItem(QString::fromStdString(request.groups[i].getCohort())));
 
         QString depth = "N(" + QString::number(request.groups[i].meanDepth) + ", " +
                 QString::number(request.groups[i].sdDepth) + ")";
@@ -176,8 +172,12 @@ void SimPlotWindow::mouseMovePlot1(QMouseEvent *event){
         ui->simplot_power->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
 
         ui->simplot_power->replot();
+
+        //if(!QToolTip::isVisible())
+        //    QToolTip::showText(QPoint(event->globalX(), event->globalY()), QString("hello"));
     }
     else{
+        //QToolTip::hideText();
         //remove old highlight layer
         ui->simplot_power->removeGraph(ui->simplot_power->graphCount()-1);
         ui->simplot_power->addGraph();
@@ -286,4 +286,138 @@ void SimPlotWindow::on_pushButton_clicked(bool checked)
 
     table->initialize(title, &result, testsToShow);
     table->show();
+}
+
+void SimPlotWindow::on_simplot_pdfBtn_pressed()
+{
+
+    QFileDialog dialog;
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setOption(QFileDialog::ShowDirsOnly);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export Directory"),
+                                                     lastSaveDir, tr("PDF (*.pdf)"));
+
+    if(fileName.size() > 0){
+        lastSaveDir = fileName;
+
+        if(ui->simplot_plotTab->currentIndex() == 0)
+            saveAsPdf(ui->simplot_power, fileName);
+        else if (ui->simplot_plotTab->currentIndex() == 1)
+            saveAsPdf(ui->simplot_plot2, fileName, powerIndex);
+
+    }
+
+}
+
+void SimPlotWindow::saveAsPdf(QCustomPlot* plot, QString fileName, int stepIndex){
+
+    //set up PDF
+    QPrinter printer;
+    printer.setFullPage(true);
+    printer.setPaperSize(QPrinter::A4);
+    printer.setOrientation(QPrinter::Portrait);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+
+    //print out plot
+    double width = printer.width()*0.8;
+    double height = (width/plot->width())*plot->height();
+    QTextDocument doc;
+    QCPDocumentObject *plotObjectHandler = new QCPDocumentObject(this);
+    doc.documentLayout()->registerHandler(QCPDocumentObject::PlotTextFormat, plotObjectHandler);
+
+    QTextCursor cursor(&doc);
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), QCPDocumentObject::generatePlotFormat(plot, width, height));
+
+    //print out legend
+    QVector<QLabel*> labels;
+    labels.push_back(ui->simplot_legend1Lbl);
+    labels.push_back(ui->simplot_legend2Lbl);
+    labels.push_back(ui->simplot_legend3Lbl);
+    labels.push_back(ui->simplot_legend4Lbl);
+    QVector<QWidget*> colours;
+    colours.push_back(ui->simplot_legend1Sqr);
+    colours.push_back(ui->simplot_legend2Sqr);
+    colours.push_back(ui->simplot_legend3Sqr);
+    colours.push_back(ui->simplot_legend4Sqr);
+
+    int legendSize = 0;
+    for(int i = 0; i < labels.size(); i++)
+        if(!labels[i]->isHidden())
+            legendSize++;
+
+    QTextTableFormat tableFormat;
+    //tableFormat.setHeaderRowCount(1);
+    //tableFormat.setAlignment(Qt::AlignHCenter);
+    tableFormat.setCellPadding(10);
+    tableFormat.setCellSpacing(0);
+    tableFormat.setBorder(1);
+    tableFormat.setBorderBrush(QBrush(Qt::SolidPattern));
+    tableFormat.clearColumnWidthConstraints();
+    QTextTable *textTable = cursor.insertTable(1, 2*legendSize, tableFormat);
+
+    int index = 0;
+    for(int i = 0; i < labels.size(); i++){
+        if(!labels[i]->isHidden()){
+            QTextTableCell cell = textTable->cellAt(0, (i*2)+1);
+            QTextCursor cellCursor = cell.firstCursorPosition();
+            cellCursor.insertText(labels[i]->text());
+            QTextCharFormat cellFormat;
+            cellFormat.setBackground(colours[i]->palette().background().color());
+            QTextTableCell colourCell = textTable->cellAt(0, i*2);
+            colourCell.setFormat(cellFormat);
+            index++;
+        }
+    }
+
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText("\n\n\n");
+    //print out table
+    QTextTableFormat sampleTableFormat;
+    sampleTableFormat.setHeaderRowCount(1);
+    //tableFormat.setAlignment(Qt::AlignHCenter);
+    sampleTableFormat.setCellPadding(10);
+    sampleTableFormat.setCellSpacing(0);
+    sampleTableFormat.setBorder(1);
+    sampleTableFormat.setBorderBrush(QBrush(Qt::SolidPattern));
+    sampleTableFormat.clearColumnWidthConstraints();
+    QTextTable *sampleTable = cursor.insertTable(request.groups.size()+1, 6, sampleTableFormat);
+
+    sampleTable->cellAt(0, 0).firstCursorPosition().insertText("Group");
+    sampleTable->cellAt(0, 1).firstCursorPosition().insertText("Sample Size");
+    sampleTable->cellAt(0, 2).firstCursorPosition().insertText("Cohort");
+    sampleTable->cellAt(0, 3).firstCursorPosition().insertText("Mean Read Depth");
+    sampleTable->cellAt(0, 4).firstCursorPosition().insertText("Read Depth SD");
+    sampleTable->cellAt(0, 5).firstCursorPosition().insertText("Error Rate");
+
+    QTextCharFormat sampleTableHeaderFormat;
+    sampleTableHeaderFormat.setBackground(QColor("#DADADA"));
+    for (size_t i = 0; i < 6; i++)
+        sampleTable->cellAt(0, i).setFormat(sampleTableHeaderFormat);
+
+    for(size_t i = 0; i < request.groups.size(); i++){
+        sampleTable->cellAt(i+1, 0).firstCursorPosition().insertText(
+                    QString::number(request.groups[i].index));
+        QString sampleSize = QString::number(request.groups[i].getSampleSize(0));
+        if(request.groups[i].getSampleSize(0) != request.groups[i].getSampleSize(request.steps))
+            sampleSize = sampleSize + ":" + QString::number(request.groups[i].getSampleSize(request.steps));
+
+        if(stepIndex >= 0)
+            sampleSize = QString::number(request.groups[i].getSampleSize(stepIndex));
+
+        sampleTable->cellAt(i+1, 1).firstCursorPosition().insertText(
+                    (sampleSize));
+        sampleTable->cellAt(i+1, 2).firstCursorPosition().insertText(
+                    QString::fromStdString(request.groups[i].getCohort()));
+        sampleTable->cellAt(i+1, 3).firstCursorPosition().insertText(
+                    QString::number(request.groups[i].meanDepth));
+        sampleTable->cellAt(i+1, 4).firstCursorPosition().insertText(
+                    QString::number(request.groups[i].sdDepth));
+        sampleTable->cellAt(i+1, 5).firstCursorPosition().insertText(
+                    QString::number(request.groups[i].errorRate));
+    }
+
+
+    doc.print(&printer);
 }
