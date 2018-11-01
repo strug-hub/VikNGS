@@ -147,9 +147,12 @@ struct SimulationRequest {
         for (SimulationRequestGroup g : groups)
             nsample += g.n;
 
-        if(isRare(testStatistic))
+        if(isRare(testStatistic)){
             if (collapse < 2)
                 throwError(ERROR_SOURCE, "Number of variants per collapsed region should be a number greater than 1.", std::to_string(collapse));
+            if (nsnp % collapse != 0)
+                throwError(ERROR_SOURCE, "Number of variants should be divisible by the collapse size (" + std::to_string(collapse) + ").", std::to_string(nsnp));
+        }
 
         if (nsnp <= 0)
             throwError(ERROR_SOURCE, "Number of variants should be greater than zero.", std::to_string(nsnp));

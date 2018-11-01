@@ -1,5 +1,6 @@
 #include "PlotWindow.h"
 #include "ui_plotwindow.h"
+#include <QSharedPointer>
 
 void PlotWindow::updateVariantHighlightLayer(int variantIndex){
     QVector<double> l;
@@ -21,16 +22,14 @@ void PlotWindow::updateVariantHighlightLayer(int variantIndex){
 
 void PlotWindow::buildGenomePlot(){
     ui->plot_genomePlt->clearPlottables();
-
-    QVector<double> tickValues;
-    QVector<QString> tickLabels;
+    ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
+    //ui->plot_genomePlt->xAxis->setTickPen(Qt::NoPen);
 
     bool colour1 = true;    
-
     double offset = 0;
+    QSharedPointer<QCPAxisTicker> ticks = QSharedPointer<QCPAxisTickerText>(new QCPAxisTickerText);
 
-    for( int i = 0; i < chrNames.size(); i++ )
-    {
+    for(int i = 0; i < chrNames.size(); i++){
         chromosomes[chrNames[i]].setOffset(offset);
         Chromosome chr = chromosomes[chrNames[i]];
 
@@ -38,9 +37,6 @@ void PlotWindow::buildGenomePlot(){
         ui->plot_genomePlt->graph()->setData(chr.getRelativePositions(offset), chr.getPvals(0));
         ui->plot_genomePlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
         ui->plot_genomePlt->graph()->setName(chr.getName());
-
-        tickLabels.push_back(chr.getName());
-        tickValues.push_back(offset + chr.getSpan()/2);
 
         QColor toUse = grey1;
         if(!colour1)
@@ -56,8 +52,23 @@ void PlotWindow::buildGenomePlot(){
         ui->plot_genomePlt->graph()->setScatterStyle(
                     QCPScatterStyle(QCPScatterStyle::ssDisc,
                                     toUse, Qt::white, 2));
-        offset += chr.getSpan();       
+
+        ((QCPAxisTickerText*)ticks.get())->addTick(offset + chr.getSpan()/2.0, chr.getName());
+        offset += chr.getSpan();
+
+        if(i < chrNames.size()-1){
+            QCPItemLine *divider;
+            QPen vpen = QPen(Qt::SolidLine);
+            vpen.setColor( QColor::fromRgb(110, 128, 158, 100));
+            divider = new QCPItemLine(ui->plot_genomePlt);
+            divider->setPen(vpen);
+            divider->start->setCoords(offset,0);
+            divider->end->setCoords(offset,1e6);
+        }
     }
+
+    ui->plot_genomePlt->xAxis->setTicker(ticks);
+    ui->plot_genomePlt->xAxis->setTickLabelRotation(-30);
 
     focusRect = new QCPItemRect(ui->plot_genomePlt);
     focusRect->setLayer("overlay");
@@ -79,13 +90,7 @@ void PlotWindow::buildGenomePlot(){
     zoomRect->setPen(Qt::NoPen);
     zoomRect->setBrush(QBrush(transFocus));
 
-    ui->plot_genomePlt->yAxis->setLabel("-log(p)");
-
-    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-    textTicker->addTicks(tickValues, tickLabels);
-    //ui->plot_genomePlt->xAxis->setTicker(textTicker);
-    //ui->plot_genomePlt->xAxis->setTickLabelRotation(90);
-    //ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
+    ui->plot_genomePlt->yAxis->setLabel("-log10(p)");
 
     ui->plot_genomePlt->rescaleAxes();
     ui->plot_genomePlt->yAxis->setRangeLower(0);
@@ -149,7 +154,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
                 QCPScatterStyle(QCPScatterStyle::ssDisc,
                                 focus, Qt::white, pointSize));
 
-    ui->plot_chrPlt->yAxis->setLabel("-log(p)");
+    ui->plot_chrPlt->yAxis->setLabel("-log10(p)");
     ui->plot_chrPlt->xAxis->setLabel("Position");
 
     QCPTextElement *title = new QCPTextElement(ui->plot_chrPlt, "Chromosome " + chrName, QFont("sans", 17, QFont::Bold));

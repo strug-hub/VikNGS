@@ -7,7 +7,7 @@
 #include <vector>
 #include <fstream>
 #include <iomanip>
-
+#include <chrono>
 
 Data startVikNGS(Request req) {
 
@@ -27,7 +27,16 @@ Data startVikNGS(Request req) {
         req.setIntervals(&result.intervals);
     }
 
-    result.variants = processVCF(req, result.sampleInfo);
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    result.variants = processVCF(req, result.sampleInfo, result.variantsParsed);
+
+    auto finishTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finishTime - startTime;
+    result.evaluationTime = elapsed.count();
+    result.processingTime = 0;
+
+
     outputPvals(result.variants, req.getOutputDir(), result.tests);
 
     return result;

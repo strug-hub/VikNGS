@@ -25,12 +25,15 @@ enum class CollapseType;
 //========================================================
 
 struct Data {
+    double processingTime;
+    double evaluationTime;
+    size_t variantsParsed;
+
     SampleInfo sampleInfo;
     IntervalSet intervals;
     std::vector<Test> tests;
     std::vector<VariantSet> variants;
-    double processingTime;
-    double evaluationTime;
+
 
     inline int size(){ return static_cast<int>(variants.size()); }
 };
@@ -46,7 +49,7 @@ extern bool STOP_RUNNING_THREAD;
 //========================================================
 
 Data startVikNGS(Request req);
-std::vector<VariantSet> processVCF(Request &req, SampleInfo &input);
+std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t& totalLineCount);
 
 //========================================================
 // Output functions

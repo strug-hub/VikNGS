@@ -6,6 +6,7 @@
 #include "../widgets/qcustomplot.h"
 #include "./TableDisplayWindow.h"
 #include "Chromosome.h"
+#include "../widgets/qcpdocumentobject.h"
 
 namespace Ui {
 class PlotWindow;
@@ -46,6 +47,8 @@ public slots:
 
 private slots:
     void on_plot_genotypeBtn_pressed();
+    void on_plot_pdfBtn_pressed();
+
 private:
     Ui::PlotWindow *ui;  
     TableDisplayWindow *tableView = new TableDisplayWindow();
@@ -70,6 +73,9 @@ private:
     int highlightVar;
 
     const QString chrGraphName = "chromgraph";
+
+    QString lastSaveDir = ".";
+    void saveAsPdf(QString fileName);
 
     bool eventFilter(QObject *obj, QEvent *event)
     {

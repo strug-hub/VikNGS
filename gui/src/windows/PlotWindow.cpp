@@ -28,6 +28,28 @@ PlotWindow::~PlotWindow()
     delete ui;
 }
 
+QString time2String(double time){
+
+    if(time < 120)
+        return QString::number(time, 'g', 2) + " sec";
+
+    int t = std::round(time);
+    int hour = t/3600; t = t%3600;
+    int min = t/60; t = t%60;
+    int sec = t;
+
+    QString str = "";
+    if(hour > 0)
+        str = str + QString::number(hour) + " hr ";
+    if(hour > 0 || min > 0)
+        str = str + QString::number(min) + " min ";
+
+    str = str + QString::number(sec) + " sec";
+
+    return str;
+}
+
+
 void PlotWindow::initialize(Data& result, QString title){
 
     this->result = result;
@@ -41,6 +63,15 @@ void PlotWindow::initialize(Data& result, QString title){
 
     std::vector<int> testsToShow;
     for(size_t i = 0; i < this->result.tests.size(); i++) testsToShow.push_back(i);
+
+    size_t nvariants = 0;
+    for(int i = 0; i < result.variants.size(); i++)
+        nvariants += result.variants[i].validSize();
+
+    QString timing = "Run time: " + time2String(result.processingTime) + "\n" +
+            QString::number(result.variantsParsed) + " variants parsed" + "\n" +
+            QString::number(nvariants) + " tested";
+    ui->plot_timeLbl->setText(timing);
 
     QString table_title = "Table";
     tableView->initialize(table_title, &this->result, testsToShow);
@@ -150,4 +181,50 @@ void PlotWindow::on_plot_genotypeBtn_pressed()
 {
     if(!tableView->isVisible())
         tableView->show();
+}
+
+void PlotWindow::on_plot_pdfBtn_pressed()
+{
+    QFileDialog dialog;
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setOption(QFileDialog::ShowDirsOnly);
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export Directory"),
+                                                     lastSaveDir, tr("PDF (*.pdf)"));
+
+    if(fileName.size() > 0){
+        lastSaveDir = fileName;
+        saveAsPdf(fileName);
+    }
+}
+
+void PlotWindow::saveAsPdf(QString fileName){
+
+    //set up PDF
+    QPrinter printer;
+    printer.setFullPage(true);
+    printer.setOrientation(QPrinter::Landscape);
+    printer.setPaperSize(QPrinter::A4);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+
+    QCustomPlot* plot = ui->plot_chrPlt;
+
+    //print out plot
+    double width = printer.width()*0.8;
+    double height = (width/plot->width())*plot->height();
+    QTextDocument doc;
+    QCPDocumentObject *plotObjectHandler = new QCPDocumentObject(this);
+    doc.documentLayout()->registerHandler(QCPDocumentObject::PlotTextFormat, plotObjectHandler);
+
+    QTextCursor cursor(&doc);
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), QCPDocumentObject::generatePlotFormat(plot, width, height));
+
+    plot = ui->plot_genomePlt;
+    //print out plot2
+    height = (width/plot->width())*plot->height();
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText(QString(QChar::ObjectReplacementCharacter), QCPDocumentObject::generatePlotFormat(plot, width, height));
+
+    doc.print(&printer);
 }

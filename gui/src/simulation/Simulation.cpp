@@ -4,7 +4,7 @@
 #include <thread>
 #include <chrono>
 
-bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<VariantSet*>& variants, Test& test, int nboot){
+bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<VariantSet*>& variants, Test& test, int nboot, bool stopEarly){
     if(variants.size() <= 0)
         return true;
 
@@ -30,7 +30,7 @@ bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<Var
             counterZ++;
         }
 
-        double pval = runTest(sampleInfo, vs, test, nboot, (nboot > 1));
+        double pval = runTest(sampleInfo, vs, test, nboot, stopEarly);
         vs->addPval(pval);
     }
 
@@ -57,15 +57,18 @@ private:
     std::future<bool> testingDone;
     std::vector<VariantSet*> pointers;
     int nboot;
+    bool stopEarly;
 
 public:
     ParallelTest(SampleInfo si, MatrixXd* phenotypes) : sampleInfo(si), Y(phenotypes) { running = false;}
     void updateSampleInfoY(VectorXd Y){ this->sampleInfo.setY(Y); }
     void addZ(MatrixXd* Z){ this->Z = Z; useZ = true; }
-    void beginAssociationTest(int startIdx, std::vector<VariantSet*>& variants, Test& test, int nboot){
+    void beginAssociationTest(int startIdx, std::vector<VariantSet*>& variants, Test& test, int nboot, bool stopEarly){
         running = true;
         this->pointers = variants;
         this->nboot = nboot;
+        this->stopEarly = stopEarly;
+
         t = test;
 
         if(Y->cols() > 1)
@@ -79,7 +82,7 @@ public:
             Zsubset = Z->col(0);
 
         testingDone = std::async(std::launch::async,
-                [this] { return testBatch(&sampleInfo, Ysubset, Zsubset, pointers, t, this->nboot); }) ;
+                [this] { return testBatch(&sampleInfo, Ysubset, Zsubset, pointers, t, this->nboot, this->stopEarly); }) ;
     }
     inline bool isTestingDone(){
         return running && testingDone.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -189,6 +192,7 @@ Data startSimulation(SimulationRequest& simReq) {
         nboot = simReq.nboot;
     if(!simReq.useBootstrap)
         nboot = 1;
+    bool stopEarly = simReq.stopEarly;
 
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
@@ -225,7 +229,7 @@ Data startSimulation(SimulationRequest& simReq) {
                     if(useZ && Z.cols() == 1)
                         result.sampleInfo.setZ(Z.col(0));
 
-                    double pval = runTest(&result.sampleInfo, &result.variants[k], tests[j], nboot, simReq.stopEarly);
+                    double pval = runTest(&result.sampleInfo, &result.variants[k], tests[j], nboot, stopEarly);
                     result.variants[k].addPval(pval);
                 }
             }
@@ -244,7 +248,7 @@ Data startSimulation(SimulationRequest& simReq) {
                     counter++;
 
                     if(vs.size() >= batchSize && threadsRunning < (nthreads-1)){
-                        threads[threadsRunning].beginAssociationTest(startIdx, vs, tests[j], nboot);
+                        threads[threadsRunning].beginAssociationTest(startIdx, vs, tests[j], nboot, stopEarly);
                         threadsRunning++;
                         vs.clear();
                         startIdx = counter;
@@ -252,7 +256,7 @@ Data startSimulation(SimulationRequest& simReq) {
                 }
 
                 if(vs.size() > 0)
-                    threads[threadsRunning].beginAssociationTest(startIdx, vs, tests[j], nboot);
+                    threads[threadsRunning].beginAssociationTest(startIdx, vs, tests[j], nboot, stopEarly);
 
                 while(true){
 
@@ -261,8 +265,10 @@ Data startSimulation(SimulationRequest& simReq) {
                         if(threads[t].isRunning()){
                             if(!threads[t].isTestingDone())
                                 stop = false;
-                            else
+                            else{
                                 threads[t].setDone();
+                                printInfo(std::to_string(t));
+                            }
                         }
                     }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>976</width>
-    <height>814</height>
+    <height>826</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -726,7 +726,7 @@
                <item row="0" column="0">
                 <widget class="QLineEdit" name="sim_variantSizeTxt">
                  <property name="text">
-                  <string>1000</string>
+                  <string>100</string>
                  </property>
                 </widget>
                </item>
@@ -873,7 +873,7 @@
                       <string>Common</string>
                      </property>
                      <property name="checked">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                     </widget>
                    </item>
@@ -883,7 +883,7 @@
                       <string>Rare (SKAT)</string>
                      </property>
                      <property name="checked">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -910,7 +910,7 @@
                      <item row="0" column="1">
                       <widget class="QLabel" name="sim_testBootLbl">
                        <property name="enabled">
-                        <bool>false</bool>
+                        <bool>true</bool>
                        </property>
                        <property name="text">
                         <string># iterations</string>
@@ -920,7 +920,7 @@
                      <item row="0" column="0">
                       <widget class="QLineEdit" name="sim_testBootTxt">
                        <property name="enabled">
-                        <bool>false</bool>
+                        <bool>true</bool>
                        </property>
                        <property name="text">
                         <string>1000</string>
@@ -930,7 +930,7 @@
                      <item row="1" column="0">
                       <widget class="QLineEdit" name="sim_collapseTxt">
                        <property name="enabled">
-                        <bool>false</bool>
+                        <bool>true</bool>
                        </property>
                        <property name="text">
                         <string>5</string>
@@ -939,6 +939,9 @@
                      </item>
                      <item row="2" column="1">
                       <widget class="QCheckBox" name="sim_covariateChk">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
                        <property name="text">
                         <string>Covar</string>
                        </property>
@@ -950,7 +953,7 @@
                      <item row="1" column="1">
                       <widget class="QLabel" name="sim_collapseLbl">
                        <property name="enabled">
-                        <bool>false</bool>
+                        <bool>true</bool>
                        </property>
                        <property name="text">
                         <string>Collapse </string>
@@ -997,13 +1000,13 @@
                  <item>
                   <widget class="QCheckBox" name="sim_testStopChk">
                    <property name="enabled">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                    <property name="text">
                     <string>Stop Early</string>
                    </property>
                    <property name="checked">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                   </widget>
                  </item>

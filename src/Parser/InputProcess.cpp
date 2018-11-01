@@ -318,7 +318,7 @@ public:
 
 };
 
-std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
+std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t& totalLineCount) {
     std::vector<VariantSet> results;
 
     size_t nthreads = std::max(1, req.getNumberThreads());
@@ -332,7 +332,7 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo) {
     File vcf;
     vcf.open(req.getVCFDir());
 
-    size_t totalLineCount = 0;
+    totalLineCount = 0;
     size_t batchSize = static_cast<size_t>(req.getBatchSize());
 
     std::deque<std::string> lines;
