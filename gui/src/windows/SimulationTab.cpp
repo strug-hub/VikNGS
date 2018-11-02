@@ -12,7 +12,7 @@ void MainWindow::simulationTabInit(){
     prevR2 = "0.0";
     prevOddsRatio = "1.0";
 
-    bool showCov = false;
+    bool showCov = true;
     ui->sim_covariateChk->setCheckState(Qt::Unchecked);
 
     ui->sim_covariateChk->setVisible(showCov);
