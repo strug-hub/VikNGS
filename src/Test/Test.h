@@ -4,22 +4,6 @@
 #include "TestObject.h"
 
 inline double getScore(VectorXd& Ycenter, MatrixXd& X, int col=0) {
-    VectorXd y = Ycenter;
-    MatrixXd x = X;
-
-    double yy = y.sum();
-    double xx = x.sum()/x.rows();
-
-    double v = 0;
-    double v2 = (Ycenter.array() * X.col(col).array()).sum();
-
-    for(int i = 0; i < Ycenter.size(); i++){
-
-        v += Ycenter[i] * X(i,col);
-
-    }
-
-
     return (Ycenter.array() * X.col(col).array()).sum();
 }
 

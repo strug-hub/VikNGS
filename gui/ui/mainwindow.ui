@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>976</width>
-    <height>826</height>
+    <height>829</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -726,7 +726,7 @@
                <item row="0" column="0">
                 <widget class="QLineEdit" name="sim_variantSizeTxt">
                  <property name="text">
-                  <string>100</string>
+                  <string>1000</string>
                  </property>
                 </widget>
                </item>
@@ -777,7 +777,7 @@
                <item row="3" column="0">
                 <widget class="QLineEdit" name="sim_variantMafMaxTxt">
                  <property name="text">
-                  <string>0.01</string>
+                  <string>0.05</string>
                  </property>
                 </widget>
                </item>
@@ -820,7 +820,7 @@
                <item row="1" column="0">
                 <widget class="QLineEdit" name="sim_powerStepTxt">
                  <property name="text">
-                  <string>2</string>
+                  <string>1</string>
                  </property>
                 </widget>
                </item>
@@ -837,7 +837,7 @@
                <item row="2" column="0">
                 <widget class="QLineEdit" name="sim_threadsTxt">
                  <property name="text">
-                  <string>12</string>
+                  <string>14</string>
                  </property>
                 </widget>
                </item>
@@ -873,7 +873,7 @@
                       <string>Common</string>
                      </property>
                      <property name="checked">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -883,7 +883,7 @@
                       <string>Rare (SKAT)</string>
                      </property>
                      <property name="checked">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                     </widget>
                    </item>
@@ -910,7 +910,7 @@
                      <item row="0" column="1">
                       <widget class="QLabel" name="sim_testBootLbl">
                        <property name="enabled">
-                        <bool>true</bool>
+                        <bool>false</bool>
                        </property>
                        <property name="text">
                         <string># iterations</string>
@@ -920,7 +920,7 @@
                      <item row="0" column="0">
                       <widget class="QLineEdit" name="sim_testBootTxt">
                        <property name="enabled">
-                        <bool>true</bool>
+                        <bool>false</bool>
                        </property>
                        <property name="text">
                         <string>1000</string>
@@ -930,7 +930,7 @@
                      <item row="1" column="0">
                       <widget class="QLineEdit" name="sim_collapseTxt">
                        <property name="enabled">
-                        <bool>true</bool>
+                        <bool>false</bool>
                        </property>
                        <property name="text">
                         <string>5</string>
@@ -953,7 +953,7 @@
                      <item row="1" column="1">
                       <widget class="QLabel" name="sim_collapseLbl">
                        <property name="enabled">
-                        <bool>true</bool>
+                        <bool>false</bool>
                        </property>
                        <property name="text">
                         <string>Collapse </string>
@@ -1000,7 +1000,7 @@
                  <item>
                   <widget class="QCheckBox" name="sim_testStopChk">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="text">
                     <string>Stop Early</string>

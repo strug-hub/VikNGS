@@ -265,10 +265,8 @@ Data startSimulation(SimulationRequest& simReq) {
                         if(threads[t].isRunning()){
                             if(!threads[t].isTestingDone())
                                 stop = false;
-                            else{
+                            else
                                 threads[t].setDone();
-                                printInfo(std::to_string(t));
-                            }
                         }
                     }
 

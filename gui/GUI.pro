@@ -57,11 +57,10 @@ SOURCES += \
     src/windows/SimPlotWindow.cpp \
     src/windows/PlotWindow.cpp \
     ../src/Global.cpp \
-    src/windows/RequestConstructor.cpp \
     src/log/Log.cpp \
     src/windows/PlotWindowMouse.cpp \
     src/windows/MainWindow.cpp \
-    src/windows/QSimulationTab.cpp
+    src/widgets/qcpdocumentobject.cpp
 
 HEADERS += \
     ../src/Eigen/src/Cholesky/LDLT.h \
@@ -289,7 +288,8 @@ HEADERS += \
     src/log/qlog.h \
     src/widgets/qzoombar.h \
     src/widgets/qcustomplot.h \
-    src/windows/SimPlotWindow.h
+    src/windows/SimPlotWindow.h \
+    src/widgets/qcpdocumentobject.h
 
 
 FORMS += \

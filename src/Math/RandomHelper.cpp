@@ -2,7 +2,7 @@
 #include <random>
 
 static std::random_device rd;
-static std::mt19937 generate(rd());
+static thread_local std::mt19937 generate(rd());
 
 int randomInt(int from, int to) {
     std::uniform_int_distribution<> sample(from, to);
@@ -41,8 +41,8 @@ MatrixXd groupwiseShuffleWithReplacement(MatrixXd& M, VectorXi& G, std::map<int,
     for(int j = 0; j < M.cols(); j++){
         for(int i = 0; i < M.rows(); i++){
 
-            g = G[i]; n = static_cast<int>(group[g].size());
-            rand = randomInt(0, n - 1);
+            g = G[i];
+            rand = randomInt(0, group[g].size() - 1);
             rand = group[g][static_cast<size_t>(rand)];
 
             shuffled(i, j) = M(rand, j);
