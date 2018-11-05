@@ -880,7 +880,7 @@
                    <item>
                     <widget class="QRadioButton" name="sim_testRareSkatBtn">
                      <property name="text">
-                      <string>Rare (SKAT)</string>
+                      <string>SKAT</string>
                      </property>
                      <property name="checked">
                       <bool>false</bool>
@@ -890,10 +890,17 @@
                    <item>
                     <widget class="QRadioButton" name="sim_testRareCastBtn">
                      <property name="text">
-                      <string>Rare (CAST)</string>
+                      <string>CAST</string>
                      </property>
                      <property name="checked">
                       <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QRadioButton" name="sim_testRareCalphaBtn">
+                     <property name="text">
+                      <string>Calph</string>
                      </property>
                     </widget>
                    </item>

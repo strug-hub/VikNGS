@@ -89,6 +89,8 @@ private slots:
     void on_sim_quantitativeBtn_pressed();
     void on_sim_simulationSld_valueChanged(int value);
 
+    void on_sim_testRareCalphaBtn_toggled(bool checked);
+
 signals:
     void sendPlotData(QVector<double> values);
 

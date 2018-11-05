@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 
-enum class Statistic { NONE, COMMON, CAST, SKAT };
-inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT;}
+enum class Statistic { NONE, COMMON, CAST, SKAT, CALPHA };
+inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
 
 enum class Genotype { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
 inline std::string genotypeToString(Genotype g){
@@ -68,6 +68,7 @@ public:
             case Statistic::COMMON : part2 = "common"; break;
             case Statistic::CAST : part2 = "CAST"; break;
             case Statistic::SKAT : part2 = "SKAT"; break;
+            case Statistic::CALPHA : part2 = "Calpha"; break;
             default: return "???";
         }
 
@@ -91,6 +92,8 @@ public:
             case Statistic::COMMON : part2 = "common"; break;
             case Statistic::CAST : part2 = "CAST"; break;
             case Statistic::SKAT : part2 = "SKAT"; break;
+            case Statistic::CALPHA : part2 = "Calpha"; break;
+
             default: return "???";
         }
 

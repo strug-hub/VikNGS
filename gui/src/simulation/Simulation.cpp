@@ -31,6 +31,7 @@ bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<Var
         }
 
         double pval = runTest(sampleInfo, vs, test, nboot, stopEarly);
+
         vs->addPval(pval);
     }
 
@@ -92,12 +93,31 @@ public:
         pointers.clear();
     }
     inline bool isRunning(){ return running; }
-
 };
 
+void printUpdate(int current, int total, double& lastNotify,
+                 std::chrono::time_point<std::chrono::high_resolution_clock>& lastNotifyTime){
+
+    double notifyPercent = 0.01;
+    double timeBetweenNotify = 5;
+
+    if((current*1.0)/total > lastNotify + notifyPercent){
+        lastNotify += notifyPercent;
+        std::chrono::duration<double> e = std::chrono::high_resolution_clock::now() - lastNotifyTime;
+        if(e.count() > timeBetweenNotify){
+            printInfo(std::to_string(std::floor(lastNotify * 100)) + "% of tests have been done.");
+            lastNotifyTime = std::chrono::high_resolution_clock::now();
+        }
+    }
+}
+
 Data startSimulation(SimulationRequest& simReq) {
+
     // Record start time
     auto startTime = std::chrono::high_resolution_clock::now();
+
+    double lastNotify = 0;
+    auto lastNotifyTime = startTime;
 
     Data result;
     Family fam = simReq.family;
@@ -222,6 +242,9 @@ Data startSimulation(SimulationRequest& simReq) {
             //single thread
             if(nthreads <= 1){
                 for(size_t k = 0; k < result.variants.size(); k++){
+
+                    printUpdate(result.variants.size()*j + k, result.variants.size()*tests.size(), lastNotify, lastNotifyTime);
+
                     if(Y.cols() > 1)
                         result.sampleInfo.setY(Y.col(k));
                     if(useZ && Z.cols() > 1)
@@ -260,6 +283,10 @@ Data startSimulation(SimulationRequest& simReq) {
 
                 while(true){
 
+                    int nTestsDone = 0;
+                    for(VariantSet vs : result.variants)
+                        nTestsDone += vs.nPvals();
+
                     bool stop = true;
                     for(size_t t = 0; t < nthreads; t++){
                         if(threads[t].isRunning()){
@@ -269,6 +296,8 @@ Data startSimulation(SimulationRequest& simReq) {
                                 threads[t].setDone();
                         }
                     }
+
+                    printUpdate(nTestsDone, result.variants.size()*tests.size(), lastNotify, lastNotifyTime);
 
                     if(stop)
                         break;

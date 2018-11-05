@@ -33,7 +33,7 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
             return pnorm(scoreV.sum() / sqrt(diagS.sum()));
         }
 
-        else if(s == Statistic::SKAT){
+        else if(s == Statistic::SKAT || s == Statistic::CALPHA){
 
             auto g = diagS.eigenvalues();
             VectorXd f = diagS.eigenvalues().real();
@@ -43,6 +43,9 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
             for(int e = 0; e < f.rows(); e++)
                 if(f[e] < 0)
                     useCalpha = true;
+
+            if (s == Statistic::CALPHA)
+                useCalpha = true;
 
             if(useCalpha){
                 VectorXd e = diagS.eigenvalues().real();

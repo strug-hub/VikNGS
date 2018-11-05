@@ -250,6 +250,11 @@ void MainWindow::on_sim_testRareCastBtn_toggled(bool checked){
 void MainWindow::on_sim_testRareSkatBtn_toggled(bool checked){
     simEnableRare(checked);
 }
+void MainWindow::on_sim_testRareCalphaBtn_toggled(bool checked)
+{
+    simEnableRare(checked);
+}
+
 
 void MainWindow::addGroup(QTableWidget* table, QString n, QString cohort, QString depth, QString sdDepth, QString errorRate){
 
@@ -407,6 +412,8 @@ int MainWindow::getNumberOfThreadsSim(){
 
 Statistic MainWindow::getTestSim(){
 
+    if(ui->sim_testRareCalphaBtn->isChecked())
+        return Statistic::CALPHA;
     if(ui->sim_testRareSkatBtn->isChecked())
         return Statistic::SKAT;
     else if(ui->sim_testRareCastBtn->isChecked())
