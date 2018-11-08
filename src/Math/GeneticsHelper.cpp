@@ -1,4 +1,5 @@
 #include "Math.h"
+#include <iostream>
 
 /**
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
@@ -48,6 +49,7 @@ VectorXd calculateGenotypeCalls(std::vector<Vector3d>& gl, Vector3d &P){
 /**
 Estimates the genotype frequencies from provided genotypes
 
+
 @param likelihood A vector with genotypes.
 @return A vector with probability of 0, 1 or 2 minor alleles.
 */
@@ -55,7 +57,7 @@ Vector3d calculateGenotypeFrequencies(VectorXd & gt) {
 
     Vector3d P;
     P[0] = 0; P[1] = 0; P[2] = 0;
-    double n;
+    double n = 0;
     //expecting genotypes to be 0, 1, or 2
     //using 0.1, 1.1 and 2.1 for double comparison
     for(int i = 0; i < gt.rows(); i++){
@@ -73,6 +75,7 @@ Vector3d calculateGenotypeFrequencies(VectorXd & gt) {
     P[0]=P[0]/n;
     P[1]=P[1]/n;
     P[2]=P[2]/n;
+
     return P;
 }
 

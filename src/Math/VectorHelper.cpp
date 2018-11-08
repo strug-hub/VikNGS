@@ -128,7 +128,7 @@ std::vector<VectorXd> splitIntoGroups(VectorXd& v, VectorXi& g, int gSize){
     std::vector<VectorXd> result(static_cast<size_t>(ngroups));
 
     for (int i = 0; i < ngroups; i++)
-        result.emplace_back(extractRows(v, g, i));
+        result[i] = extractRows(v, g, i);
 
     return result;
 }

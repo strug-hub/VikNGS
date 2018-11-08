@@ -200,12 +200,12 @@ Data startSimulation(SimulationRequest& simReq) {
     std::vector<Test> tests;
     Test trueGT(Genotype::TRUE, simReq.testStatistic);
     Test expectedGT(Genotype::EXPECTED, simReq.testStatistic);
-    Test calledGT(Genotype::CALL, simReq.testStatistic);
+//    Test calledGT(Genotype::CALL, simReq.testStatistic);
 
     tests.push_back(trueGT);
     tests.push_back(expectedGT);
-    if(simReq.underNull() || fam == Family::NORMAL)
-        tests.push_back(calledGT);
+//    if(simReq.underNull() || fam == Family::NORMAL)
+//        tests.push_back(calledGT);
 
     int nboot = 0;
     if(simReq.useBootstrap)

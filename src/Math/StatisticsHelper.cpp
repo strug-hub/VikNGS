@@ -102,26 +102,13 @@ MatrixXd covariance(MatrixXd &M) {
 		for (j = i; j < n; j++) {
 
 			sum = 0;
-			count = 0;
-			meani = 0;
-			meanj = 0;
 
-			for (k = 0; k < m; k++) {
-				if (!std::isnan(M(k, i)) && !std::isnan(M(k, j))) {
-					count++;
-					meani += M(k, i);
-					meanj += M(k, j);
-				}
-			}
+            meani = M.col(i).sum() / M.rows();
+            meanj = M.col(j).sum() / M.rows();
 
-			meani /= count;
-			meanj /= count;
+            sum = ((M.col(i).array() - meani) * (M.col(j).array() - meanj)).sum();
 
-			for (k = 0; k < m; k++)
-				if (!std::isnan(M(k, i)) && !std::isnan(M(k, j)))
-					sum += (M(k, i) - meani) * (M(k, j) - meanj);
-
-			sum /= count - 1;
+            sum /= M.rows() - 1;
 			cov(i, j) = sum;
 			cov(j, i) = sum;
 		}
@@ -130,16 +117,14 @@ MatrixXd covariance(MatrixXd &M) {
 	return cov;
 }
 
-
 MatrixXd correlation(MatrixXd &M) {
 	int n = M.cols();
 	int m = M.rows();
 
 	MatrixXd cor(n, n);
-    int i, j, k;
+    int i, j;
 
-	double count;
-	double vari;
+    double vari;
 	double varj;
 	double meani;
 	double meanj;
@@ -152,36 +137,18 @@ MatrixXd correlation(MatrixXd &M) {
 				cor(j, i) = 1;
 			}
 			else {
-				sum = 0;
-				count = 0;
-				vari = 0;
-				varj = 0;
-				meani = 0;
-				meanj = 0;
 
-				for (k = 0; k < m; k++) {
-                    //todo: assume no NAs???
-					if (!std::isnan(M(k, i)) && !std::isnan(M(k, j))) {
-						count++;
-						meani += M(k, i);
-						meanj += M(k, j);
-					}
-				}
+                meani = M.col(i).sum() / M.rows();
+                meanj = M.col(j).sum() / M.rows();
 
-				meani /= count;
-				meanj /= count;
+                vari = (M.col(i).array() - meani).pow(2).sum();
+                varj = (M.col(j).array() - meanj).pow(2).sum();
 
-				for (k = 0; k < m; k++) {
-					if (!std::isnan(M(k, i)) && !std::isnan(M(k, j))) {
-						vari += pow(M(k, i) - meani, 2);
-						varj += pow(M(k, j) - meanj, 2);
-						sum += (M(k, i) - meani) * (M(k, j) - meanj);
-					}
-				}
+                sum = ((M.col(i).array() - meani) * (M.col(j).array() - meanj)).sum();
+                sum /= sqrt(vari * varj);
 
-				sum /= sqrt(vari * varj);
 				cor(i, j) = sum;
-				cor(j, i) = sum;
+                cor(j, i) = sum;
 			}
 		}
 	}

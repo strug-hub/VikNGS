@@ -35,38 +35,27 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
     int nsnp = X.cols();
 
     MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
-
-    double ym_hrd = 0; double ym_lrd = 0;
-
-    for (int i = 0; i < Ycenter.rows(); i++){
-        if (d[G[i]] == Depth::HIGH)
-            ym_hrd += std::pow(Ycenter[i], 2);
-        else
-            ym_lrd += std::pow(Ycenter[i], 2);
-    }
-
-    MatrixXd diagYm_hrd = VectorXd::Constant(nsnp, sqrt(ym_hrd)).asDiagonal();
-    MatrixXd diagYm_lrd = VectorXd::Constant(nsnp, sqrt(ym_lrd)).asDiagonal();
     MatrixXd diagRobustVar = robustVar.asDiagonal();
 
     std::vector<MatrixXd> x = splitIntoGroups(X, G);
+    std::vector<VectorXd> y = splitIntoGroups(Ycenter, G);
 
     for (size_t i = 0; i < x.size(); i++) {
+
+        double ym = y[i].array().pow(2).sum();
+        MatrixXd diagYm = VectorXd::Constant(nsnp, sqrt(ym)).asDiagonal();
 
         if (d[i] == Depth::HIGH) {
             if (rvs) {
                 MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
-                diagS += diagYm_hrd * var_hrd * diagYm_hrd;
-                //outputMatrix(var_hrd, "corr");
-                //outputMatrix(diagS, "corr2");
-
+                diagS += diagYm * var_hrd * diagYm;
             }
             else{
-                diagS += diagYm_hrd * covariance(x[i]) * diagYm_hrd;
+                diagS += diagYm * covariance(x[i]) * diagYm;
             }
         }
         else
-            diagS += diagYm_lrd * covariance(x[i]) * diagYm_lrd;
+            diagS += diagYm * covariance(x[i]) * diagYm;
     }
 
     return diagS;

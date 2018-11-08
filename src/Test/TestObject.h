@@ -77,11 +77,17 @@ public:
         return robustVar;
     }
     inline VectorXd mafWeightVector(){
+
         VectorXd maf(P.rows());
         for (int i = 0; i < P.rows(); i++){
             double m = P(i,0) + 0.5*P(i,1);
+            if(m >= 1){
+                double n = this->Y.rows();
+                m = (n + 0.5)/(n+1);
+            }
             maf[i] = 1/sqrt(m * (1-m));
         }
+
 
         return maf;
     }
