@@ -29,9 +29,9 @@ Approximates the p-value from the pdf of the normal distribution where x is a Z-
 
 double pnorm(double x) // Phi(-∞, x) aka N(x)
 {
-    return std::erfc(-x/std::sqrt(2))/2;
+    return 0.5 * std::erfc(-x/std::sqrt(2));
 }
-double pnormApprox(double x){
+double pnorm2(double x){
     // constants
     double a1 = 0.254829592;
     double a2 = -0.284496736;

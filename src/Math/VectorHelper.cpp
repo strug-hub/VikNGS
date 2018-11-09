@@ -22,7 +22,6 @@ double variance(VectorXd& X, VectorXi& G, int group){
         if(G[i] == group)
             sum += (X[i] - mean)*(X[i] - mean);
 
-    //this is n, not n-1
     return sum/(n-1);
 }
 

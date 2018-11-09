@@ -53,7 +53,7 @@ void PlotWindow::buildGenomePlot(){
                     QCPScatterStyle(QCPScatterStyle::ssDisc,
                                     toUse, Qt::white, 2));
 
-        ((QCPAxisTickerText*)ticks.get())->addTick(offset + chr.getSpan()/2.0, chr.getName());
+        ((QCPAxisTickerText*)ticks.data())->addTick(offset + chr.getSpan()/2.0, chr.getName());
         offset += chr.getSpan();
 
         if(i < chrNames.size()-1){

@@ -128,9 +128,13 @@ private:
     bool bootstrapped;
 
     inline void permute() {
+
         if(!bootstrapped)
-           Yboot = Y;
-        Xboot = shuffleColumnwiseWithoutReplacement(Xcenter);
+            Xboot = X;
+
+        Yboot = shuffleWithoutReplacement(Y);
+        //Xboot = shuffleColumnwiseWithoutReplacement(Xcenter);
+
         if(hasCovariates())
            Zboot = shuffleColumnwiseWithoutReplacement(Z);
     }
@@ -140,6 +144,7 @@ private:
             Yboot = Y;
         Xboot = groupwiseShuffleWithReplacement(Xcenter, G, groupVector);
 
+        //todo?
         if(hasCovariates())
             Zboot = groupwiseShuffleWithReplacement(Z, G, groupVector);
     }

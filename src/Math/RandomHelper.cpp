@@ -33,20 +33,28 @@ MatrixXd shuffleColumnwiseWithoutReplacement(MatrixXd& M){
     return shuffled;
 }
 
+VectorXd shuffleWithoutReplacement(VectorXd& V){
+
+    VectorXd shuffled(V.rows());
+    VectorXi indices = VectorXi::LinSpaced(V.rows(), 0, V.rows());
+    std::random_shuffle(indices.data(), indices.data() + V.rows());
+    shuffled = indices.asPermutation() * V;
+
+    return shuffled;
+}
+
 MatrixXd groupwiseShuffleWithReplacement(MatrixXd& M, VectorXi& G, std::map<int, std::vector<int>>& group){
 
     MatrixXd shuffled(M.rows(), M.cols());
-    int g, n, rand;
+    int g, rand;
 
-    for(int j = 0; j < M.cols(); j++){
-        for(int i = 0; i < M.rows(); i++){
+    for(int i = 0; i < M.rows(); i++){
 
-            g = G[i];
-            rand = randomInt(0, group[g].size() - 1);
-            rand = group[g][static_cast<size_t>(rand)];
+        g = G[i];
+        rand = randomInt(0, group[g].size() - 1);
+        rand = group[g][static_cast<size_t>(rand)];
 
-            shuffled(i, j) = M(rand, j);
-        }
+        shuffled.row(i) = M.row(rand);
     }
 
     return shuffled;

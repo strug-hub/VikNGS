@@ -19,6 +19,7 @@ MatrixXd groupwiseShuffleWithReplacement(MatrixXd& M, VectorXi& G, std::map<int,
 VectorXd groupwiseShuffleWithReplacement(VectorXd& V, VectorXi& G, std::map<int, std::vector<int>>& group);
 VectorXd groupwiseShuffleWithoutReplacement(VectorXd& V, VectorXi& G, std::map<int, std::vector<int>>& group);
 MatrixXd shuffleColumnwiseWithoutReplacement(MatrixXd &M);
+VectorXd shuffleWithoutReplacement(VectorXd& V);
 
 //VectorHelper.cpp
 bool hasVariance(VectorXd &v);

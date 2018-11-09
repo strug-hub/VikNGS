@@ -24,7 +24,8 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
         MatrixXd diagS = getVarianceMatrix(o, test, family);
 
         if(s == Statistic::CAST){
-            return pnorm(scoreV.sum() / sqrt(diagS.sum()));
+            double testStat = scoreV.sum() / sqrt(diagS.sum());
+            return 2 * (1 - pnorm(std::abs(testStat)));
         }
 
         else if(s == Statistic::SKAT || s == Statistic::CALPHA){
@@ -49,7 +50,7 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
             }
 
             //skat-Z
-            VectorXd A = o.mafWeightVector();    
+            VectorXd A = o.mafWeightVector();
 
             double quad = 0;
             for(int i = 0; i < scoreV.rows(); i++)
@@ -82,7 +83,6 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
         o.bootstrap(bootTest, bootFam);
 
         tsamp = calculateTestStatistic(o, bootTest, bootFam, false);
-        //outputDebug(std::to_string(tsamp), ".");
 
         if (std::abs(tsamp) <= std::abs(testStatistic))
             tcount++;
@@ -126,6 +126,7 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
+    //outputDebug(std::to_string(testStatistic), ".");
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);
