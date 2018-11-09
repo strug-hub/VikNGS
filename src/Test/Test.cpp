@@ -126,8 +126,6 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
-    //outputDebug("!" + std::to_string(testStatistic), ".");
-    //outputDebug(std::to_string(testStatistic), ".");
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);

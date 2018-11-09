@@ -45,14 +45,9 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
         double ym = y[i].array().pow(2).sum();
         MatrixXd diagYm = VectorXd::Constant(nsnp, sqrt(ym)).asDiagonal();
 
-        if (d[i] == Depth::HIGH) {
-            if (rvs) {
-                MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
-                diagS += diagYm * var_hrd * diagYm;
-            }
-            else{
-                diagS += diagYm * covariance(x[i]) * diagYm;
-            }
+        if (d[i] == Depth::HIGH && rvs) {
+            MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
+            diagS += diagYm * var_hrd * diagYm;
         }
         else
             diagS += diagYm * covariance(x[i]) * diagYm;

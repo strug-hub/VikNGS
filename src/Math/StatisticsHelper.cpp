@@ -26,7 +26,12 @@ Approximates the p-value from the pdf of the normal distribution where x is a Z-
 @param x Z-score.
 @return p-value.
 */
-double pnorm(double x){
+
+double pnorm(double x) // Phi(-∞, x) aka N(x)
+{
+    return std::erfc(-x/std::sqrt(2))/2;
+}
+double pnormApprox(double x){
     // constants
     double a1 = 0.254829592;
     double a2 = -0.284496736;
@@ -87,73 +92,19 @@ double chiSquareOneDOF(double statistic) {
 
 //same as doing pairwise.complete.obs in R
 MatrixXd covariance(MatrixXd &M) {
-	int n = M.cols();
-	int m = M.rows();
-
-	MatrixXd cov(n, n);
-    int i, j, k;
-
-	double count;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-
-			sum = 0;
-
-            meani = M.col(i).sum() / M.rows();
-            meanj = M.col(j).sum() / M.rows();
-
-            sum = ((M.col(i).array() - meani) * (M.col(j).array() - meanj)).sum();
-
-            sum /= M.rows() - 1;
-			cov(i, j) = sum;
-			cov(j, i) = sum;
-		}
-	}
-
+    MatrixXd centered = M.rowwise() - M.colwise().mean();
+    MatrixXd cov = (centered.adjoint() * centered) / double(M.rows() - 1);
 	return cov;
 }
 
 MatrixXd correlation(MatrixXd &M) {
-	int n = M.cols();
-	int m = M.rows();
+    MatrixXd centered = M.rowwise() - M.colwise().mean();
+    MatrixXd cov = (centered.adjoint() * centered);
+    VectorXd v = centered.array().pow(2).colwise().sum();
+    MatrixXd var = v * v.transpose();
 
-	MatrixXd cor(n, n);
-    int i, j;
-
-    double vari;
-	double varj;
-	double meani;
-	double meanj;
-	double sum;
-
-	for (i = 0; i < n; i++) {
-		for (j = i; j < n; j++) {
-			if (i == j) {
-				cor(i, j) = 1;
-				cor(j, i) = 1;
-			}
-			else {
-
-                meani = M.col(i).sum() / M.rows();
-                meanj = M.col(j).sum() / M.rows();
-
-                vari = (M.col(i).array() - meani).pow(2).sum();
-                varj = (M.col(j).array() - meanj).pow(2).sum();
-
-                sum = ((M.col(i).array() - meani) * (M.col(j).array() - meanj)).sum();
-                sum /= sqrt(vari * varj);
-
-				cor(i, j) = sum;
-                cor(j, i) = sum;
-			}
-		}
-	}
-
-	return cor;
+    MatrixXd cor = cov.array()/var.array().sqrt();
+    return cor;
 }
 
 MatrixXd calculateHatMatrix(MatrixXd &Z){

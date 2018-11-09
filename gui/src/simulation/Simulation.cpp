@@ -105,7 +105,8 @@ void printUpdate(int current, int total, double& lastNotify,
         lastNotify += notifyPercent;
         std::chrono::duration<double> e = std::chrono::high_resolution_clock::now() - lastNotifyTime;
         if(e.count() > timeBetweenNotify){
-            printInfo(std::to_string(std::floor(lastNotify * 100)) + "% of tests have been done.");
+            int pc = static_cast<int>(lastNotify * 100);
+            printInfo(std::to_string(pc) + "% of tests have been done.");
             lastNotifyTime = std::chrono::high_resolution_clock::now();
         }
     }
@@ -200,12 +201,12 @@ Data startSimulation(SimulationRequest& simReq) {
     std::vector<Test> tests;
     Test trueGT(Genotype::TRUE, simReq.testStatistic);
     Test expectedGT(Genotype::EXPECTED, simReq.testStatistic);
-//    Test calledGT(Genotype::CALL, simReq.testStatistic);
+    Test calledGT(Genotype::CALL, simReq.testStatistic);
 
     tests.push_back(trueGT);
     tests.push_back(expectedGT);
-//    if(simReq.underNull() || fam == Family::NORMAL)
-//        tests.push_back(calledGT);
+    if(simReq.underNull() || fam == Family::NORMAL)
+        tests.push_back(calledGT);
 
     int nboot = 0;
     if(simReq.useBootstrap)

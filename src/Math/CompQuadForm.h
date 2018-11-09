@@ -16,8 +16,8 @@
 #include <iostream>
 #define UseDouble 0             /* all floating point double */
 
-#define TRUE  1
-#define FALSE 0
+#define TRUE_  1
+#define FALSE_ 0
 typedef int BOOL;
 
 #define pi 3.14159265358979
@@ -84,7 +84,7 @@ private:
         l1:
             th[k + 1] = j;
         }
-        ndtsrt = FALSE;
+        ndtsrt = FALSE_;
     }
 
 
@@ -100,7 +100,7 @@ private:
             lj = lb[j];
             x = u * lj; y = 1/(1.0 - x);
             xconst = xconst + lj * y;
-            sum1 += square(x) * y + log1(-x, FALSE);
+            sum1 += square(x) * y + log1(-x, FALSE_);
         }
         *cx = xconst; return exp1(-0.5 * sum1);
     }
@@ -151,10 +151,10 @@ private:
             if (x > 1.0)
             {
                 prod2 = prod2 + log(x);
-                prod3 = prod3 + log1(x, TRUE);
+                prod3 = prod3 + log1(x, TRUE_);
                 s++;
             }
-            else  prod1 = prod1 + log1(x, TRUE);
+            else  prod1 = prod1 + log1(x, TRUE_);
         }
         sum1 = 0.5 * sum1;
         prod2 = prod1 + prod2;  prod3 = prod1 + prod3;
@@ -208,7 +208,7 @@ private:
             for (j = r - 1; j >= 0; j--)
             {
                 x = 2.0 * lb[j] * u;  y = square(x);
-                sum3 = sum3 - 0.25 * log1(y, TRUE);
+                sum3 = sum3 - 0.25 * log1(y, TRUE_);
                 z = std::atan(x);
                 sum1 = sum1 + z;   sum2 = sum2 + fabs(z);
             }
@@ -248,7 +248,7 @@ private:
     l:
         if (sum1 > 100.0)
         {
-            fail = TRUE; return 1.0;
+            fail = TRUE_; return 1.0;
         }
         else
             return pow(2.0, (sum1 / 4.0)) / (pi * square(axl));
@@ -277,7 +277,7 @@ public:
         lb = &lambda[0];
         count = 0;
         intl = 0.0; ersm = 0.0;
-        qfval = -1.0; ndtsrt = TRUE;  fail = FALSE;
+        qfval = -1.0; ndtsrt = TRUE_;  fail = FALSE_;
         xlim =  static_cast<double>(lim);
         th =  static_cast<int *>(malloc( static_cast<size_t>(r)*(sizeof(int))));
 
@@ -308,7 +308,7 @@ public:
         if (c != 0.0 && (almx > 0.07 * sd))
         {
             tausq = .25 * acc / cfe(c);
-            if (fail) fail = FALSE;
+            if (fail) fail = FALSE_;
             else if (truncation(utx, tausq) < .2 * acc)
             {
                 sigsq = sigsq + tausq;
@@ -339,7 +339,7 @@ public:
             if (fail) goto l2;
             acc *= .67;
             /* auxillary integration */
-            integrate(ntm, intv1, tausq, FALSE);
+            integrate(ntm, intv1, tausq, FALSE_);
             xlim = xlim - xntm;  sigsq = sigsq + tausq;
             /* find truncation point with new convergence factor */
             findu(&utx, .25 * acc);  acc *= 0.75;
@@ -349,7 +349,7 @@ public:
         /* main integration */
     l2:
         nt =  static_cast<int>(std::floor(xnt + 0.5));
-        integrate(nt, intv, 0.0, TRUE);
+        integrate(nt, intv, 0.0, TRUE_);
         qfval = 0.5 - intl;
 
         /* test whether round-off error could be significant

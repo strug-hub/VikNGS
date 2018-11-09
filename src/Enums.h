@@ -40,6 +40,7 @@ public:
     inline bool isRVS(){ return rvs == 1; }
     inline void setRVSFalse(){ rvs=0; }
     inline void setSampleSize(int size){ nsamples=size; }
+    inline void setGenotype(Genotype gt){ genotype=gt; }
 
     inline bool needVCFCalls(){ return genotype == Genotype::VCF_CALL; }
     inline bool needGenotypeCalls(){ return genotype == Genotype::CALL; }
