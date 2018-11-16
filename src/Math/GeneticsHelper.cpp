@@ -174,5 +174,6 @@ VectorXd calculateExpectedGenotypes(std::vector<Vector3d> &likelihood, Vector3d 
             EG[i] = NAN;
     }
 
+
     return EG;
 }

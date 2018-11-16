@@ -104,9 +104,9 @@ public:
     inline std::map<int, Depth>* getDepths(){ return &d; }
 
     inline void bootstrap(Test& test, Family family) {
-        calculateXcenter();
 
        if(test.isExpectedGenotypes()){
+           calculateXcenter();
            calculateGroupVector();
 
            if(family == Family::NORMAL)

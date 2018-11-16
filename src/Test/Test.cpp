@@ -20,15 +20,20 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
         return std::pow(score, 2) / variance;
     }
     else {
+
         VectorXd scoreV = getScoreVector(*o.getYcenter(), *o.getX());
         MatrixXd diagS = getVarianceMatrix(o, test, family);
 
         if(s == Statistic::CAST){
+
+            if(test.getGenotype() == Genotype::EXPECTED)
+                outputDebug(std::to_string(scoreV.sum()) + "\t" + std::to_string(sqrt(diagS.sum())), ".");
+
             double testStat = scoreV.sum() / sqrt(diagS.sum());
             return 2 * (1 - pnorm(std::abs(testStat)));
         }
 
-        else if(s == Statistic::SKAT || s == Statistic::CALPHA){
+        if(s == Statistic::SKAT || s == Statistic::CALPHA){
 
             auto g = diagS.eigenvalues();
             VectorXd f = diagS.eigenvalues().real();
@@ -126,10 +131,19 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
-    //outputDebug(std::to_string(testStatistic), ".");
+
+//    if(test.isExpectedGenotypes()){
+     //   outputMatrix(*o.getX(), "./X");
+   //     outputMatrix(*o.getP(), "./P");
+  //      while(true){
+  //         bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), 10000, stopEarly);
+  //      }
+ //  }
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);
+    else if (test.getStatistic() == Statistic::CAST)
+        return testStatistic;
 
     return chiSquareOneDOF(testStatistic);
 }

@@ -148,34 +148,28 @@ MatrixXd simulateXCaseControl(SimulationRequest& simReq, VectorXd& mafs) {
         double p_x0_y1 = beta0 * p_x0_y0;
         double p_x1_y1 = (beta0 * oddsRatio) * p_x1_y0;
 
- //   generate:
         int index = 0;
-  //      bool ok = false;
 
         for(int i = 0; i < simReq.steps; i++){
             for (SimulationRequestGroup srg : simReq.groups){
                 int n = srg.getIncreaseSize(i);
+                if(STOP_RUNNING_THREAD)
+                    return X;
 
                 if(srg.isCase)
                     for (int j = 0; j < n; j++){
+
+
                         X(index, h) = generateGenotype(p_x0_y1, p_x1_y1);
-  //                      ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
                         index++;
                     }
                 else
                     for (int j = 0; j < n; j++){
+
                         X(index, h) = generateGenotype(p_x0_y0, p_x1_y0);
-    //                    ok = ok || abs(X(index, h) - X(0, h)) > 1e-4;
                         index++;
                     }
             }
-
-   //         if(!ok)
- //               goto generate;
-
-  //          double sum = 0;
-  //          for(int p = 0; p< index; p++)
-   //             sum += X(p, h);
         }
     }
 
@@ -217,6 +211,9 @@ std::vector<std::vector<Vector3d>> simulateSequencing(SimulationRequest& simReq,
     likelihoods.reserve(Xtrue.cols());
 
     for (int j = 0; j < Xtrue.cols(); j++){
+        if(STOP_RUNNING_THREAD)
+            return likelihoods;
+
         VectorXd x = Xtrue.col(j);
 
         VectorXi readDepths = generateReadDepths(simReq);

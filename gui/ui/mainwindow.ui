@@ -883,7 +883,7 @@
                       <string>SKAT</string>
                      </property>
                      <property name="checked">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                     </widget>
                    </item>
@@ -893,7 +893,7 @@
                       <string>CAST</string>
                      </property>
                      <property name="checked">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -930,7 +930,7 @@
                         <bool>true</bool>
                        </property>
                        <property name="text">
-                        <string>1000</string>
+                        <string>1</string>
                        </property>
                       </widget>
                      </item>

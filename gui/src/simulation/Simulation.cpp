@@ -150,6 +150,9 @@ Data startSimulation(SimulationRequest& simReq) {
     else if(simReq.family == Family::NORMAL)
         X = simulateXNormal(simReq, mafs);
 
+    if(STOP_RUNNING_THREAD)
+        return result;
+
     printInfo("Simulating sequencing experiment.");
 
     std::vector<std::vector<Vector3d>> likelihoods = simulateSequencing(simReq, X);

@@ -82,16 +82,15 @@ void outputDebug(std::string line, std::string outputDir) {
 }
 
 
-static std::string dir = "C:/Users/scott/Desktop/test";
 void outputMatrix(MatrixXd M, std::string filename) {
-    std::ofstream m(dir + "/" + filename + ".txt", std::ios_base::app);
+    std::ofstream m(filename + ".txt", std::ios_base::app);
 
     for(int i=0; i < M.rows(); i++){
         std::string line = "";
 
         for(int j=0; j < M.cols(); j++){
 
-            m << std::setprecision(24) << M(i,j);
+            m << std::setprecision(16) << M(i,j);
 
             if(j < M.cols() -1)
                 m << "\t";
@@ -104,7 +103,7 @@ void outputMatrix(MatrixXd M, std::string filename) {
 }
 
 void outputVector(VectorXd V, std::string filename) {
-    std::ofstream v(dir + "/" + filename + ".txt", std::ios_base::app);
+    std::ofstream v(filename + ".txt", std::ios_base::app);
 
     for(int i=0; i < V.rows(); i++){
         v << std::setprecision(24) << V[i] << std::endl;

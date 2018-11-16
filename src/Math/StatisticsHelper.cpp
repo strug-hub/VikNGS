@@ -93,7 +93,7 @@ double chiSquareOneDOF(double statistic) {
 //same as doing pairwise.complete.obs in R
 MatrixXd covariance(MatrixXd &M) {
     MatrixXd centered = M.rowwise() - M.colwise().mean();
-    MatrixXd cov = (centered.adjoint() * centered) / double(M.rows() - 1);
+    MatrixXd cov = (centered.adjoint() * centered) / double(M.rows());
 	return cov;
 }
 

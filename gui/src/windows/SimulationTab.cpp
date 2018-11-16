@@ -7,22 +7,37 @@ const QString sep = ":";
 void MainWindow::simulationTabInit(){
     ui->sim_simulationSld->setValue(0);
     switchToCaseControl();
-    addGroup(ui->sim_groupTbl, "100", "case", "32", "8", "0.01");
-    addGroup(ui->sim_groupTbl, "100:300", "control", "6", "2", "0.01");
+    addGroup(ui->sim_groupTbl, "500", "case", "100", "10", "0.01");
+    addGroup(ui->sim_groupTbl, "1500", "control", "4", "1", "0.01");
     prevR2 = "0.0";
     prevOddsRatio = "1.0";
 
-    bool showCov = false;
-    ui->sim_covariateChk->setCheckState(Qt::Unchecked);
-
-    ui->sim_covariateChk->setVisible(showCov);
-    ui->sim_covariateTxt->setVisible(showCov);
-    ui->sim_covariateXRdo->setVisible(showCov);
-    ui->sim_covariateYRdo->setVisible(showCov);
-    ui->sim_covariateXYGrp->setVisible(showCov);
-
     ui->sim_quantGrp->setVisible(false);
+    setCovariateMode(false);
+}
 
+void MainWindow::setCovariateMode(bool value){
+
+    if(value==false)
+        ui->sim_covariateChk->setCheckState(Qt::Unchecked);
+    else
+        ui->sim_covariateChk->setCheckState(Qt::Checked);
+
+    ui->sim_covariateChk->setVisible(value);
+    ui->sim_covariateTxt->setVisible(value);
+    ui->sim_covariateXRdo->setVisible(value);
+    ui->sim_covariateYRdo->setVisible(value);
+    ui->sim_covariateXYGrp->setVisible(value);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e)
+{
+    if ( (e->key() == Qt::Key_Ampersand)  && QApplication::keyboardModifiers() && Qt::ControlModifier){
+        if(ui->sim_covariateChk->isVisible())
+            setCovariateMode(false);
+        else
+            setCovariateMode(true);
+    }
 }
 
 bool MainWindow::checkFamily(Family fam){

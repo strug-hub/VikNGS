@@ -39,15 +39,18 @@ MatrixXd getVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
 
     std::vector<MatrixXd> x = splitIntoGroups(X, G);
     std::vector<VectorXd> y = splitIntoGroups(Ycenter, G);
+    double minus1Factor = X.rows()*1.0/(X.rows()-1);
 
     for (size_t i = 0; i < x.size(); i++) {
 
         double ym = y[i].array().pow(2).sum();
+        ym = ym * minus1Factor;
+
         MatrixXd diagYm = VectorXd::Constant(nsnp, sqrt(ym)).asDiagonal();
 
         if (d[i] == Depth::HIGH && rvs) {
-            MatrixXd var_hrd = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
-            diagS += diagYm * var_hrd * diagYm;
+            MatrixXd var = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
+            diagS += diagYm * var * diagYm;
         }
         else
             diagS += diagYm * covariance(x[i]) * diagYm;

@@ -59,6 +59,9 @@ private slots:
     //-----------
     //SimulationTab.cpp
     //-----------
+
+    void keyPressEvent(QKeyEvent *event);
+
     void simulationTabInit();
     std::vector<SimulationRequestGroup> constructGroups(int nsteps, int highLow, Family family);
 
@@ -106,6 +109,7 @@ private:
     int getBootstrapIterationsSim();
     int getCollapseSizeSim();
     bool getEarlyStopSim();
+    void setCovariateMode(bool value);
     bool checkFamily(Family fam);
 
     QColor green = QColor::fromRgb(82, 145, 87);
