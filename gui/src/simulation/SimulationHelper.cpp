@@ -277,15 +277,9 @@ std::vector<int> baseCalls(int trueGenotype, double error, int readDepth) {
 
     //split errors uniformly in 3
     if(mistake > 0){
-        errorBase1 = randomInt(0, mistake);
-        errorBase2 = randomInt(0, mistake);
-        errorBase3 = mistake - (errorBase1+errorBase2);
-
-        if(errorBase3 < 0){
-            errorBase1 = mistake - errorBase1;
-            errorBase2 = mistake - errorBase2;
-            errorBase3 = - errorBase3;
-        }
+      errorBase1 = randomBinomial(mistake, 1.0/3.0);
+      errorBase2 = randomBinomial(mistake - errorBase1, 0.5);
+      errorBase3 = mistake - (errorBase1+errorBase2);
     }
 
     if(trueGenotype == 0){
