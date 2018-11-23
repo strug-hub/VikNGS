@@ -243,19 +243,26 @@ Data startSimulation(SimulationRequest& simReq) {
             tests[j].setSampleSize(simReq.nsamp(i));
             result.tests.push_back(tests[j]);
 
+            VectorXd ones = VectorXd::Constant(Z.rows(), 1);
+
             //single thread
-            if(nthreads <= 1){
+            if(nthreads <= 1 || useZ){
                 for(size_t k = 0; k < result.variants.size(); k++){
 
                     printUpdate(result.variants.size()*j + k, result.variants.size()*tests.size(), lastNotify, lastNotifyTime);
 
                     if(Y.cols() > 1)
                         result.sampleInfo.setY(Y.col(k));
-                    if(useZ && Z.cols() > 1)
-                        result.sampleInfo.setZ(Z.col(k));
-                    if(useZ && Z.cols() == 1)
-                        result.sampleInfo.setZ(Z.col(0));
-
+                    if(useZ && Z.cols() > 1){
+                        MatrixXd z(Z.rows(), 2);
+                        z << ones, Z.col(k);
+                        result.sampleInfo.setZ(z);
+                    }
+                    if(useZ && Z.cols() == 1){
+                        MatrixXd z(Z.rows(), 2);
+                        z << ones, Z;
+                        result.sampleInfo.setZ(z);
+                    }
                     double pval = runTest(&result.sampleInfo, &result.variants[k], tests[j], nboot, stopEarly);
                     result.variants[k].addPval(pval);
                 }
