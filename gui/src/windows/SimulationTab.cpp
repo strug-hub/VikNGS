@@ -13,6 +13,8 @@ void MainWindow::simulationTabInit(){
     prevOddsRatio = "1.0";
 
     ui->sim_quantGrp->setVisible(false);
+    ui->sim_testRareCalphaBtn->setVisible(false);
+
     setCovariateMode(false);
 }
 

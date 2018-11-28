@@ -53,7 +53,6 @@ private slots:
     void on_main_testRareCastBtn_toggled(bool checked);
     void on_main_testRareSkatBtn_toggled(bool checked);
     void on_main_testBootChk_stateChanged(int arg1);
-    void on_main_testBootChk_toggled(bool checked);
     void on_main_vcfWholeFileChk_toggled(bool checked);
 
     //-----------
@@ -84,15 +83,15 @@ private slots:
     void on_main_bedCollapseExonBtn_toggled(bool checked);
     void on_main_bedCollapseGeneBtn_toggled(bool checked);
 
-    void on_pushButton_pressed();
 
     void switchToCaseControl();
     void switchToQuantitative();
     void on_sim_caseControlBtn_pressed();
     void on_sim_quantitativeBtn_pressed();
     void on_sim_simulationSld_valueChanged(int value);
-
     void on_sim_testRareCalphaBtn_toggled(bool checked);
+    void on_main_testBootChk_toggled(bool checked);
+    void on_main_randomBtn_pressed();
 
 signals:
     void sendPlotData(QVector<double> values);

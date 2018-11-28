@@ -44,20 +44,20 @@ void MainWindow::on_main_testBootChk_stateChanged(int arg1)
 {
     ui->main_testBootTxt->setEnabled(ui->main_testBootChk->isChecked());
     ui->main_testStopChk->setEnabled(ui->main_testBootChk->isChecked());
+    ui->main_testBootLbl->setEnabled(ui->main_testBootChk->isChecked());
+
 }
-
-void MainWindow::on_main_testBootChk_toggled(bool checked){
-
-    if(!ui->main_testCommonBtn->isChecked() && !checked){
-        ui->main_testBootChk->setChecked(true);
-        ui->main_testStopChk->setEnabled(true);
-    }
+void MainWindow::on_main_testBootChk_toggled(bool checked)
+{
+    if(ui->main_testRareCastBtn->isChecked() ||
+            ui->main_testRareSkatBtn->isChecked())
+        ui->main_testBootChk->setCheckState(Qt::CheckState::Checked);
 }
 
 void MainWindow::on_main_vcfWholeFileChk_toggled(bool checked){
 
-    //ui->main_vcfChrLbl->setEnabled(!checked);
-    //ui->main_vcfChromFilterTxt->setEnabled(!checked);
+    ui->main_vcfChrLbl->setEnabled(!checked);
+    ui->main_vcfChromFilterTxt->setEnabled(!checked);
     ui->main_vcfFromPosLbl->setEnabled(!checked);
     ui->main_vcfToPosLbl->setEnabled(!checked);
     ui->main_vcfFromPosTxt->setEnabled(!checked);
@@ -94,9 +94,10 @@ void MainWindow::on_main_runBtn_clicked() {
 }
 
 Request MainWindow::createRequest(){
+
     Request req = getDefaultRequest();
 
-    req.setKeepFiltered(ui->main_keepFilteredChk->isChecked());
+    req.setKeepFiltered(false);
     QVector<std::string> commands;
     commands.push_back("vikNGS");
 

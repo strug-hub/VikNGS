@@ -94,7 +94,7 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
 
         bootCount++;
 
-        if (stopEarly && bootCount > 100) {
+        if (stopEarly && bootCount > 10) {
             double pstar = 5 / ((bootCount + 0.0737224)*(1 + 0.0737224));
             if (tcount / (1.0*h) > pstar)
                 break;

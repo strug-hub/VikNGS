@@ -124,19 +124,21 @@ void MainWindow::on_main_bedCollapseGeneBtn_toggled(bool checked)
         ui->main_bedCollapseKTxt->setText("100");
 }
 
-void MainWindow::on_pushButton_pressed()
-{
+
+void MainWindow::on_main_randomBtn_pressed(){
+    ui->main_randomBtn->setVisible(false);
+
     PlotWindow *plotter = new PlotWindow();
-    QString title = "Random";
-    Data result; std::vector<VariantSet> vss;
-    for(int i = 0; i < 10000; i++){
-        VariantSet vs; vs.addPval(randomDouble(0,1));
-        Variant v(std::to_string(randomInt(1,22)), randomInt(1,10000), "uid", "A", "T");
-        vs.addVariant(v);
-        vss.push_back(vs);
-    }
-    result.variants = vss;
-    plotter->initialize(result, title);
-    plotter->show();
+     QString title = "Random";
+     Data result; std::vector<VariantSet> vss;
+     for(int i = 0; i < 10000; i++){
+         VariantSet vs; vs.addPval(randomDouble(0,1));
+         Variant v(std::to_string(randomInt(1,22)), randomInt(1,10000), "uid", "A", "T");
+         vs.addVariant(v);
+         vss.push_back(vs);
+     }
+     result.variants = vss;
+     plotter->initialize(result, title);
+     plotter->show();
 
 }
