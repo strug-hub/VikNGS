@@ -27,15 +27,15 @@ MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, Matrix
 }
 
 MatrixXd getVarianceMatrix(TestObject& o, Test& test, Family family){
-    if(test.isExpectedGenotypes()){
 
+    if(test.getVariance() == Variance::RVS){
         if(family == Family::BINOMIAL)
-            return getRobustVarianceBinomial(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), test.isRVS());
+            return getRobustVarianceBinomial(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), !test.isRVSFalse());
         if(family == Family::NORMAL)
-            return getRobustVarianceNormal(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), test.isRVS());
+            return getRobustVarianceNormal(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), !test.isRVSFalse());
     }
     else
-            return getRegularVariance(*o.getYcenter(), *o.getX(), *o.getZ(), *o.getMU(), family);
+        return getRegularVariance(*o.getYcenter(), *o.getX(), *o.getZ(), *o.getMU(), family);
 
 
     throwError("TEST", "Don't know how to compute variance during test, this error should not happen.");

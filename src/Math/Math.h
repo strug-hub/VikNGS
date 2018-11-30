@@ -49,6 +49,7 @@ VectorXd calculateGenotypeCalls(std::vector<Vector3d>& gl, Vector3d &P);
 VectorXd calculateExpectedGenotypes(std::vector<Vector3d> &likelihood, Vector3d &P);
 Vector3d calculateGenotypeFrequencies(std::vector<Vector3d> &likelihood);
 Vector3d calculateGenotypeFrequencies(VectorXd & gt);
+bool readDepthFlip(VectorXd &Y, Group& group, Family family);
 
 //StatisticsHelper.cpp
 int maxValue(double zero, double one, double two);

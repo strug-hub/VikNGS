@@ -107,8 +107,11 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     MatrixXd X = variant->getX(test.getGenotype());
     VectorXd Y = sampleInfo->getY();
     MatrixXd Z = sampleInfo->getZ();
+    if(Z.cols()<1)
+        Z = MatrixXd::Constant(Y.rows(), 1, 1);
     MatrixXd P = variant->getP(test.getGenotype());
     VectorXi G = sampleInfo->getG();
+    std::map<int, Depth> map = sampleInfo->getGroupDepthMap();
 
     if(test.getSampleSize() > 0){
         int size = test.getSampleSize();
@@ -120,7 +123,11 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
         VectorXi g = G.block(0, 0, size, G.cols()); G = g;
     }
 
-    Group group(G, sampleInfo->getGroupDepthMap());
+    Group group(G, map);
+
+    //if( test.isRVS() && readDepthFlip(Y, group, sampleInfo->getFamily()))
+   //     test.setRegularVariance();
+
     TestObject o(X, Y, Z, P, sampleInfo->getFamily(), group, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);

@@ -41,6 +41,7 @@ public:
     inline bool isRVSFalse(){ return variance == Variance::RVSFALSE; }
     inline void setRVSFalse(){ if(variance == Variance::RVS) variance = Variance::RVSFALSE; }
     inline void setSampleSize(int size){ nsamples=size; }
+    inline void setRegularVariance(){ variance = Variance::REGULAR; }
     inline void setGenotype(GenotypeSource gt){ genotype=gt; }
 
     inline bool needVCFCalls(){ return genotype == GenotypeSource::VCF_CALL; }

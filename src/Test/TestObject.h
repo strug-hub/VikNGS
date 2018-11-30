@@ -55,6 +55,7 @@ public:
         else
             Z = MatrixXd::Constant(X.rows(),1,1);
 
+        Zboot = Z;
         groups.filterG(toRemove);
 
         //Replace NAN with 0 if rare
@@ -145,12 +146,14 @@ private:
             Yboot = Y;
         Xboot = groupwiseShuffleWithReplacement(Xcenter, *group.getG(), groupVector);
 
+
         //todo?
         if(hasCovariates())
             Zboot = groupwiseShuffleWithReplacement(Z, *group.getG(), groupVector);
     }
 
     void normalBootstrap() {
+
 
        if(hasCovariates()){
 

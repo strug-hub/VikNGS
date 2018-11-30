@@ -1,5 +1,6 @@
 #include "Math.h"
 #include <iostream>
+#include "../Test/Group.h"
 
 /**
 Calculates the robust variance of E(G | D). var(x) = E(x^2) - E(x)^2
@@ -177,3 +178,46 @@ VectorXd calculateExpectedGenotypes(std::vector<Vector3d> &likelihood, Vector3d 
 
     return EG;
 }
+
+bool readDepthFlip(VectorXd &Y, Group& group, Family family) {
+
+    if(family != Family::BINOMIAL)
+        return false;
+
+    double cse_high, cse_low = 0;
+    double ctrl_high, ctrl_low = 0;
+    double ncase, ncontrol = 0;
+
+    for(int i=0; i < Y.size(); i++){
+        if (Y[i] < 0.5){
+            ncontrol++;
+            if(group.depthAt(i) == Depth::HIGH)
+                ctrl_high++;
+            else
+                ctrl_low++;
+        }
+        else{
+            ncase++;
+            if(group.depthAt(i) == Depth::HIGH)
+                cse_high++;
+            else
+                cse_low++;
+        }
+    }
+
+    bool is_ctrl_high = ctrl_high > ctrl_low;
+    bool is_cse_high = cse_high > cse_low;
+
+    if((is_ctrl_high && is_cse_high) ||
+       (!is_ctrl_high && !is_cse_high))
+        return false;
+
+    if(is_cse_high && (ncase > ncontrol))
+        return true;
+
+    if(is_ctrl_high && (ncontrol > ncase))
+        return true;
+
+    return false;
+}
+
