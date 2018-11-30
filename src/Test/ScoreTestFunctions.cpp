@@ -1,4 +1,6 @@
 #include "ScoreTestFunctions.h"
+#include "TestObject.h"
+#include "Group.h"
 
 VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     int nsnp = X.cols();
@@ -8,7 +10,7 @@ VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     return score;
 }
 
-MatrixXd getVarianceMatrix(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixXd& Z, MatrixXd& P, Test& test, Family family){
+MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixXd& Z, MatrixXd& P, Test& test, Family family){
 
     if(test.getVariance() == Variance::RVS){
 
@@ -24,18 +26,29 @@ MatrixXd getVarianceMatrix(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixX
     throwError("ScoreTestFunctions", "Unsure how to calculate variance in score test. This should not happen.");
 }
 
+MatrixXd getVarianceMatrix(TestObject& o, Test& test, Family family){
+    if(test.isExpectedGenotypes()){
+
+        if(family == Family::BINOMIAL)
+            return getRobustVarianceBinomial(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), test.isRVS());
+        if(family == Family::NORMAL)
+            return getRobustVarianceNormal(*o.getYcenter(), *o.getX(), *o.getGroup(), o.robustVarVector(), test.isRVS());
+    }
+    else
+            return getRegularVariance(*o.getYcenter(), *o.getX(), *o.getZ(), *o.getMU(), family);
 
 
+    throwError("TEST", "Don't know how to compute variance during test, this error should not happen.");
+}
 
-MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
-                             std::map<int, Depth>& d, VectorXd robustVar, bool rvs){
+MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, Group& group, VectorXd robustVar, bool rvs){
     int nsnp = X.cols();
 
     MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
     MatrixXd diagRobustVar = robustVar.asDiagonal();
 
-    std::vector<MatrixXd> x = splitIntoGroups(X, G);
-    std::vector<VectorXd> y = splitIntoGroups(Ycenter, G);
+    std::vector<MatrixXd> x = splitIntoGroups(X, group);
+    std::vector<VectorXd> y = splitIntoGroups(Ycenter, group);
     double minus1Factor = X.rows()*1.0/(X.rows()-1);
 
     for (size_t i = 0; i < x.size(); i++) {
@@ -45,7 +58,7 @@ MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
 
         MatrixXd diagYm = VectorXd::Constant(nsnp, sqrt(ym)).asDiagonal();
 
-        if (d[i] == Depth::HIGH && rvs) {
+        if (group.depth(i) == Depth::HIGH && rvs) {
             MatrixXd var = diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar;
             diagS += diagYm * var * diagYm;
         }
@@ -56,8 +69,7 @@ MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
     return diagS;
 }
 
-MatrixXd getRobustVarianceNormal(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
-                           std::map<int, Depth>& d, VectorXd robustVar, bool rvs){
+MatrixXd getRobustVarianceNormal(VectorXd& Ycenter, MatrixXd& X, Group& group, VectorXd robustVar, bool rvs){
     int nsnp = X.cols();
 
     MatrixXd diagS = MatrixXd::Constant(nsnp, nsnp, 0);
@@ -68,11 +80,11 @@ MatrixXd getRobustVarianceNormal(VectorXd& Ycenter, MatrixXd& X, VectorXi& G,
     MatrixXd diagVar = MatrixXd::Constant(nsnp, nsnp, 0);
     double n = 0;
 
-    std::vector<MatrixXd> x = splitIntoGroups(X, G);
+    std::vector<MatrixXd> x = splitIntoGroups(X, group);
 
     for (size_t i = 0; i < x.size(); i++) {
         n += x[i].rows();
-        if (d[i] == Depth::HIGH && rvs){
+        if (group.depth(i) == Depth::HIGH && rvs){
             MatrixXd v = x[i].rows() * (diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar).array();
             diagVar = diagVar + v;
         }

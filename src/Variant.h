@@ -8,8 +8,8 @@
 
 struct Variant {
 private:
-    std::map<Genotype, VectorXd> genotypes;
-    std::map<Genotype, Vector3d> P;
+    std::map<GenotypeSource, VectorXd> genotypes;
+    std::map<GenotypeSource, Vector3d> P;
 
     std::string chrom;
     int pos;
@@ -35,20 +35,20 @@ public:
     ~Variant() { }
 
     inline void setExpectedGenotypes(std::vector<Vector3d> &likelihoods) {
-        P[Genotype::EXPECTED] = calculateGenotypeFrequencies(likelihoods);
-        this->genotypes[Genotype::EXPECTED] = calculateExpectedGenotypes(likelihoods, P[Genotype::EXPECTED]);
+        P[GenotypeSource::EXPECTED] = calculateGenotypeFrequencies(likelihoods);
+        this->genotypes[GenotypeSource::EXPECTED] = calculateExpectedGenotypes(likelihoods, P[GenotypeSource::EXPECTED]);
     }
     inline void setCallGenotypes(std::vector<Vector3d> &likelihoods) {
-        P[Genotype::CALL] = calculateGenotypeFrequencies(likelihoods);
-        this->genotypes[Genotype::CALL] = calculateGenotypeCalls(likelihoods, P[Genotype::CALL]);
+        P[GenotypeSource::CALL] = calculateGenotypeFrequencies(likelihoods);
+        this->genotypes[GenotypeSource::CALL] = calculateGenotypeCalls(likelihoods, P[GenotypeSource::CALL]);
     }
     inline void setTrueGenotypes(VectorXd& gt) {
-        P[Genotype::TRUE] = calculateGenotypeFrequencies(gt);
-        this->genotypes[Genotype::TRUE] = gt;
+        P[GenotypeSource::TRUE] = calculateGenotypeFrequencies(gt);
+        this->genotypes[GenotypeSource::TRUE] = gt;
     }
     inline void setVCFCallGenotypes(VectorXd& gt) {
-        P[Genotype::VCF_CALL] = calculateGenotypeFrequencies(gt);
-        this->genotypes[Genotype::VCF_CALL] = gt;
+        P[GenotypeSource::VCF_CALL] = calculateGenotypeFrequencies(gt);
+        this->genotypes[GenotypeSource::VCF_CALL] = gt;
     }
 
     inline void setFilter(Filter f) { this->filter = f; }
@@ -59,16 +59,16 @@ public:
 
     inline int getPosition() { return this->pos; }
 
-    inline std::vector<Genotype> getAllGenotypes(){
-        std::vector<Genotype> all;
+    inline std::vector<GenotypeSource> getAllGenotypes(){
+        std::vector<GenotypeSource> all;
         for(auto const& gt : this->genotypes)
             all.push_back(gt.first);
         return all;
     }
     //inline VectorXd getGenotype(Genotype gt) { return genotypes[gt]; }
-    inline VectorXd* getGenotype(Genotype gt) { return &genotypes[gt]; }
+    inline VectorXd* getGenotype(GenotypeSource gt) { return &genotypes[gt]; }
 
-    inline Vector3d* getP(Genotype gt) { return &P[gt]; }
+    inline Vector3d* getP(GenotypeSource gt) { return &P[gt]; }
 
     inline bool isValid() { return this->filter == Filter::VALID; }
 
@@ -147,7 +147,7 @@ public:
     inline int validSize(){ return nvalid; }
     inline bool isValid(){ return nvalid > 0; }
 
-    inline MatrixXd getX(Genotype gt){
+    inline MatrixXd getX(GenotypeSource gt){
         std::vector<VectorXd*> x;
         for (size_t i = 0; i < variants.size(); i++)
             if(variants[i].isValid())
@@ -163,7 +163,7 @@ public:
         return X;
     }
 
-    inline MatrixXd getP(Genotype gt){
+    inline MatrixXd getP(GenotypeSource gt){
         std::vector<Vector3d*> p;
         for (size_t i = 0; i < variants.size(); i++)
             if(variants[i].isValid())

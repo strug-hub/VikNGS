@@ -1,4 +1,5 @@
 #include "Math.h"
+#include "../Test/Group.h"
 
 static const std::string ERROR_SOURCE = "VECTOR_HELPER";
 
@@ -117,32 +118,24 @@ MatrixXd subtractGroupMean(MatrixXd& M, VectorXi& G){
     return Mcenter;
 }
 
-std::vector<VectorXd> splitIntoGroups(VectorXd& v, VectorXi& g, int gSize){
-    int ngroups;
-    if(gSize > 0)
-        ngroups = gSize;
-    else
-        ngroups = 1 + g.maxCoeff();
+std::vector<VectorXd> splitIntoGroups(VectorXd& v,  Group& g){
 
-    std::vector<VectorXd> result(static_cast<size_t>(ngroups));
+    int ngroups = g.countGroups();
+    std::vector<VectorXd> result(ngroups);
 
     for (int i = 0; i < ngroups; i++)
-        result[i] = extractRows(v, g, i);
+        result[i] = extractRows(v, *g.getG(), i);
 
     return result;
 }
 
-std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, VectorXi& g, int gSize){
-    int ngroups;
-    if(gSize > 0)
-        ngroups = gSize;
-    else
-        ngroups = 1 + g.maxCoeff();
+std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, Group& g){
 
-    std::vector<MatrixXd> result(static_cast<size_t>(ngroups));
+    int ngroups = g.countGroups();
+    std::vector<MatrixXd> result(ngroups);
 
     for (int i = 0; i < ngroups; i++)
-        result[i] = extractRows(m, g, i);
+        result[i] = extractRows(m, *g.getG(), i);
 
     return result;
 }

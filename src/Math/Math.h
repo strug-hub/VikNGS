@@ -11,6 +11,8 @@ using Eigen::VectorXd;
 using Eigen::Vector3d;
 using Eigen::VectorXi;
 
+class Group;
+
 //RandomHelper.cpp
 int randomInt(int from, int to);
 double randomDouble(double from, double to);
@@ -28,8 +30,8 @@ double variance(VectorXd &v);
 double variance(MatrixXd& M, int column);
 double variance(VectorXd& X, VectorXi& G, int group);
 MatrixXd subtractGroupMean(MatrixXd& M, VectorXi& G);
-std::vector<VectorXd> splitIntoGroups(VectorXd& v, VectorXi& g, int gSize=-1);
-std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, VectorXi& g, int gSize=-1);
+std::vector<VectorXd> splitIntoGroups(VectorXd& v, Group& g);
+std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, Group& g);
 MatrixXd replaceNAN(MatrixXd& M, double value);
 VectorXd replaceNAN(VectorXd& V, double value);
 inline MatrixXd nanToZero(MatrixXd &M) { return replaceNAN(M, 0); }

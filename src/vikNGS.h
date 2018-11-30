@@ -11,7 +11,7 @@
 #include "Request.h"
 
 struct Test;
-enum class Genotype;
+enum class GenotypeSource;
 enum class Statistic;
 bool isRare(Statistic s);
 enum class Family;

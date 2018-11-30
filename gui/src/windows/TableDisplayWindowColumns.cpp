@@ -28,7 +28,7 @@ void TableDisplayWindow::addSampleGenotypes(int nrow, QStringList &titles, QVect
     QColor gtColour = QColor(194, 214, 211);
 
     VectorXd* X;
-    for(Genotype gt : variant->getAllGenotypes()){
+    for(GenotypeSource gt : variant->getAllGenotypes()){
         titles.append(QString::fromStdString(genotypeToString(gt) + " GT"));
         X = variant->getGenotype(gt);
         QVector<QTableWidgetItem*> gtValues(nrow);
@@ -140,7 +140,7 @@ void TableDisplayWindow::addMafsCaseControl(int nrow, QStringList &titles, QVect
     QColor mafColour = QColor(194, 214, 211);
     std::string caseControl = useCases ? " case MAF" : " control MAF";
     for(size_t j = 0; j < testIndexes.size(); j++){
-        Genotype genotype = tests->at(testIndexes[j]).getGenotype();
+        GenotypeSource genotype = tests->at(testIndexes[j]).getGenotype();
         titles.append(QString::fromStdString(genotypeToString(genotype) + caseControl));
 
         QVector<QTableWidgetItem*> mafs(nrow);
@@ -165,7 +165,7 @@ void TableDisplayWindow::addMafs(int nrow, QStringList &titles, QVector<QVector<
 
     QColor mafColour = QColor(194, 214, 211);
     for(size_t j = 0; j < tests->size(); j++){
-        Genotype genotype = tests->at(j).getGenotype();
+        GenotypeSource genotype = tests->at(j).getGenotype();
         titles.append(QString::fromStdString(genotypeToString(genotype) + " MAF"));
 
         QVector<QTableWidgetItem*> mafs(nrow);

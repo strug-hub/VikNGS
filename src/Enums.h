@@ -3,7 +3,7 @@
 
 enum class Statistic { NONE, COMMON, CAST, SKAT, CALPHA };
 enum class Variance { NONE, REGULAR, RVS, RVSFALSE };
-enum class Genotype { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
+enum class GenotypeSource { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
 enum class Family { NONE, NORMAL, BINOMIAL };
 enum class Depth { HIGH, LOW };
 enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
@@ -11,26 +11,26 @@ enum class Filter { VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_V
 
 inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
 
-inline std::string genotypeToString(Genotype g){
+inline std::string genotypeToString(GenotypeSource g){
     switch(g) {
-        case Genotype::EXPECTED: return "Expected";
-        case Genotype::TRUE: return "True";
-        case Genotype::CALL: return "Call";
-        case Genotype::VCF_CALL: return "VCF Call";
+        case GenotypeSource::EXPECTED: return "Expected";
+        case GenotypeSource::TRUE: return "True";
+        case GenotypeSource::CALL: return "Call";
+        case GenotypeSource::VCF_CALL: return "VCF Call";
         default: return "_";
     }
 }
 
 struct Test {
 private:
-    Genotype genotype;
+    GenotypeSource genotype;
     Statistic statistic;
     Variance variance;
     int nboot = -1;
     int nsamples = -1;
 
 public:
-    Test(Genotype g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
+    Test(GenotypeSource g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
         this->nsamples = nsamples;
         this->nboot = nbootstrap;
     }
@@ -41,15 +41,15 @@ public:
     inline bool isRVSFalse(){ return variance == Variance::RVSFALSE; }
     inline void setRVSFalse(){ if(variance == Variance::RVS) variance = Variance::RVSFALSE; }
     inline void setSampleSize(int size){ nsamples=size; }
-    inline void setGenotype(Genotype gt){ genotype=gt; }
+    inline void setGenotype(GenotypeSource gt){ genotype=gt; }
 
-    inline bool needVCFCalls(){ return genotype == Genotype::VCF_CALL; }
-    inline bool needGenotypeCalls(){ return genotype == Genotype::CALL; }
-    inline bool needExpectedGenotypes(){ return genotype == Genotype::EXPECTED; }
-    inline bool isExpectedGenotypes(){ return genotype == Genotype::EXPECTED; }
+    inline bool needVCFCalls(){ return genotype == GenotypeSource::VCF_CALL; }
+    inline bool needGenotypeCalls(){ return genotype == GenotypeSource::CALL; }
+    inline bool needExpectedGenotypes(){ return genotype == GenotypeSource::EXPECTED; }
+    inline bool isExpectedGenotypes(){ return genotype == GenotypeSource::EXPECTED; }
     inline bool isBootstrap(){ return nboot>1; }
 
-    inline Genotype getGenotype(){ return genotype; }
+    inline GenotypeSource getGenotype(){ return genotype; }
     inline Statistic getStatistic(){ return statistic; }
     inline Variance getVariance(){ return variance; }
 
@@ -60,13 +60,13 @@ public:
         std::string part1, part2;
         switch(genotype)
         {
-            case Genotype::EXPECTED :
+            case GenotypeSource::EXPECTED :
                 part1 = "Genotype Likelihoods";
                 if(isRVS()) part1 = "RVS " + part1;
                 break;
-            case Genotype::CALL : part1 = "Genotype Calls"; break;
-            case Genotype::VCF_CALL : part1 = "VCF Calls"; break;
-            case Genotype::TRUE : part1 = "True Genotypes"; break;
+            case GenotypeSource::CALL : part1 = "Genotype Calls"; break;
+            case GenotypeSource::VCF_CALL : part1 = "VCF Calls"; break;
+            case GenotypeSource::TRUE : part1 = "True Genotypes"; break;
             default: part1 = "???"; break;
         }
         switch(statistic)
@@ -85,12 +85,12 @@ public:
         std::string part1, part2;
         switch(genotype)
         {
-            case Genotype::EXPECTED :
+            case GenotypeSource::EXPECTED :
                 if(isRVS()) part1 = "RVS"; else part1 = "No RVS";
                 break;
-            case Genotype::CALL : part1 = "Call"; break;
-            case Genotype::VCF_CALL : part1 = "VCF"; break;
-            case Genotype::TRUE : part1 = "True"; break;
+            case GenotypeSource::CALL : part1 = "Call"; break;
+            case GenotypeSource::VCF_CALL : part1 = "VCF"; break;
+            case GenotypeSource::TRUE : part1 = "True"; break;
             default: part1 = "???"; break;
         }
         switch(statistic)

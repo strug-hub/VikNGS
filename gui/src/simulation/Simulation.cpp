@@ -52,7 +52,7 @@ private:
     MatrixXd Ysubset;
     MatrixXd Zsubset;
 
-    Test t = Test(Genotype::NONE, Statistic::NONE, Variance::NONE);
+    Test t = Test(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
 
     bool running;
     std::future<bool> testingDone;
@@ -202,9 +202,9 @@ Data startSimulation(SimulationRequest& simReq) {
     printInfo("Starting tests...");
 
     std::vector<Test> tests;
-    Test trueGT(Genotype::TRUE, simReq.testStatistic, Variance::REGULAR);
-    Test expectedGT(Genotype::EXPECTED, simReq.testStatistic, Variance::RVS);
-    Test calledGT(Genotype::CALL, simReq.testStatistic, Variance::REGULAR);
+    Test trueGT(GenotypeSource::TRUE, simReq.testStatistic, Variance::REGULAR);
+    Test expectedGT(GenotypeSource::EXPECTED, simReq.testStatistic, Variance::RVS);
+    Test calledGT(GenotypeSource::CALL, simReq.testStatistic, Variance::REGULAR);
 
     tests.push_back(trueGT);
     tests.push_back(expectedGT);
@@ -220,7 +220,7 @@ Data startSimulation(SimulationRequest& simReq) {
 
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
-    Test null(Genotype::NONE, Statistic::NONE, Variance::NONE);
+    Test null(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
     for(size_t i = 0; i < nthreads; i++){
         threads.emplace_back(info, &Y);
         if(useZ)

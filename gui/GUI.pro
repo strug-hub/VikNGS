@@ -46,7 +46,6 @@ SOURCES += \
     ../src/Math/GeneticsHelper.cpp \
     ../src/Parser/BEDParser.cpp \
     ../src/Test/Test.cpp \
-    ../src/Test/TestRareHelper.cpp \
     src/windows/PlotWindowPlotter.cpp \
     src/simulation/Simulation.cpp \
     src/windows/SimPlotWindowPlotter.cpp \
@@ -290,7 +289,9 @@ HEADERS += \
     src/widgets/qcustomplot.h \
     src/windows/SimPlotWindow.h \
     src/widgets/qcpdocumentobject.h \
-    ../src/Test/ScoreTestFunctions.h
+    ../src/Test/ScoreTestFunctions.h \
+    ../src/Test/Group.h \
+    ../src/Test/Genotype.h
 
 
 FORMS += \

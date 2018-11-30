@@ -24,8 +24,6 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
         double testStat = std::pow(score.sum(), 2) / variance.sum();
         return testStat;
 
-        //double testStat = scoreV.sum() / sqrt(diagS.sum());
-        //return 2 * (1 - pnorm(std::abs(testStat)));
     }
 
     if(s == Statistic::SKAT || s == Statistic::CALPHA){
@@ -111,7 +109,6 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     MatrixXd Z = sampleInfo->getZ();
     MatrixXd P = variant->getP(test.getGenotype());
     VectorXi G = sampleInfo->getG();
-    std::map<int, Depth> groupDepth = sampleInfo->getGroupDepthMap();
 
     if(test.getSampleSize() > 0){
         int size = test.getSampleSize();
@@ -123,7 +120,8 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
         VectorXi g = G.block(0, 0, size, G.cols()); G = g;
     }
 
-    TestObject o(X, Y, Z, P, sampleInfo->getFamily(), G, groupDepth, test.isRareTest());
+    Group group(G, sampleInfo->getGroupDepthMap());
+    TestObject o(X, Y, Z, P, sampleInfo->getFamily(), group, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
 

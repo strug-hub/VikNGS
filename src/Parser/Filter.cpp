@@ -45,10 +45,10 @@ Checks for missing data and filters data for common or rare test.
 */
 Filter filterByGenotypes(Request* req, Variant& variant, VectorXd& Y, Family family) {
 
-    std::vector<Genotype> genotypes = variant.getAllGenotypes();
+    std::vector<GenotypeSource> genotypes = variant.getAllGenotypes();
     //must pass filter for all genotype sets
 
-    for (Genotype gt : genotypes){
+    for (GenotypeSource gt : genotypes){
         Vector3d* P = variant.getP(gt);
         if(!mafTest(P, req->getMAFCutOff(), req->useCommon()))
             return Filter::MAF;

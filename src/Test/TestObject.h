@@ -1,16 +1,16 @@
 #pragma once
 #include "../vikNGS.h"
 #include "../Math/Math.h"
+#include "Group.h"
 
 class TestObject {
 
     MatrixXd X;
     VectorXd Y;
     MatrixXd Z;
-    VectorXi G;
-    std::map<int, Depth>& d;
     MatrixXd P;
     Family family;
+    Group& group;
 
     VectorXd Ycenter;
     VectorXd Ycenter_original;
@@ -38,8 +38,8 @@ class TestObject {
 public:
 
     TestObject(MatrixXd& genotypes, VectorXd& phenotypes, MatrixXd& covariates,
-               MatrixXd& frequency, Family distribution, VectorXi& groups, std::map<int, Depth>& depths, bool rareVariant) :
-        X(genotypes), Y(phenotypes), Z(covariates), G(groups), d(depths), P(frequency), family(distribution) {
+               MatrixXd& frequency, Family distribution, Group& groups,  bool rareVariant) :
+        X(genotypes), Y(phenotypes), Z(covariates), P(frequency), family(distribution), group(groups) {
 
         //Filter NAN
         VectorXi toRemove = whereNAN(Y);
@@ -54,7 +54,8 @@ public:
             Z = extractRows(Z, toRemove, 0);
         else
             Z = MatrixXd::Constant(X.rows(),1,1);
-        G = extractRows(G, toRemove, 0);
+
+        groups.filterG(toRemove);
 
         //Replace NAN with 0 if rare
         if(rareVariant)
@@ -98,12 +99,10 @@ public:
     inline VectorXd getX(int i){ return (bootstrapped) ? Xboot.col(i) : X.col(i); }
     inline VectorXd* getY(){ return (bootstrapped) ? &Yboot : &Y; }
     inline MatrixXd* getZ(){ return (bootstrapped) ? &Zboot : &Z; }
-    inline VectorXi* getG(){ return &G; }
+    inline Group* getGroup(){ return &group; }
     inline MatrixXd* getP(){ return &P; }
     inline VectorXd* getMU(){ return &MU; }
     inline VectorXd* getYcenter(){ return &Ycenter; }
-
-    inline std::map<int, Depth>* getDepths(){ return &d; }
 
     inline void bootstrap(Test& test, Family family) {
 
@@ -144,11 +143,11 @@ private:
     void binomialBootstrap() {
         if(!bootstrapped)
             Yboot = Y;
-        Xboot = groupwiseShuffleWithReplacement(Xcenter, G, groupVector);
+        Xboot = groupwiseShuffleWithReplacement(Xcenter, *group.getG(), groupVector);
 
         //todo?
         if(hasCovariates())
-            Zboot = groupwiseShuffleWithReplacement(Z, G, groupVector);
+            Zboot = groupwiseShuffleWithReplacement(Z, *group.getG(), groupVector);
     }
 
     void normalBootstrap() {
@@ -161,12 +160,12 @@ private:
                Ycenter_original = Ycenter;
            }
 
-           VectorXd residuals = groupwiseShuffleWithoutReplacement(Ycenter_original, G, groupVector);
+           VectorXd residuals = groupwiseShuffleWithoutReplacement(Ycenter_original, *group.getG(), groupVector);
            Yboot = Y - Ycenter_original + residuals;
 
        }
        else{
-           Yboot = groupwiseShuffleWithoutReplacement(Y, G, groupVector);
+           Yboot = groupwiseShuffleWithoutReplacement(Y, *group.getG(), groupVector);
            if(!bootstrapped)
                Xboot = X;
        }
@@ -180,15 +179,15 @@ private:
         if(groupVectorCache)
             return;
 
-        for(int i = 0; i < G.rows(); i++){
+        for(int i = 0; i < group.size(); i++){
 
-            if(groupVector.count(G[i]) < 1){
+            if(groupVector.count(group[i]) < 1){
                 std::vector<int> v;
                 v.push_back(i);
-                groupVector[G[i]] = v;
+                groupVector[group[i]] = v;
             }
             else
-                groupVector[G[i]].push_back(i);
+                groupVector[group[i]].push_back(i);
         }
 
         groupVectorCache = true;
@@ -200,7 +199,7 @@ private:
         if(XcenterCache)
             return;
 
-        Xcenter = subtractGroupMean(X, G);
+        Xcenter = subtractGroupMean(X, *group.getG());
         XcenterCache = true;
     }
 
@@ -218,46 +217,3 @@ private:
         Ycenter = Yboot - MU;
     }
 };
-
-
-   /*
-
-    std::vector<MatrixXd> h;
-    std::vector<VectorXd> hdiag;
-    VectorXd Yvar;
-    std::vector<VectorXd> yvar;
-
-   void constructHatMatrix(Family family, VectorXd &X, VectorXd &Y, MatrixXd &Z, VectorXd &G, std::vector<VectorXd> &yhat){
-
-       if(family == Family::NORMAL){
-
-           H = calculateHatMatrix(Z);
-           double constant = variance(Y);
-
-           for (size_t i = 0; i < x.size(); i++)
-                   this->yvar.push_back(MatrixXd::Constant(x[i].rows(), 1, constant));
-       }
-       else if(family == Family::BINOMIAL){
-           VectorXd MU_ = MU.array() * (VectorXd::Ones(MU.rows()) - MU).array();
-           VectorXd MU_sqrt = mu_.array().sqrt();
-
-           MatrixXd W = mu_.asDiagonal();
-           MatrixXd sqrtW = mu_sqrt.asDiagonal();
-
-           H = calculateHatMatrix(Z_filtered, W, sqrtW);
-
-           for (int i = 0; i < size(); i++)
-               this->yvar.push_back(extractRows(mu_, G_filtered, i).transpose());
-       }
-
-       VectorXd Hdiag = H.diagonal();
-
-       for (int i = 0; i < size(); i++){
-           this->h.push_back(extractRows(H, G_filtered, i).transpose());
-           this->hdiag.push_back(extractRows(Hdiag, G_filtered, i));
-       }
-
-       this->Yvar = concatenate(this->yvar);
-   }
-
-   */
