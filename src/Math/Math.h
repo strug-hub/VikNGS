@@ -1,6 +1,7 @@
 #pragma once
 #include "../Enums.h"
 #include "../Log.h"
+
 #include <vector>
 #include <map>
 #include <random>

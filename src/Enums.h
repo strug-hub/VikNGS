@@ -2,9 +2,15 @@
 #include <string>
 
 enum class Statistic { NONE, COMMON, CAST, SKAT, CALPHA };
+enum class Variance { NONE, REGULAR, RVS, RVSFALSE };
+enum class Genotype { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
+enum class Family { NONE, NORMAL, BINOMIAL };
+enum class Depth { HIGH, LOW };
+enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
+enum class Filter { VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
+
 inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
 
-enum class Genotype { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
 inline std::string genotypeToString(Genotype g){
     switch(g) {
         case Genotype::EXPECTED: return "Expected";
@@ -15,30 +21,25 @@ inline std::string genotypeToString(Genotype g){
     }
 }
 
-enum class Family { NORMAL, BINOMIAL, NONE };
-enum class Depth { HIGH, LOW };
-
-enum class Filter { VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
-enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
-
-
 struct Test {
 private:
     Genotype genotype;
     Statistic statistic;
-    int rvs = 1;
+    Variance variance;
+    int nboot = -1;
     int nsamples = -1;
 
 public:
-    Test(Genotype g, Statistic s, bool rvs=true, int nsamples=-1) : genotype(g), statistic(s){
-        if(rvs) this->rvs=1; else this->rvs = 0;
+    Test(Genotype g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
         this->nsamples = nsamples;
+        this->nboot = nbootstrap;
     }
 
     inline bool isRareTest(){ return isRare(statistic); }
     inline bool isCommonTest(){ return statistic == Statistic::COMMON; }
-    inline bool isRVS(){ return rvs == 1; }
-    inline void setRVSFalse(){ rvs=0; }
+    inline bool isRVS(){ return variance == Variance::RVS || variance == Variance::RVSFALSE; }
+    inline bool isRVSFalse(){ return variance == Variance::RVSFALSE; }
+    inline void setRVSFalse(){ if(variance == Variance::RVS) variance = Variance::RVSFALSE; }
     inline void setSampleSize(int size){ nsamples=size; }
     inline void setGenotype(Genotype gt){ genotype=gt; }
 
@@ -46,10 +47,14 @@ public:
     inline bool needGenotypeCalls(){ return genotype == Genotype::CALL; }
     inline bool needExpectedGenotypes(){ return genotype == Genotype::EXPECTED; }
     inline bool isExpectedGenotypes(){ return genotype == Genotype::EXPECTED; }
+    inline bool isBootstrap(){ return nboot>1; }
 
     inline Genotype getGenotype(){ return genotype; }
     inline Statistic getStatistic(){ return statistic; }
+    inline Variance getVariance(){ return variance; }
+
     inline int getSampleSize(){ return nsamples; }
+    inline int getbootstrapSize(){ return nboot; }
 
     inline std::string toString(){
         std::string part1, part2;
@@ -70,7 +75,7 @@ public:
             case Statistic::CAST : part2 = "CAST"; break;
             case Statistic::SKAT : part2 = "SKAT"; break;
             case Statistic::CALPHA : part2 = "Calpha"; break;
-            default: return "???";
+            default: part2 = "???"; break;
         }
 
         return part1 + " - " + part2;

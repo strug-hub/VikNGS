@@ -46,7 +46,6 @@ SOURCES += \
     ../src/Math/GeneticsHelper.cpp \
     ../src/Parser/BEDParser.cpp \
     ../src/Test/Test.cpp \
-    ../src/Test/TestCommonHelper.cpp \
     ../src/Test/TestRareHelper.cpp \
     src/windows/PlotWindowPlotter.cpp \
     src/simulation/Simulation.cpp \
@@ -60,7 +59,8 @@ SOURCES += \
     src/log/Log.cpp \
     src/windows/PlotWindowMouse.cpp \
     src/windows/MainWindow.cpp \
-    src/widgets/qcpdocumentobject.cpp
+    src/widgets/qcpdocumentobject.cpp \
+    ../src/Test/ScoreTestFunctions.cpp
 
 HEADERS += \
     ../src/Eigen/src/Cholesky/LDLT.h \
@@ -289,7 +289,8 @@ HEADERS += \
     src/widgets/qzoombar.h \
     src/widgets/qcustomplot.h \
     src/windows/SimPlotWindow.h \
-    src/widgets/qcpdocumentobject.h
+    src/widgets/qcpdocumentobject.h \
+    ../src/Test/ScoreTestFunctions.h
 
 
 FORMS += \

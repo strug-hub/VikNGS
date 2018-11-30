@@ -1,6 +1,7 @@
 #include "Test.h"
 #include "../Eigen/src/MatrixFunctions/MatrixSquareRoot.h"
 #include "../Math/CompQuadForm.h"
+#include "ScoreTestFunctions.h"
 
 /*
 Calculates test statistic.
@@ -12,63 +13,57 @@ Calculates test statistic.
 @return test statistic
 */
 double calculateTestStatistic(TestObject& o, Test& test, Family family, bool print) {
+
+    VectorXd score = getScoreVector(*o.getYcenter(), *o.getX());
+    MatrixXd variance = getVarianceMatrix(o, test, family);
+
     Statistic s = test.getStatistic();
 
-    if(s == Statistic::COMMON){
-        double score = getScore(*o.getYcenter(), *o.getX());
-        double variance = getVariance(o, test, family);
-        return std::pow(score, 2) / variance;
+    if(s == Statistic::COMMON || s == Statistic::CAST){
+
+        double testStat = std::pow(score.sum(), 2) / variance.sum();
+        return testStat;
+
+        //double testStat = scoreV.sum() / sqrt(diagS.sum());
+        //return 2 * (1 - pnorm(std::abs(testStat)));
     }
-    else {
 
-        VectorXd scoreV = getScoreVector(*o.getYcenter(), *o.getX());
-        MatrixXd diagS = getVarianceMatrix(o, test, family);
+    if(s == Statistic::SKAT || s == Statistic::CALPHA){
 
-        if(s == Statistic::CAST){
+        auto g = variance.eigenvalues();
+        VectorXd f = variance.eigenvalues().real();
 
-            if(test.getGenotype() == Genotype::EXPECTED)
-                outputDebug(std::to_string(scoreV.sum()) + "\t" + std::to_string(sqrt(diagS.sum())), ".");
-
-            double testStat = scoreV.sum() / sqrt(diagS.sum());
-            return 2 * (1 - pnorm(std::abs(testStat)));
-        }
-
-        if(s == Statistic::SKAT || s == Statistic::CALPHA){
-
-            auto g = diagS.eigenvalues();
-            VectorXd f = diagS.eigenvalues().real();
-
-            //todo: temporary solution to eigenvalue issue
-            bool useCalpha = f.sum() < 1e-4;
-            for(int e = 0; e < f.rows(); e++)
-                if(f[e] < 0)
-                    useCalpha = true;
-
-            if (s == Statistic::CALPHA)
+        //todo: temporary solution to eigenvalue issue
+        bool useCalpha = f.sum() < 1e-4;
+        for(int e = 0; e < f.rows(); e++)
+            if(f[e] < 0)
                 useCalpha = true;
 
-            if(useCalpha){
-                VectorXd e = diagS.eigenvalues().real();
-                std::vector<double> eigenvals(e.data(), e.data() + e.size());
-                CQF pval;
-                return pval.qfc(eigenvals, scoreV.array().pow(2).sum(), scoreV.rows());
-            }
+        if (s == Statistic::CALPHA)
+            useCalpha = true;
 
-            //skat-Z
-            VectorXd A = o.mafWeightVector();
-
-            double quad = 0;
-            for(int i = 0; i < scoreV.rows(); i++)
-                quad += scoreV[i]*A[i]*scoreV[i];
-
-            MatrixXd sigma = diagS.sqrt() * A.asDiagonal() * diagS.sqrt();
-            VectorXd e = sigma.eigenvalues().real();
-            std::vector<double> eigenvalues(e.data(), e.data() + e.size());
+        if(useCalpha){
+            VectorXd e = variance.eigenvalues().real();
+            std::vector<double> eigenvals(e.data(), e.data() + e.size());
             CQF pval;
-            return pval.qfc(eigenvalues, quad, scoreV.rows());
+            return pval.qfc(eigenvals, score.array().pow(2).sum(), score.rows());
         }
+
+        //skat-Z
+        VectorXd A = o.mafWeightVector();
+
+        double quad = 0;
+        for(int i = 0; i < score.rows(); i++)
+            quad += score[i]*A[i]*score[i];
+
+        MatrixXd sigma = variance.sqrt() * A.asDiagonal() * variance.sqrt();
+        VectorXd e = sigma.eigenvalues().real();
+        std::vector<double> eigenvalues(e.data(), e.data() + e.size());
+        CQF pval;
+        return pval.qfc(eigenvalues, quad, score.rows());
     }
 
+    throwError("Test", "Unsure which score test to use. This should not happen.");
     return NAN;
 }
 
@@ -132,18 +127,9 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
 
-//    if(test.isExpectedGenotypes()){
-     //   outputMatrix(*o.getX(), "./X");
-   //     outputMatrix(*o.getP(), "./P");
-  //      while(true){
-  //         bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), 10000, stopEarly);
-  //      }
- //  }
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);
-    else if (test.getStatistic() == Statistic::CAST)
-        return testStatistic;
 
     return chiSquareOneDOF(testStatistic);
 }

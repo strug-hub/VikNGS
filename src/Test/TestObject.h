@@ -52,6 +52,8 @@ public:
         Y = extractRows(Y, toRemove, 0);
         if(hasCovariates())
             Z = extractRows(Z, toRemove, 0);
+        else
+            Z = MatrixXd::Constant(X.rows(),1,1);
         G = extractRows(G, toRemove, 0);
 
         //Replace NAN with 0 if rare

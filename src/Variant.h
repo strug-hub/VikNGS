@@ -1,15 +1,10 @@
 #pragma once
-#include "Enums.h"
 #include "./Math/Math.h"
 #include "Interval.h"
-#include <map>
-#include <vector>
+
 #include <string>
 #include <iostream>
-#include "Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::Vector3d;
+
 
 struct Variant {
 private:

@@ -98,6 +98,9 @@ MatrixXd covariance(MatrixXd &M) {
 }
 
 MatrixXd correlation(MatrixXd &M) {
+    if(M.cols() == 1)
+        return MatrixXd::Constant(1,1,1);
+
     MatrixXd centered = M.rowwise() - M.colwise().mean();
     MatrixXd cov = (centered.adjoint() * centered);
     VectorXd v = centered.array().pow(2).colwise().sum();
