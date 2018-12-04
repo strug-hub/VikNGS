@@ -291,7 +291,8 @@ HEADERS += \
     src/widgets/qcpdocumentobject.h \
     ../src/Test/ScoreTestFunctions.h \
     ../src/Test/Group.h \
-    ../src/Test/Genotype.h
+    ../src/Test/Genotype.h \
+    ../src/Test/Phenotype.h
 
 
 FORMS += \

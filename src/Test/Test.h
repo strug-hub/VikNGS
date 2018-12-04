@@ -1,8 +1,8 @@
 #pragma once
 #include "../Math/Math.h"
 #include "../vikNGS.h"
-#include "TestObject.h"
 
+class TestObject;
 
 //Test.cpp
 double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot, bool stopEarly);

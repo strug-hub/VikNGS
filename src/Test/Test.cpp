@@ -2,6 +2,7 @@
 #include "../Eigen/src/MatrixFunctions/MatrixSquareRoot.h"
 #include "../Math/CompQuadForm.h"
 #include "ScoreTestFunctions.h"
+#include "TestObject.h"
 
 /*
 Calculates test statistic.
@@ -22,7 +23,7 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
     if(s == Statistic::COMMON || s == Statistic::CAST){
 
         double testStat = std::pow(score.sum(), 2) / variance.sum();
-        return testStat;
+        return chiSquareOneDOF(testStat);
 
     }
 
@@ -124,17 +125,18 @@ double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot
     }
 
     Group group(G, map);
+    Genotype geno(X, P, test.getGenotype());
+    Phenotype pheno(Y, Z, sampleInfo->getFamily());
 
     //if( test.isRVS() && readDepthFlip(Y, group, sampleInfo->getFamily()))
    //     test.setRegularVariance();
 
-    TestObject o(X, Y, Z, P, sampleInfo->getFamily(), group, test.isRareTest());
+    TestObject o(geno, pheno, group, test.isRareTest());
 
     double testStatistic = calculateTestStatistic(o, test, sampleInfo->getFamily(), true);
-
 
     if(nboot > 1)
         return bootstrapTest(testStatistic, o, test, sampleInfo->getFamily(), nboot, stopEarly);
 
-    return chiSquareOneDOF(testStatistic);
+    return testStatistic;
 }

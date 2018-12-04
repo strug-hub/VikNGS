@@ -3,34 +3,45 @@
 
 class Genotype {
     MatrixXd X;
-
-    MatrixXd Xboot;
-    bool bootstrapped;
     MatrixXd P;
-    VectorXd robustVar;
     GenotypeSource source;
-
-    void robustVarVector(){
-        VectorXd var(P.rows());
-        for (int i = 0; i < P.rows(); i++)
-            calcRobustVar(P(i,1), P(i,2));
-
-        this->robustVar = var;
-    }
 
 public:
 
-    Genotype(MatrixXd genotypes, MatrixXd alleleFreq, GenotypeSource gtSource) : X(genotypes), P(alleleFreq), source(gtSource) {
-        calculateRobustVar();
-        bootstrapped = false;
-    }
+    Genotype(MatrixXd genotypes, MatrixXd alleleFreq, GenotypeSource gtSource) : X(genotypes), P(alleleFreq), source(gtSource) {    }
 
     //toRemove: 0 = keep, 1 = remove
     inline void filterX(VectorXi& toRemove){
         this->X = extractRows(this->X, toRemove, 0);
     }
 
-    inline MatrixXd* getX() { return (bootstrapped) ? &Xboot : &X; }
+    inline void replaceNA(double value){
+        this->X = replaceNAN(X, value);
+    }
+
+    inline MatrixXd* getX() { return &X; }
     inline int size() { return this->X.cols(); }
+
+    inline VectorXd robustVarVector(){
+        VectorXd robustVar(P.rows());
+        for (int i = 0; i < P.rows(); i++)
+            robustVar[i] = sqrt(calcRobustVar(P(i,1), P(i,2)));
+
+        return robustVar;
+    }
+
+    inline VectorXd mafWeightVector(){
+
+        VectorXd maf(P.rows());
+        for (int i = 0; i < P.rows(); i++){
+            double m = P(i,0) + 0.5*P(i,1);
+            if(m >= 1){
+                double n = this->X.rows();
+                m = (n + 0.5)/(n+1);
+            }
+            maf[i] = 1/sqrt(m * (1-m));
+        }
+        return maf;
+    }
 
 };

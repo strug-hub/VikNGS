@@ -8,6 +8,7 @@ enum class Family { NONE, NORMAL, BINOMIAL };
 enum class Depth { HIGH, LOW };
 enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
 enum class Filter { VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
+//enum class Bootstrap { NONE, PERMUTE,  };
 
 inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
 
@@ -28,6 +29,7 @@ private:
     Variance variance;
     int nboot = -1;
     int nsamples = -1;
+    bool earlyStopping = false;
 
 public:
     Test(GenotypeSource g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
@@ -43,6 +45,7 @@ public:
     inline void setSampleSize(int size){ nsamples=size; }
     inline void setRegularVariance(){ variance = Variance::REGULAR; }
     inline void setGenotype(GenotypeSource gt){ genotype=gt; }
+    inline void setEarlyStopping(bool value) { earlyStopping = value; }
 
     inline bool needVCFCalls(){ return genotype == GenotypeSource::VCF_CALL; }
     inline bool needGenotypeCalls(){ return genotype == GenotypeSource::CALL; }
@@ -55,7 +58,8 @@ public:
     inline Variance getVariance(){ return variance; }
 
     inline int getSampleSize(){ return nsamples; }
-    inline int getbootstrapSize(){ return nboot; }
+    inline int getBootstrapSize(){ return nboot; }
+    inline bool useEarlyStopping(){ return earlyStopping; }
 
     inline std::string toString(){
         std::string part1, part2;

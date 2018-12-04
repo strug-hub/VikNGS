@@ -38,7 +38,7 @@ MatrixXd getVarianceMatrix(TestObject& o, Test& test, Family family){
         return getRegularVariance(*o.getYcenter(), *o.getX(), *o.getZ(), *o.getMU(), family);
 
 
-    throwError("TEST", "Don't know how to compute variance during test, this error should not happen.");
+    throwError("ScoreTestFunctions", "Unsure how to calculate variance in score test. This should not happen.");
 }
 
 MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, Group& group, VectorXd robustVar, bool rvs){
