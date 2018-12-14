@@ -209,7 +209,7 @@ Data startSimulation(SimulationRequest& simReq) {
     tests.push_back(trueGT);
     tests.push_back(expectedGT);
     if(simReq.underNull() || fam == Family::NORMAL)
-        tests.push_back(calledGT);
+       tests.push_back(calledGT);
 
     int nboot = 0;
     if(simReq.useBootstrap)

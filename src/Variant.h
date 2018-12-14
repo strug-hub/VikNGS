@@ -139,6 +139,8 @@ public:
     inline double getMidPos() { return (variants.size() < 1) ? -1 :
                                                             (variants[0].getPosition() + variants.back().getPosition())/2.0; }
 
+    inline void setPval(int i, double p) { pval[i] = p; }
+
     inline void addPval(double p) { pval.push_back(p); }
     inline double getPval(size_t i) { return pval[i]; }
 

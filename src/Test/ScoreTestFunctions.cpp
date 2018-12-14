@@ -6,7 +6,8 @@ VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     int nsnp = X.cols();
     VectorXd score(nsnp);
     for(int i = 0; i < nsnp; i++)
-        score[i] = (Ycenter.array() * X.col(i).array()).sum();
+        score[i] = Ycenter.dot(X.col(i));
+
     return score;
 }
 

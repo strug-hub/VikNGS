@@ -3,6 +3,7 @@
 
 #include "ui_mainwindow.h"
 #include <iostream>
+#include <random>
 #include "../log/qlog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -129,16 +130,70 @@ void MainWindow::on_main_randomBtn_pressed(){
     ui->main_randomBtn->setVisible(false);
 
     PlotWindow *plotter = new PlotWindow();
-     QString title = "Random";
-     Data result; std::vector<VariantSet> vss;
-     for(int i = 0; i < 10000; i++){
-         VariantSet vs; vs.addPval(randomDouble(0,1));
-         Variant v(std::to_string(randomInt(1,22)), randomInt(1,10000), "uid", "A", "T");
-         vs.addVariant(v);
-         vss.push_back(vs);
+    QString title = "Random";
+    Data result; std::vector<VariantSet> vss;
+
+     for(int h = 1; h <= 23; h++){
+
+         double maxSigFactor = 1;
+         double oldSigFactor = 1;
+         double currentSigFactor = 1;
+         double decayRate = 10;
+
+         int size = 10000;
+         double mx = 1e6;
+         int maxpos = mx + mx*(22-h)/5 + (mx)* randomDouble(0,1)/5;
+         std::vector<int> pos(size);
+         for(int i =0; i< size; i++)
+             pos[i] = randomInt(1,maxpos);
+
+        std::sort(begin(pos), end(pos), std::greater<int>());
+
+         int prevPos = -1;
+
+         for(int i = 0; i < pos.size(); i++){
+
+             if (prevPos == pos[i])
+                     continue;
+
+             if(maxSigFactor < 1.01 && randomDouble(0,1) < 1.0/(pos.size()*5))
+                 maxSigFactor = randomInt(4,20);
+
+             if(maxSigFactor > 1){
+                 currentSigFactor += maxSigFactor * randomDouble(0,1)/decayRate;
+                 if(currentSigFactor >= maxSigFactor){
+                     currentSigFactor = maxSigFactor;
+                     oldSigFactor = maxSigFactor;
+                     maxSigFactor = 1;
+                 }
+             }
+
+             currentSigFactor -= oldSigFactor * randomDouble(0,1)/decayRate;
+             if(currentSigFactor <= 1){
+                 currentSigFactor = 1;
+                 oldSigFactor = 1;
+             }
+
+             VariantSet vs;
+             if(randomDouble(0,1) < 0.5)
+                vs.addPval(randomDouble(0,1)/pow(10, currentSigFactor-1));
+             else
+                 vs.addPval(randomDouble(0,1));
+
+             Variant v(std::to_string(h), pos[i], "uid", "A", "T");
+             vs.addVariant(v);
+             vss.push_back(vs);
+             prevPos = pos[i];
+         }
      }
+
      result.variants = vss;
      plotter->initialize(result, title);
      plotter->show();
+}
+
+void MainWindow::on_pushButton_pressed()
+{
+    QDesktopServices::openUrl(QUrl("https://vikngsdocs.readthedocs.io/en/latest/index.html"));
 
 }

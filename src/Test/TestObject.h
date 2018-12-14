@@ -97,7 +97,7 @@ private:
             Xboot = *geno.getX();
 
         Yboot = shuffleWithoutReplacement(*pheno.getY());
-        //Xboot = shuffleColumnwiseWithoutReplacement(Xcenter);
+        //Xboot = shuffleColumnwiseWithoutReplacement(*geno.getX());
 
         if(pheno.hasCovariates())
            Zboot = shuffleColumnwiseWithoutReplacement(*pheno.getZ());

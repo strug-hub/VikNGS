@@ -42,6 +42,10 @@ private slots:
     void on_simplot_pdfBtn_pressed();
     void saveAsPdf(QCustomPlot* plot, QString fileName, int stepIndex=-1);
 
+    void on_simplot_histShow_pressed();
+
+    void on_simplot_histBinBox_valueChanged(int arg1);
+
 private:
     Ui::SimPlotWindow *ui;
     QColor grey1 = QColor::fromRgb(190, 190, 190);
@@ -72,6 +76,8 @@ private:
 
     int findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex=false);
     void buildQQPlot(int stepIndex, int focusGraph = -1);
+    void buildHistPlot(int stepIndex, int focusGraph = -1);
+
     void updatePowerValues(int index);
 
     QCPItemLine *alphaLine;

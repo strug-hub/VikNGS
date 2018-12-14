@@ -292,7 +292,8 @@ HEADERS += \
     ../src/Test/ScoreTestFunctions.h \
     ../src/Test/Group.h \
     ../src/Test/Genotype.h \
-    ../src/Test/Phenotype.h
+    ../src/Test/Phenotype.h \
+    src/windows/VikngsUiConstants.h
 
 
 FORMS += \

@@ -1,4 +1,4 @@
-#include "SimPlotWindow.h"
+﻿#include "SimPlotWindow.h"
 #include "ui_simplotwindow.h"
 #include "TableDisplayWindow.h"
 
@@ -23,6 +23,13 @@ SimPlotWindow::SimPlotWindow(QWidget *parent) :
     colours.push_back(pink);
     colours.push_back(orange);
     colours.push_back(green);
+
+    ui->filler1->setVisible(false);
+    ui->filler2->setVisible(false);
+    ui->filler3->setVisible(false);
+    ui->filler4->setVisible(false);
+    ui->filler5->setVisible(false);
+
 }
 
 SimPlotWindow::~SimPlotWindow(){
@@ -64,9 +71,31 @@ void SimPlotWindow::initialize(Data& results, SimulationRequest& req, QString ti
         this->yAxisLabel = "Power";
         ui->simplot_measureGrp->setTitle("Power");
         ui->simplot_plotTab->setTabEnabled(1, false);
+        ui->simplot_histBinBox->setVisible(false);
+        ui->simplot_histShow->setVisible(false);
+        ui->simplot_histBinLbl->setVisible(false);
     }
 
-    QString timing = "Simulation time: " + timeToString(results.processingTime) + "\n"
+    QString collapseString = "";
+    if(req.collapse > 1)
+        collapseString = " (" + QString::number(req.collapse) + " per test" + ")";
+    ui->simplot_nVariantsLbl->setText("Variants: " + QString::number(req.nsnp) + collapseString);
+
+    if(req.family == Family::BINOMIAL)
+        ui->simplot_effectSizeLbl->setText("Odds ratio: " + QString::number(req.effectSize));
+    else if (req.family == Family::NORMAL)
+        ui->simplot_effectSizeLbl->setText("R²: " + QString::number(req.effectSize));
+
+    QString mafMaxString = "";
+    if(req.mafMax != req.mafMin)
+        mafMaxString = "-" + QString::number(req.mafMax);
+    ui->simplot_mafLbl->setText("MAF: " + QString::number(req.mafMin) + mafMaxString);
+
+
+
+    ui->simplot_powerTbl->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    QString timing = "Simulation time: " + timeToString(results.processingTime) + "\t"
             "Testing time: " + timeToString(results.evaluationTime);
 
     ui->simplot_timeLbl->setText(timing);
@@ -87,6 +116,7 @@ void SimPlotWindow::initialize(Data& results, SimulationRequest& req, QString ti
 
     buildQQPlot(powerIndex);
     updatePowerValues(0);
+    updateSampleTable(-1);
 }
 
 void SimPlotWindow::getPvalues(std::vector<VariantSet>& variants){
@@ -107,26 +137,43 @@ void SimPlotWindow::getPvalues(std::vector<VariantSet>& variants){
 
 void SimPlotWindow::updateSampleTable(int index){
 
-    if(index < 0) index = 0;
-
     QTableWidget* table = ui->simplot_sampleTbl;
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    int n = table->rowCount();
+
+    for(int i = 1; i < n; i++)
+        table->removeRow(1);
 
     for(int i = 0; i < request.groups.size(); i++){
 
-        if(table->rowCount() < i+1)
-            table->insertRow(i);
+        int row = i+1;
+        table->insertRow(row);
 
-        //table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].index)));
-        table->setItem(i+1, 0, new QTableWidgetItem(QString::number(request.groups[i].getSampleSize(index))));
-        table->setItem(i+1, 1, new QTableWidgetItem(QString::fromStdString(request.groups[i].getCohort())));
+        //table->setItem(row, 0, new QTableWidgetItem(QString::number(request.groups[i].index)));
+        if(index >= 0)
+            table->setItem(row, 0, new QTableWidgetItem(QString::number(request.groups[i].getSampleSize(index))));
 
-        QString depth = "N(" + QString::number(request.groups[i].meanDepth) + ", " +
+        else if (index < 0){
+            double lowSize = request.groups[i].getSampleSize(0);
+            double highSize = request.groups[i].getSampleSize(request.steps-1);
+            if(lowSize == highSize)
+                table->setItem(row, 0, new QTableWidgetItem(QString::number(lowSize)));
+            else
+                table->setItem(row, 0, new QTableWidgetItem(QString::number(lowSize) + ":" +
+                                                            QString::number(highSize)));
+        }
+
+        table->setItem(row, 1, new QTableWidgetItem(QString::fromStdString(request.groups[i].getCohort())));
+
+        QString depth = "N (" + QString::number(request.groups[i].meanDepth) + ", " +
                 QString::number(request.groups[i].sdDepth) + ")";
 
-        table->setItem(i+1, 2, new QTableWidgetItem(depth));
-        table->setItem(i+1, 3, new QTableWidgetItem(QString::number(request.groups[i].errorRate)));
-
+        table->setItem(row, 2, new QTableWidgetItem(depth));
+        table->setItem(row, 3, new QTableWidgetItem(QString::number(request.groups[i].errorRate)));
     }
+
 }
 
 void SimPlotWindow::mouseClickPlot1(QMouseEvent *event){
@@ -191,6 +238,8 @@ void SimPlotWindow::mouseMovePlot2(QMouseEvent *event){
 
     if(qqIndex != closestGraphIndex)
         buildQQPlot(powerIndex, closestGraphIndex);
+
+
 }
 
 int SimPlotWindow::findClosestPoint(QCustomPlot *plot, QMouseEvent *event, bool getGraphIndex){
@@ -330,6 +379,7 @@ void SimPlotWindow::saveAsPdf(QCustomPlot* plot, QString fileName, int stepIndex
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(QString(QChar::ObjectReplacementCharacter), QCPDocumentObject::generatePlotFormat(plot, width, height));
 
+
     //print out legend
     QVector<QLabel*> labels;
     labels.push_back(ui->simplot_legend1Lbl);
@@ -420,4 +470,12 @@ void SimPlotWindow::saveAsPdf(QCustomPlot* plot, QString fileName, int stepIndex
 
 
     doc.print(&printer);
+}
+void SimPlotWindow::on_simplot_histShow_pressed(){
+    ui->simplot_histPlot->setVisible(!ui->simplot_histPlot->isVisible());
+}
+
+void SimPlotWindow::on_simplot_histBinBox_valueChanged(int arg1)
+{
+    buildHistPlot(powerIndex, qqIndex);
 }

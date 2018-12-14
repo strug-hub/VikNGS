@@ -93,6 +93,8 @@ private slots:
     void on_main_testBootChk_toggled(bool checked);
     void on_main_randomBtn_pressed();
 
+    void on_pushButton_pressed();
+
 signals:
     void sendPlotData(QVector<double> values);
 

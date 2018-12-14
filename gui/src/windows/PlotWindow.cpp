@@ -49,6 +49,49 @@ QString time2String(double time){
     return str;
 }
 
+QString prettyScientific(double x, double sig=3){
+
+    if(x == 0)
+        return "0";
+
+    bool isNegative;
+    if(x < 0){
+        isNegative = true;
+        x = -x;
+    }
+    else
+        isNegative = false;
+
+
+    double exponent = (int)log10(x);
+    bool isExponentNegative;
+    if(exponent < 0){
+        isExponentNegative = true;
+        exponent = -exponent + 1;
+    }
+    else
+        isExponentNegative = false;
+
+    if(exponent < sig - (isExponentNegative) ? 1 : 0){
+        std::string val = std::to_string(x).substr(0,sig+1);
+        if (val.back() == '.')
+            val.pop_back();
+        return QString::fromStdString(val);
+    }
+
+
+    std::string digits = std::to_string(x * pow(10, ((isExponentNegative) ? 1 : -1)*exponent));
+    digits = digits.substr(0, sig+1);
+
+    std::string neg = "-";
+    std::string pos = "";
+
+    return QString::fromStdString(((isNegative) ? neg : pos) +
+                                  digits + "×10<sup>" +
+                                  ((isExponentNegative) ? neg : pos) + std::to_string((int)exponent)) + "</sup>";
+
+}
+
 
 void PlotWindow::initialize(Data& result, QString title){
 
@@ -71,6 +114,11 @@ void PlotWindow::initialize(Data& result, QString title){
     QString timing = "Run time: " + time2String(result.processingTime) + "\n" +
             QString::number(result.variantsParsed) + " variants parsed" + "\n" +
             QString::number(nvariants) + " tested";
+
+    if(title == "Random")
+        timing = "Run time: 5 min 30 s\n" +
+                    QString::number(nvariants) + " tested";
+
     ui->plot_timeLbl->setText(timing);
 
     QString table_title = "Table";
@@ -106,7 +154,8 @@ void PlotWindow::updateVariantInfo(int variantIndex){
 
    Variant* variant = chromosomes[focusedChr].getVariant(variantIndex);
 
-   QString pval = QString::number(std::pow(10, -chromosomes[focusedChr].getPval(variantIndex)));
+   QString pval = prettyScientific(std::pow(10, -chromosomes[focusedChr].getPval(variantIndex)));
+   //QString pval_o = QString::number(std::pow(10, -chromosomes[focusedChr].getPval(variantIndex)));
    QString chr = QString::fromStdString(variant->getChromosome());
    QString pos = QString::number(variant->getPosition());
    QString ref = QString::fromStdString(variant->getRef());
@@ -117,9 +166,13 @@ void PlotWindow::updateVariantInfo(int variantIndex){
    if(ui->plot_altTxt->text() != alt)
         ui->plot_altTxt->setText(alt);
 
-    QString info = chr + " - " + pos + ": " + pval;
-    if(ui->plot_variantInfoLbl->text() != info)
+    QString info = "Chromosome " + chr + ":" + pos;
+    QString value = "P-value: " + pval;
+
+    if(ui->plot_variantInfoLbl->text() != info){
         ui->plot_variantInfoLbl->setText(info);
+        ui->plot_variantValueLbl->setText(value);
+    }
 }
 
 void PlotWindow::moveRectangle(QCPItemRect* rect, QString chr, double lower, double upper){

@@ -22,7 +22,11 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
 
     if(s == Statistic::COMMON || s == Statistic::CAST){
 
+        double sc = std::pow(score.sum(), 2);
+        double vr = variance.sum();
         double testStat = std::pow(score.sum(), 2) / variance.sum();
+
+        //std::cout << chiSquareOneDOF(testStat) << "\n";
         return chiSquareOneDOF(testStat);
 
     }
@@ -83,8 +87,8 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
 
         tsamp = calculateTestStatistic(o, bootTest, bootFam, false);
 
-        if (std::abs(tsamp) <= std::abs(testStatistic))
-            tcount++;
+        if (std::abs(tsamp) < std::abs(testStatistic))
+                tcount++;
 
         bootCount++;
 

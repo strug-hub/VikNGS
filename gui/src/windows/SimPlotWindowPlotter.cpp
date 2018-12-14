@@ -1,5 +1,6 @@
 #include "SimPlotWindow.h"
 #include "ui_simplotwindow.h"
+#include "VikngsUiConstants.h"
 
 void SimPlotWindow::buildPowerPlot(){
 
@@ -154,10 +155,10 @@ void SimPlotWindow::buildQQPlot(int stepNumber, int focusGraph){
     }
 
     if(focusGraph >= 0){
-        if(ui->simplot_plot2->layer("top") == ui->simplot_plot2->layer("dne"))
-            ui->simplot_plot2->addLayer("top", ui->simplot_plot2->layer("main"),
+        if(ui->simplot_plot2->layer(TOP_LAYER) == ui->simplot_plot2->layer(NO_LAYER))
+            ui->simplot_plot2->addLayer(TOP_LAYER, ui->simplot_plot2->layer(MAIN_LAYER),
                                         QCustomPlot::LayerInsertMode::limAbove);
-        ui->simplot_plot2->graph(focusGraph)->setLayer("top");
+        ui->simplot_plot2->graph(focusGraph)->setLayer(TOP_LAYER);
     }
 
     //empty
@@ -182,11 +183,118 @@ void SimPlotWindow::buildQQPlot(int stepNumber, int focusGraph){
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor(redLine);
     auto horizontal = new QCPItemLine(ui->simplot_plot2);
-    horizontal->setLayer(ui->simplot_plot2->layer("overlay"));
+    horizontal->setLayer(ui->simplot_plot2->layer(OVERLAY_LAYER));
     horizontal->setPen(hpen);
     horizontal->start->setCoords(-1, -std::log10(alpha));
     horizontal->end->setCoords(1e4,-std::log10(alpha));
     alphaLine = horizontal;
 
     ui->simplot_plot2->replot();
+    buildHistPlot(stepNumber, focusGraph);
+}
+
+
+QPair<QVector<double>, QVector<double>> histBin(std::vector<double>& values, double nbins, double min, double max){
+
+    QVector<double> bin;
+    QVector<double> height;
+
+    double binSize = (max - min)/nbins;
+
+    double width = min;
+    while(width < max){
+        width += binSize;
+        bin.push_back(width);
+        height.push_back(0);
+    }
+
+    for(int i = 0; i < values.size(); i++){
+        for(int j = 0; j< bin.size(); j++){
+            if(values[i] < bin[j]){
+                height[j]++;
+                j = bin.size() + 1;
+            }
+        }
+    }
+
+    for(int i = 0; i < height.size(); i++){
+        height[i] /= values.size();
+        bin[i] -= binSize/2.0;
+    }
+
+    QPair<QVector<double>, QVector<double>> ret;
+    ret.first = bin;
+    ret.second = height;
+    return ret;
+}
+
+void SimPlotWindow::buildHistPlot(int stepNumber, int focusGraph){
+
+    int nbins = ui->simplot_histBinBox->value();
+
+    QCustomPlot* plt = ui->simplot_histPlot;
+
+    plt->clearItems();
+    plt->clearPlottables();
+    plt->setBackground(Qt::transparent);
+    plt->setAttribute(Qt::WA_OpaquePaintEvent, false);
+
+    if(plt->layer(TOP_LAYER) == plt->layer(NO_LAYER)){
+        plt->addLayer(TOP_LAYER, plt->layer(MAIN_LAYER),
+                                    QCustomPlot::LayerInsertMode::limAbove);
+    }
+
+    double max = 0;
+    int start = stepNumber * testsPerStep;
+
+    for(int i = start; i < start + testsPerStep; i++){
+
+        QPair<QVector<double>, QVector<double>> binHeights;
+        binHeights = histBin(pvalues[i], nbins, 0, 1);
+        plt->addGraph();
+        QCPBars *bars = new QCPBars(plt->xAxis, plt->yAxis);
+        bars->setWidth(1.0/nbins);
+        bars->setPen(NO_PEN);
+        bars->setData(binHeights.first, binHeights.second);
+
+        int step = i - start;
+        if(focusGraph >= 0 && focusGraph == step){
+            plt->graph()->setLayer(TOP_LAYER);
+            bars->setLayer(TOP_LAYER);
+            bars->setBrush(brush(colours[step]));
+            bars->setPen(pen(BLACK, 0.4));
+        }
+        else
+            bars->setBrush(brush(colours[step], 0.4));
+
+        double maxHeight = *std::max_element(binHeights.second.constBegin(), binHeights.second.constEnd());
+        if(maxHeight > max)
+            max = maxHeight;
+    }
+
+
+    QPen black_25 = pen(BLACK, 0.25);
+    QPen black_50 = pen(BLACK, 0.5);
+
+    plt->xAxis->setBasePen(black_25);
+    plt->yAxis->setBasePen(black_25);
+    plt->xAxis->setTickLabelColor(black_50.color());
+    plt->yAxis->setTickLabelColor(black_50.color());
+    plt->xAxis->setTickPen(black_25);
+    plt->yAxis->setTickPen(black_25);
+    plt->xAxis->setSubTickPen(black_25);
+    plt->yAxis->setSubTickPen(black_25);
+
+    plt->xAxis->grid()->setPen(NO_PEN);
+    plt->yAxis->grid()->setPen(NO_PEN);
+
+    QFont pfont = plt->xAxis->tickLabelFont();
+    pfont.setPointSize(6);
+    plt->xAxis->setTickLabelFont(pfont);
+    plt->yAxis->setTickLabelFont(pfont);
+
+    plt->yAxis->setRange(0, max * 1.05);
+    plt->xAxis->setRange(0, 1);
+
+    plt->replot();
 }

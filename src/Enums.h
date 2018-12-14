@@ -67,7 +67,7 @@ public:
         {
             case GenotypeSource::EXPECTED :
                 part1 = "Genotype Likelihoods";
-                if(isRVS()) part1 = "RVS " + part1;
+                if(isRVS()) part1 = "vRVS " + part1;
                 break;
             case GenotypeSource::CALL : part1 = "Genotype Calls"; break;
             case GenotypeSource::VCF_CALL : part1 = "VCF Calls"; break;
@@ -91,7 +91,7 @@ public:
         switch(genotype)
         {
             case GenotypeSource::EXPECTED :
-                if(isRVS()) part1 = "RVS"; else part1 = "No RVS";
+                if(isRVS()) part1 = "vRVS"; else part1 = "No vRVS";
                 break;
             case GenotypeSource::CALL : part1 = "Call"; break;
             case GenotypeSource::VCF_CALL : part1 = "VCF"; break;
