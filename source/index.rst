@@ -6,6 +6,8 @@
 
 
 
+For quick information on how to use VikNGS, see quick_start_
+
 Documentation for vikNGS
 ==================================
 
