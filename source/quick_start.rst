@@ -10,9 +10,7 @@ To download VikNGS, go to the `GitHub repository <https://github.com/ScottMastro
 
 .. figure:: resources/download.png
 
-**For the user interface version**
-
-Running User Interface
+User Interface
 ------------------------------
 
 The Release folder of the `VikNGS GitHub repository <https://github.com/ScottMastro/vikNGS/tree/master/>`_ contains precompiled versions of VikNGS for Windows, Mac and Linux operating systems.
@@ -27,6 +25,13 @@ Running the file VikNGS-X.X.X in the appropriate operating system folder should 
 
 If there is an issue running the software, we recommend trying a different system or  :ref:`compiling the software from the source code<source_code>`.
 
+Running Example on User Interface
+------------------------------
+
 
 Running Command Line
+------------------------------
+
+
+Running Example on Command Line
 ------------------------------
