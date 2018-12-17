@@ -27,6 +27,7 @@ The code is open source, and `available on GitHub`_.
    :caption: Table of Contents
 
    quick_start
+   source_code
    input
    parameters
    tests
