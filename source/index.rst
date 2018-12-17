@@ -6,7 +6,7 @@
 
 
 
-For quick information on how to use VikNGS, see quick_start_.
+For quick information on how to use VikNGS, see :ref:`Quick Start <quick_start>`.
 
 Documentation for vikNGS
 ==================================
