@@ -3,18 +3,22 @@
 Input Files
 ==================================
 
-TODO: intro to this section
+VikNGS takes 3 different file types as input:
+- a multisample VCF that provides genotype information
+- a tab-separated sample information text file containing phenotype and covariate information
+- a BED file to specify the variant collapsing strategy (optional)
 
-TODO: While parsing the file only SNPs will be retained (a single A, T, C, or G in both the REF and ALT columns). Multiallelic sites are specified with comma delimited ALT columns, these variants will also be ignored.
+Below is an explaination for the different types of files.
+
 
 .. _multisample_vcf:
 
 Multisample VCF
 ---------------
 
-A Variant Call Format (VCF) file is a standard way of storing variant information called from sequencing data. Each row of a VCF file corresponds to a genetic variant (insertion, deletion or SNP) and contains information such as the genomic position of the variant, the confidence in the variant call and many other additional annotations.
+A Variant Call Format (VCF) file is a standard way of storing variant information called from sequencing data. Each row of a VCF file corresponds to a genetic variant (insertion, deletion or substitution) and contains information such as the genomic position of the variant, the confidence in the variant call and many other additional annotations.
 
-A multisample VCF is required as input to perform genetic association tests in vikNGS. A multisample VCF is formatted identically to a single-sample VCF except it contains an extra set of columns corresponding to sample-specific data.
+A multisample VCF is formatted identically to a single-sample VCF except it contains an extra set of columns corresponding to sample-specific data.
 
 .. figure:: resources/vcf_layout.png
    :alt: Multsample VCF Layout
@@ -22,7 +26,7 @@ A multisample VCF is required as input to perform genetic association tests in v
 
    The general layout of a multisample VCF file.
 
-The first set of lines in a VCF file make up the header and are denoted by *##*. The header includes information about the data source and the computational pipline setting used when creating the VCF file. This information is ignored when reading a file into vikNGS. The last line of the header is denoted with a single *#* and includes the column names in addition to a unique identifier for every sample. The first nine columns must be (tab-delimited, in order) **CHROM**, **POS**, **ID**, **REF**, **ALT**, **QUAL**, **FILTER**, **INFO** and **FORMAT**. Every subsequent value is expected to be a unique sample identifier.
+The first set of lines in a VCF file make up the header and are denoted by the characters *##*. The header includes information about the data source and how the VCF file was constructed. This information is ignored when by vikNGS. The last line of the header is denoted with a single *#* and includes the column names in addition to a unique identifier for every sample. The first nine columns must be (tab-delimited, in order) **CHROM**, **POS**, **ID**, **REF**, **ALT**, **QUAL**, **FILTER**, **INFO** and **FORMAT**. Every subsequent value is expected to be a unique sample identifier.
 
 .. code-block:: python
    :caption: *Example of a multisample VCF*
@@ -32,10 +36,13 @@ The first set of lines in a VCF file make up the header and are denoted by *##*.
     ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
     ##FORMAT=<ID=GL,Number=.,Type=Integer,Description="Genotype Likelihood">
     ##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods">
-    #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE_1	SAMPLE_2	...
+    #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE_1_ID	SAMPLE_2_ID	...
       22	160036	snp_1	A	C	.	PASS	.	GT:PL:GL	0/0:0,15,73:.	1/1:50,8,0:-5,-0.84,-0.07
       22	160408	snp_2	T	C	.	PASS	.	GT:PL	./.:.	0/0:0,36,248
       22	160612	snp_2	C	G	.	PASS	.	GT:GL	0/1:-0.48,-0.48,-0.48	1/1::-4.4,-0.27,-0.33
+
+.. note::
+ While parsing the file only SNPs will be retained (a single A, T, C, or G in both the REF and ALT columns). Multiallelic sites are also currently ignored by VikNGS.
 
 Variant Specific Columns
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,10 +80,12 @@ All columns following the **FORMAT** column should correspond to a single sample
     :math:`genotype\_probability=10^{\textbf{GL}}=10^{-\textbf{PL}/10}`
 
     :math:`-10\textbf{GL}=\textbf{PL}`
-.. note:: 
-    Since vikNGS accounts for the uncertainty of genotype calling, the software will attempt to parse the **GL** values from each sample first.
-    If **GL** values are missing or are formatted incorrectly, then the **PL** values will be extracted. If parsing of both **GL** and **PL** values fail, the **GT** values will be extracted.
-    If all three fail, the variant will be skipped and not included in analysis.
+
+When running an association test in VikNGS, different genotype values can potentially be used. If the "Use VCF GT" option is checked, VikNGS will extract the **GT** value only and convert the value to a genotype {0, 1, 2}. If "Use Expected GT" is checked, the software will attempt to parse the **GL** values from each sample first. If **GL** values are missing or are formatted incorrectly, then the **PL** values will be extracted. If parsing of both **GL** and **PL** values fail, the **GT** values will be extracted. An expected genotype value [0,2] will be calculated from the extracted column. If "Use GT calls" is chosen, genotype probabilities will be extracted in the same way the expected gentype method but a hard genotype call {0, 1, 2} will be made instead of calculating the expected value. 
+
+ If the relevant information is not present for a given variant, that variant will be skipped and not included in analysis.
+
+.. note::
     Note that if **GT** values are indicated as “missing” (ex. ./.) then the variant will be skipped even if values for **GL** and **PL** are present.
 
 .. _make_vcf:
@@ -84,7 +93,7 @@ All columns following the **FORMAT** column should correspond to a single sample
 Generating a Multisample VCF
 ------------------------------------
 
-TODO
+COMING SOON
 
 
 .. _sample_info:
@@ -114,7 +123,7 @@ Use this column to specify if samples are from different groups or studies. Any 
 
 Read Depth
 ~~~~~~~~~~
-The ??????????? is calculated differently for high read depth samples versus low read depth sample. In order to determine how to calculate ?????????variance???????, the read depth of each sample must be specified in this column. The actual read depth value from the sequencing run can be provided as or simply a letter specifying whether a sample is from a high or low sequencing run (H = high, L = low). Note that all samples with a shared group ID must also share high/low read depth status. Therefore, the first read depth value encountered for a group will be applied to all members of that group.
+If using the expected genotype method, the score test calculates the variance for each group separately and needs to be aware of which groups are high read depth versus low read depth. The read depth of each sample must be specified in this column. The numerical read depth value (ex. 32) can be provided for each sample or simply a letter specifying whether a sample is from a high or low sequencing run (H = high, L = low). Note that all samples with a shared group ID must also share high/low read depth status. Therefore, the first read depth value encountered for a group will be applied to all members of that group.
 
 Covariates
 ~~~~~~~~~~
