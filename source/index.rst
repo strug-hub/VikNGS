@@ -17,10 +17,7 @@ The software package includes tests for both rare and common variant association
 
 Provide a multisample VCF file and a tab-separated sample information file. The variants will be extracted from the VCF and expected genotypes are computed for every individual. Variants are then filtered based on user-provided filtering parameters. A series of association tests are performed and the resulting p-values are provided as output.
 
-The code is `freely available on GitHub`_.
-
-.. _available on GitHub: https://github.com/ScottMastro/vikNGS
-
+The code is `freely available on GitHub <https://github.com/ScottMastro/vikNGS>`_ 
 
 .. toctree::
    :maxdepth: 2
