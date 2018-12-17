@@ -4,8 +4,11 @@ Input Files
 ==================================
 
 VikNGS takes 3 different file types as input:
+
 * a multisample VCF that provides genotype information
+
 * a tab-separated sample information text file containing phenotype and covariate information
+
 * a BED file to specify the variant collapsing strategy (optional)
 
 Below is an explaination for the different types of files.
