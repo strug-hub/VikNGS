@@ -26,6 +26,7 @@ void TableDisplayWindow::addSampleInfo(int nrow, QStringList &titles, QVector<QV
 void TableDisplayWindow::addSampleGenotypes(int nrow, QStringList &titles, QVector<QVector<QTableWidgetItem*>>& table, Variant* variant){
 
     QColor gtColour = QColor(194, 214, 211);
+    QColor missing = QColor(255, 135, 135);
 
     VectorXd* X;
     for(GenotypeSource gt : variant->getAllGenotypes()){
@@ -35,9 +36,18 @@ void TableDisplayWindow::addSampleGenotypes(int nrow, QStringList &titles, QVect
 
         for(int i = 0; i < nrow; i++){
 
-            QTableWidgetItem* gtcell = new QTableWidgetItem(QString::number(X->coeff(i)));
-            gtColour.setAlpha( std::min(255.0, (X->coeff(i)/2)*255 ) );
-            gtcell->setBackgroundColor(gtColour);
+            QString genotype = "Missing";
+            if(!std::isnan(X->coeff(i)))
+                   genotype = QString::number(X->coeff(i));
+
+            QTableWidgetItem* gtcell = new QTableWidgetItem(genotype);
+            if(!std::isnan(X->coeff(i))){
+                gtColour.setAlpha( std::min(255.0, (X->coeff(i)/2)*255 ) );
+                gtcell->setBackgroundColor(gtColour);
+            }
+            else
+                gtcell->setBackgroundColor(missing);
+
             gtValues[i]=gtcell;
         }
         table.push_back(gtValues);
@@ -148,6 +158,12 @@ void TableDisplayWindow::addMafsCaseControl(int nrow, QStringList &titles, QVect
         int i = 0;
         for(size_t n = 0; n < variants->size(); n++){
             for(size_t m = 0; m < variants->at(n).size(); m++){
+
+                if(!variants->at(n).hasGenotypes()){
+                    QTableWidgetItem* mcell = new QTableWidgetItem("Unknown");
+                    mafs[i] = mcell; i++;
+                    continue;
+                }
 
                 double maf = calculateMaf(variants->at(n).getVariants()->at(m).getGenotype(genotype), useCases, !useCases);
                 mafColour.setAlpha(std::min(255.0, maf*255.0*2.0));

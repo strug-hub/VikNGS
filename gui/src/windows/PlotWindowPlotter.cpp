@@ -21,9 +21,10 @@ void PlotWindow::updateVariantHighlightLayer(int variantIndex){
 }
 
 void PlotWindow::buildGenomePlot(){
-    ui->plot_genomePlt->clearPlottables();
-    ui->plot_genomePlt->xAxis->grid()->setPen(Qt::NoPen);
-    //ui->plot_genomePlt->xAxis->setTickPen(Qt::NoPen);
+    QCustomPlot* plt = ui->plot_genomePlt;
+    plt->clearPlottables();
+    plt->xAxis->grid()->setPen(Qt::NoPen);
+    //plt->xAxis->setTickPen(Qt::NoPen);
 
     bool colour1 = true;    
     double offset = 0;
@@ -33,11 +34,13 @@ void PlotWindow::buildGenomePlot(){
         chromosomes[chrNames[i]].setOffset(offset);
         Chromosome chr = chromosomes[chrNames[i]];
 
-        ui->plot_genomePlt->addGraph();
-        ui->plot_genomePlt->graph()->setData(chr.getRelativePositions(offset), chr.getPvals(0));
-        ui->plot_genomePlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
-        ui->plot_genomePlt->graph()->setName(chr.getName());
+        plt->addGraph();
+        plt->graph()->setData(chr.getRelativePositions(offset), chr.getPvals(0));
+        plt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
+        plt->graph()->setName(chr.getName());
 
+        plt->graph()->setAdaptiveSampling(false);
+        //plt->graph()->
         QColor toUse = grey1;
         if(!colour1)
             toUse=grey2;
@@ -49,7 +52,7 @@ void PlotWindow::buildGenomePlot(){
         if(chrNames[i] == focusedChr)
             toUse = focus;
 
-        ui->plot_genomePlt->graph()->setScatterStyle(
+        plt->graph()->setScatterStyle(
                     QCPScatterStyle(QCPScatterStyle::ssDisc,
                                     toUse, Qt::white, 2));
 
@@ -60,66 +63,66 @@ void PlotWindow::buildGenomePlot(){
             QCPItemLine *divider;
             QPen vpen = QPen(Qt::SolidLine);
             vpen.setColor( QColor::fromRgb(110, 128, 158, 100));
-            divider = new QCPItemLine(ui->plot_genomePlt);
+            divider = new QCPItemLine(plt);
             divider->setPen(vpen);
             divider->start->setCoords(offset,0);
             divider->end->setCoords(offset,1e6);
         }
     }
 
-    ui->plot_genomePlt->xAxis->setTicker(ticks);
-    ui->plot_genomePlt->xAxis->setTickLabelRotation(-30);
+    plt->xAxis->setTicker(ticks);
+    plt->xAxis->setTickLabelRotation(-30);
 
-    focusRect = new QCPItemRect(ui->plot_genomePlt);
+    focusRect = new QCPItemRect(plt);
     focusRect->setLayer("overlay");
     focusRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
-    focusRect->topLeft->setAxisRect( ui->plot_genomePlt->axisRect() );
+    focusRect->topLeft->setAxisRect( plt->axisRect() );
     focusRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
-    focusRect->bottomRight->setAxisRect( ui->plot_genomePlt->axisRect() );
+    focusRect->bottomRight->setAxisRect( plt->axisRect() );
     focusRect->setPen(QPen(focus));
     QColor transFocus = focus;
     transFocus.setAlpha(50);
     focusRect->setBrush(QBrush(transFocus));
 
-    zoomRect = new QCPItemRect(ui->plot_genomePlt);
+    zoomRect = new QCPItemRect(plt);
     zoomRect->setLayer("overlay");
     zoomRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
-    zoomRect->topLeft->setAxisRect( ui->plot_genomePlt->axisRect() );
+    zoomRect->topLeft->setAxisRect( plt->axisRect() );
     zoomRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
-    zoomRect->bottomRight->setAxisRect( ui->plot_genomePlt->axisRect() );
+    zoomRect->bottomRight->setAxisRect( plt->axisRect() );
     zoomRect->setPen(Qt::NoPen);
     zoomRect->setBrush(QBrush(transFocus));
 
-    ui->plot_genomePlt->yAxis->setLabel("-log10(p)");
+    plt->yAxis->setLabel("-log10(p)");
 
-    ui->plot_genomePlt->rescaleAxes();
-    ui->plot_genomePlt->yAxis->setRangeLower(0);
+    plt->rescaleAxes();
+    plt->yAxis->setRangeLower(0);
 
-    double ymax = ui->plot_genomePlt->yAxis->range().upper;
+    double ymax = plt->yAxis->range().upper;
     if(ymax < 7.5){
-        ui->plot_genomePlt->yAxis->setRangeUpper(7.5);
+        plt->yAxis->setRangeUpper(7.5);
         ymax = 7.5;
     }
-    ui->plot_genomePlt->yAxis->setRangeUpper(ymax + ymax * 0.05);
+    plt->yAxis->setRangeUpper(ymax + ymax * 0.05);
 
     QPen hpen = QPen(Qt::DashDotLine);
     hpen.setColor( QColor::fromRgb(210, 80, 80));
-    horizontal = new QCPItemLine(ui->plot_genomePlt);
+    horizontal = new QCPItemLine(plt);
     horizontal->setPen(hpen);
     horizontal->start->setCoords(0,1.301);
-    horizontal->end->setCoords(ui->plot_genomePlt->xAxis->range().upper,1.301);
+    horizontal->end->setCoords(plt->xAxis->range().upper,1.301);
 
     QPen bpen = QPen(Qt::DashDotLine);
     bpen.setColor( QColor::fromRgb(250, 145, 145));
-    QCPItemLine *bonferroni = new QCPItemLine(ui->plot_genomePlt);
+    QCPItemLine *bonferroni = new QCPItemLine(plt);
     bonferroni->setPen(bpen);
     bonferroni->start->setCoords(0,7.301);
-    bonferroni->end->setCoords(ui->plot_genomePlt->xAxis->range().upper,7.301);
+    bonferroni->end->setCoords(plt->xAxis->range().upper,7.301);
 
-    moveRectangle(focusRect, ui->plot_genomePlt->graph(0)->name());
-    moveRectangle(zoomRect, ui->plot_genomePlt->graph(0)->name());
+    moveRectangle(focusRect, plt->graph(0)->name());
+    moveRectangle(zoomRect, plt->graph(0)->name());
 
-    ui->plot_genomePlt->replot();
+    plt->replot();
 }
 
 void PlotWindow::buildChromosomePlot(QString chrName){
@@ -131,24 +134,16 @@ void PlotWindow::buildChromosomePlot(QString chrName){
 
     ui->plot_chrPlt->addGraph();
 
-    QVector<double> pos = chr.getRelativePositions(0);
+    QVector<double> pos = chr.getPositions();
     QVector<double> pvals = chr.getPvals(0);
 
-    QVector<double> pos_range;
-    QVector<double> pvals_range;
-
-    for(int i =0; i<pos.size(); i++){
-        pos_range.push_back(pos[i]);
-        pvals_range.push_back(pvals[i]);
-    }
-
-    ui->plot_chrPlt->graph()->setData(pos_range, pvals_range);
+    ui->plot_chrPlt->graph()->setData(pos, pvals);
     ui->plot_chrPlt->graph()->setName(chrGraphName);
     ui->plot_chrPlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
 
-    double pointSize = 1.0/(sqrt(pos_range.size())/100.0);
-    if(pointSize > 6) pointSize = 6;
-    if(pointSize < 2) pointSize = 2;
+    double pointSize = 1.0/(sqrt(pos.size())/100.0);
+    if(pointSize > MAX_POINT_SIZE) pointSize = MAX_POINT_SIZE;
+    if(pointSize < MIN_POINT_SIZE) pointSize = MIN_POINT_SIZE;
 
     ui->plot_chrPlt->graph()->setScatterStyle(
                 QCPScatterStyle(QCPScatterStyle::ssDisc,
@@ -190,7 +185,7 @@ void PlotWindow::buildChromosomePlot(QString chrName){
     ui->plot_chrPlt->graph()->setLineStyle(QCPGraph::LineStyle::lsNone);
     ui->plot_chrPlt->graph()->setScatterStyle(
                 QCPScatterStyle(QCPScatterStyle::ssDisc,
-                                highlight, Qt::white, 6));
+                                highlight, Qt::white, MAX_POINT_SIZE));
 
     updateVariantHighlightLayer(-1);
 

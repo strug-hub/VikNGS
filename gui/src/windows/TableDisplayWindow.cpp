@@ -58,11 +58,13 @@ void TableDisplayWindow::fillGenotypeTable(int variantIndex){
     return;
     LOOP_BREAK:
 
+
     QStringList titles;
     QVector<QVector<QTableWidgetItem*>> table;
 
     addSampleInfo(nrow, titles, table);
-    addSampleGenotypes(nrow, titles, table, variant);
+    if(variant->hasGenotypes())
+        addSampleGenotypes(nrow, titles, table, variant);
 
     int ncol = titles.size();
     ui->table_genoTbl->setColumnCount(ncol);

@@ -88,6 +88,7 @@ void PlotWindow::updateChromosomeRange(const QCPRange &newRange){
     ui->plot_genomePlt->layer("overlay")->replot();
 
     ui->plot_chrPlt->xAxis->setRange(adjusted);
+
 }
 
 void PlotWindow::mouseClickChromosome(QMouseEvent *event){

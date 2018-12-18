@@ -14,11 +14,11 @@ public slots:
     void runVikngs() {
         try{
             Data result = startVikNGS(request);
-            emit jobFinished(result);
+            emit jobFinished(result, request.shouldPlot());
         }
         catch(...){
             Data empty;
-            emit jobFinished(empty);
+            emit jobFinished(empty, false);
         }
 
         emit complete();
@@ -45,7 +45,7 @@ public slots:
     }
 
 signals:
-    void jobFinished(Data);
+    void jobFinished(Data, bool);
     void simulationFinished(Data, SimulationRequest);
     void complete();
 

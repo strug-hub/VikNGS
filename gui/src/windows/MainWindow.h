@@ -30,7 +30,7 @@ public:
     ~MainWindow();
 
 public slots:
-    void jobFinished(Data result);
+    void jobFinished(Data result, bool makePlot);
     void printOutput(QString string, QColor c);
     void greyOutput();
     void enableRun();

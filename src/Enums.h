@@ -7,7 +7,7 @@ enum class GenotypeSource { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
 enum class Family { NONE, NORMAL, BINOMIAL };
 enum class Depth { HIGH, LOW };
 enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
-enum class Filter { VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
+enum class Filter { NONE, VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
 //enum class Bootstrap { NONE, PERMUTE,  };
 
 inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
@@ -19,6 +19,20 @@ inline std::string genotypeToString(GenotypeSource g){
         case GenotypeSource::CALL: return "Call";
         case GenotypeSource::VCF_CALL: return "VCF Call";
         default: return "_";
+    }
+}
+
+inline std::string filterToString(Filter f){
+    switch(f) {
+        case Filter::VALID: return "Valid";
+        case Filter::INVALID: return "Invalid information";
+        case Filter::IGNORE: return "Ignored";
+        case Filter::NOT_SNP: return "Not SNP";
+        case Filter::NO_PASS: return "PASS fail";
+        case Filter::MISSING_DATA: return "Missing";
+        case Filter::NO_VARIATION: return "No variation";
+        case Filter::MAF: return "MAF";
+        default: return "?";
     }
 }
 

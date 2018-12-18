@@ -4,26 +4,48 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <time.h>
 
-static const std::string dfile = "/debug.txt";
-static const std::string pfile = "/pvalues.txt";
-static const std::string ffile = "/filtered.txt";
+static const std::string dfile = "/debug";
+static const std::string pfile = "/pvalues";
+static const std::string ffile = "/filtered";
+static const std::string txt = ".txt";
+
+static std::string dateStr; // = currentDateTime();
+
+// Get current date/time, format is YYYY-MM-DD_HH-mm-ss
+const std::string currentDateTime() {
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%F_%H-%I-%M-%S", &tstruct);
+
+    return buf;
+}
+
+
+inline std::string fileName(std::string outputDir, std::string base){
+    return outputDir + base + "_" + dateStr + txt;
+}
 
 void initializeOutputFiles (std::string outputDir){
 
-    std::ofstream debug(outputDir + dfile);
-    debug.close();
+    //std::ofstream debug(fileName(outputDir, dfile));
+    //debug.close();
 
-    std::ofstream pvals(outputDir + pfile);
+    dateStr = currentDateTime();
+
+    std::ofstream pvals(fileName(outputDir, pfile));
 	pvals.close();
 
-    std::ofstream filtered(outputDir + ffile);
+    std::ofstream filtered(fileName(outputDir, ffile));
 	filtered.close();
 }
 
 void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<Test>& test) {
 	
-    std::ofstream pvals(outputDir + pfile, std::ios_base::app);
+    std::ofstream pvals(fileName(outputDir, pfile), std::ios_base::app);
 
 	if (pvals.is_open())
 	{
@@ -35,44 +57,24 @@ void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::
 }
 
 
-void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
-                           std::vector<std::string> codeMap, std::string outputDir) {
+void outputFiltered(std::vector<Variant> variants, std::string outputDir) {
 
-    //todo
     //std::string ffile = outputDir + "/filtered.txt";
-    std::ofstream filtered(outputDir + ffile, std::ios_base::app);
+    std::ofstream filtered(fileName(outputDir, ffile), std::ios_base::app);
 
-	if (filtered.is_open())
-	{
-        for (size_t i = 0; i < variantInfo.size(); i++) {
-            filtered << variantInfo[i] << '\t';
-            filtered << codeMap[failCode[i]] << std::endl;
-		}
+	if (filtered.is_open())	{
+        for (size_t i = 0; i < variants.size(); i++)
+            filtered << variants[i].toString() + "\t" + filterToString(variants[i].getFilter()) << std::endl;
+
 		filtered.close();
 	}
 }
 
-void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir) {
-
-    //todo
-    //std::string ffile = outputDir + "/filtered.txt";
-    std::ofstream filtered(outputDir + ffile, std::ios_base::app);
-
-    if (filtered.is_open())
-    {
-        for (size_t i = 0; i < variants.size(); i++) {
-
-            //filtered << variants[i].toString() << '\t';
-            filtered << explain << '\n';
-        }
-        filtered.close();
-    }
-}
 
 void outputDebug(std::string line, std::string outputDir) {
 
     //std::string dfile = outputDir + "/debug.txt";
-    std::ofstream debug(outputDir + dfile, std::ios_base::app);
+    std::ofstream debug(fileName(outputDir, dfile), std::ios_base::app);
 
     if (debug.is_open())
     {

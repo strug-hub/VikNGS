@@ -15,6 +15,8 @@ private:
 
     bool simulation;
     bool keepFiltered;
+    bool makePlot;
+    bool retainGt;
 
     std::vector<Test> tests;
 
@@ -60,6 +62,8 @@ public:
     inline void setNumberThreads(int nthreads) { this->nthreads = nthreads; }
     inline void setBatchSize(int size) { this->batchSize = size; }
     inline void setKeepFiltered(bool value) { this->keepFiltered = value; }
+    inline void setMakePlot(bool value) { this->makePlot = value; if(!value) setRetainGenotypes(false); }
+    inline void setRetainGenotypes(bool value) { this->retainGt = value; }
 
     inline void setMustPASS(bool value) { mustPASSFilter = value; }
     inline void setOnlySNPs(bool value) { onlySNPsFilter = value; }
@@ -111,6 +115,8 @@ public:
     inline int getCollapseSize() { return collapseSize; }
     inline int getNumberThreads() { return nthreads; }
     inline int getBatchSize() { return this->batchSize; }
+    inline bool shouldPlot() { return this->makePlot; }
+    inline bool shouldRetainGenotypes() { return this->retainGt; }
 
     inline int getHighLowCutOff() { return highLowCutOff; }
     inline bool mustPASS() { return mustPASSFilter; }

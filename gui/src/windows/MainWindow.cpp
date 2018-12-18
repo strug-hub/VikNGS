@@ -19,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<SimulationRequest>("SimulationRequest");
 
     simulationTabInit();
+
+    ui->main_randomBtn->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -83,9 +85,9 @@ void MainWindow::disableRun(){
     ui->sim_stopBtn->setEnabled(true);
 }
 
-void MainWindow::jobFinished(Data result){
+void MainWindow::jobFinished(Data result, bool makePlot){
     enableRun();
-    if(result.size() > 0){
+    if(makePlot && result.size() > 0){
         PlotWindow *plotter = new PlotWindow();
         QString title = "Plot " + QString::number(plotCount);
         plotCount++;
@@ -127,7 +129,7 @@ void MainWindow::on_main_bedCollapseGeneBtn_toggled(bool checked)
 
 
 void MainWindow::on_main_randomBtn_pressed(){
-    ui->main_randomBtn->setVisible(false);
+    //ui->main_randomBtn->setVisible(false);
 
     PlotWindow *plotter = new PlotWindow();
     QString title = "Random";
@@ -190,6 +192,21 @@ void MainWindow::on_main_randomBtn_pressed(){
      result.variants = vss;
      plotter->initialize(result, title);
      plotter->show();
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *e)
+{
+    if ( (e->key() == Qt::Key_Ampersand)  && QApplication::keyboardModifiers() && Qt::ControlModifier){
+        if(ui->sim_covariateChk->isVisible())
+            setCovariateMode(false);
+        else
+            setCovariateMode(true);
+
+        if(ui->main_randomBtn->isVisible())
+            ui->main_randomBtn->setVisible(false);
+        else
+            ui->main_randomBtn->setVisible(true);
+    }
 }
 
 void MainWindow::on_pushButton_pressed()

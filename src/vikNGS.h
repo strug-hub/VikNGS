@@ -57,8 +57,6 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t&
 void outputDebug(std::string line, std::string outputDir);
 void outputMatrix(MatrixXd M, std::string filename);
 void outputVector(VectorXd V, std::string filename);
-void outputFiltered(std::vector<Variant> variants, std::string explain, std::string outputDir);
-void outputFiltered(std::vector<std::string> variantInfo, std::vector<int> failCode,
-                           std::vector<std::string> codeMap, std::string outputDir);
+void outputFiltered(std::vector<Variant> variants, std::string outputDir);
 void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<Test>& test);
 void initializeOutputFiles (std::string outputDir);

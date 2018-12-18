@@ -116,7 +116,7 @@ void PlotWindow::initialize(Data& result, QString title){
             QString::number(nvariants) + " tested";
 
     if(title == "Random")
-        timing = "Run time: 5 min 30 s\n" +
+        timing = "Run time: NA\n" +
                     QString::number(nvariants) + " tested";
 
     ui->plot_timeLbl->setText(timing);

@@ -52,6 +52,8 @@ private slots:
 private:
     Ui::PlotWindow *ui;  
     TableDisplayWindow *tableView = new TableDisplayWindow();
+    const double MAX_POINT_SIZE = 8;
+    double MIN_POINT_SIZE = 2;
 
     QColor grey1 = QColor::fromRgb(190, 190, 190);
     QColor grey2 = QColor::fromRgb(169, 169, 169);

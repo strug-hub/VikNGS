@@ -8,7 +8,7 @@ void MainWindow::simulationTabInit(){
     ui->sim_simulationSld->setValue(0);
     switchToCaseControl();
     addGroup(ui->sim_groupTbl, "500", "case", "100", "10", "0.01");
-    addGroup(ui->sim_groupTbl, "1500", "control", "4", "1", "0.01");
+    addGroup(ui->sim_groupTbl, "500:1500", "control", "4", "1", "0.01");
     prevR2 = "0.0";
     prevOddsRatio = "1.0";
 
@@ -30,16 +30,6 @@ void MainWindow::setCovariateMode(bool value){
     ui->sim_covariateXRdo->setVisible(value);
     ui->sim_covariateYRdo->setVisible(value);
     ui->sim_covariateXYGrp->setVisible(value);
-}
-
-void MainWindow::keyPressEvent(QKeyEvent *e)
-{
-    if ( (e->key() == Qt::Key_Ampersand)  && QApplication::keyboardModifiers() && Qt::ControlModifier){
-        if(ui->sim_covariateChk->isVisible())
-            setCovariateMode(false);
-        else
-            setCovariateMode(true);
-    }
 }
 
 bool MainWindow::checkFamily(Family fam){

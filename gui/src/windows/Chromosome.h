@@ -51,7 +51,7 @@ public:
     QVector<double> getPositions(){
         QVector<double> pos;
         for(int i = 0; i < variants.size(); i++)
-            pos.push_back(offset + variants[i]->getPosition());
+            pos.push_back(variants[i]->getPosition());
 
         return pos;
     }

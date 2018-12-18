@@ -84,7 +84,7 @@ void MainWindow::on_main_runBtn_clicked() {
         connect(jobThread, SIGNAL(started()), job, SLOT(runVikngs()));
         connect(job, SIGNAL(complete()), jobThread, SLOT(quit()));
         connect(job, SIGNAL(complete()), job, SLOT(deleteLater()));
-        connect(job, SIGNAL(jobFinished(Data)), this, SLOT(jobFinished(Data)));
+        connect(job, SIGNAL(jobFinished(Data, bool)), this, SLOT(jobFinished(Data, bool)));
 
         jobThread->start();
 
@@ -97,7 +97,10 @@ Request MainWindow::createRequest(){
 
     Request req = getDefaultRequest();
 
-    req.setKeepFiltered(false);
+    req.setKeepFiltered(ui->main_explainFilterChk->isChecked());
+    req.setRetainGenotypes(ui->main_retainGtChk->isChecked());
+    req.setMakePlot(ui->main_plotChk->isChecked());
+
     QVector<std::string> commands;
     commands.push_back("vikNGS");
 

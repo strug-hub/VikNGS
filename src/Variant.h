@@ -18,19 +18,19 @@ private:
     std::string alt;
 
     Filter filter;
-    bool isShrunk;
+    bool shrunk;
 
 public:
 
     Variant(std::string chromosome, int position, std::string unique_id, std::string reference, std::string alternative) :
         chrom(chromosome), pos(position), id(unique_id), ref(reference), alt(alternative) {
         filter = Filter::VALID;
-        isShrunk = false;
+        shrunk = false;
     }
 
     Variant() {
         filter = Filter::INVALID;
-        isShrunk = false;
+        shrunk = false;
     }
     ~Variant() { }
 
@@ -71,6 +71,7 @@ public:
     inline Vector3d* getP(GenotypeSource gt) { return &P[gt]; }
 
     inline bool isValid() { return this->filter == Filter::VALID; }
+    inline Filter getFilter() { return this->filter; }
 
     inline std::string toString() {
         std::string t = "\t";
@@ -94,8 +95,9 @@ public:
     inline void shrink(){
         genotypes.clear();
         P.clear();
-        isShrunk = true;
+        shrunk = true;
     }
+    inline bool hasGenotypes(){ return !shrunk && genotypes.size()>0; }
 
 };
 
@@ -108,6 +110,7 @@ private:
     int nvalid = 0;
     Interval *interval;
     bool hasInterval = false;
+    bool shrunk = false;
 public:
     VariantSet(Variant& v) { variants.push_back(v); if(v.isValid()) nvalid++; }
     VariantSet() { }
@@ -184,7 +187,10 @@ public:
     inline void shrink(){
         for (size_t i = 0; i < variants.size(); i++)
             variants[i].shrink();
+        shrunk = true;
     }
+
+    inline bool hasGenotypes(){ return !shrunk; }
 
     inline std::string toString(std::string test, int pvalIndex, int setID){
 

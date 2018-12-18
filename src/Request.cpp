@@ -17,6 +17,8 @@ Request getDefaultRequest() {
     r.setNumberThreads(1);
     r.setBatchSize(1000);
     r.setKeepFiltered(false);
+    r.setMakePlot(false);
+    r.setRetainGenotypes(false);
 
     r.setMustPASS(true);
     r.setOnlySNPs(true);

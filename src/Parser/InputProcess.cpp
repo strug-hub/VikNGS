@@ -52,28 +52,33 @@ std::vector<Variant> constructVariants(Request* req, SampleInfo* sampleInfo, std
         //extract to the FILTER column
         std::vector<std::string> info = splitString(lines[i], VCF_SEP, FILTER + 1);
 
-        Filter filter = filterByVariantInfo(req, info[CHROM], info[POS], info[REF], info[ALT], info[FILTER]);
-
-        if(filter == Filter::IGNORE || (filter != Filter::VALID && !req->shouldKeepFiltered()))
+        if(info.size() < FORMAT)
             continue;
 
-        std::vector<std::string> columns = splitString(lines[i], VCF_SEP);
-        Variant variant = constructVariant(columns, calculateExpected, calculateCalls, getVCFCalls);
-        variant.setFilter(filter);
+        Filter filter = filterByVariantInfo(req, info[CHROM], info[POS], info[REF], info[ALT], info[FILTER]);
 
-        if(variant.isValid()){
+        if(filter == Filter::IGNORE)
+            continue;
 
-            VectorXd Y = sampleInfo->getY();
-            filter = filterByGenotypes(req, variant, Y, sampleInfo->getFamily());
+        Variant variant;
 
-            if(filter != Filter::VALID && !req->shouldKeepFiltered())
+        if(filter == Filter::VALID){
+            std::vector<std::string> columns = splitString(lines[i], VCF_SEP);
+            variant = constructVariant(columns, calculateExpected, calculateCalls, getVCFCalls);
+
+            if(variant.isValid()){
+                VectorXd Y = sampleInfo->getY();
+                filter = filterByGenotypes(req, variant, Y, sampleInfo->getFamily());
+            }
+            else
                 continue;
 
-            variant.setFilter(filter);
         }
+        else
+            try{ variant = Variant(info[CHROM], std::stoi(info[POS]), info[ID], info[REF], info[ALT]); }
+            catch(...){ continue; }
 
-        //outputDebug(lines[i], "/media/scott/Rotom/vikngs_paper_data/chr2/");
-
+        variant.setFilter(filter);
         variants.push_back(variant);
     }
     variants.shrink_to_fit();
@@ -370,7 +375,18 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t&
         if(parseOrder.size() > 0 && parseOrder.front()->isParseDone()){
             std::vector<Variant> v = parseOrder.front()->getFilterResults();
             parseOrder.pop();
-            constructedVariants.insert(constructedVariants.end(), v.begin(), v.end());
+
+            std::vector<Variant> filtered;
+            for(size_t i = 0; i < v.size(); i++){
+                if(v[i].isValid())
+                    constructedVariants.push_back(v[i]);
+                else if(req.shouldKeepFiltered())
+                    filtered.push_back(v[i]);
+            }
+
+            if(filtered.size() > 0)
+                outputFiltered(filtered, req.getOutputDir());
+
         }
         if(lines.size() == 0 && parseOrder.size() == 0 && !vcf.hasNext()){
             if(!allParsingDone)
@@ -413,7 +429,8 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t&
                       (collapsedVariants.size() < batchSize || collapsedVariants[batchSize-1].nPvals() > 0)){
                     results.push_back(collapsedVariants.front());
                     collapsedVariants.pop_front();
-                    results.back().shrink();
+                    if(!req.shouldRetainGenotypes())
+                        results.back().shrink();
                 }
             }
 

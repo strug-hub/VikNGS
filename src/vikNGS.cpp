@@ -36,9 +36,8 @@ Data startVikNGS(Request req) {
     result.evaluationTime = elapsed.count();
     result.processingTime = 0;
 
-
     outputPvals(result.variants, req.getOutputDir(), result.tests);
-
+    printInfo("Results written to " + req.getOutputDir());
     return result;
 }
 
