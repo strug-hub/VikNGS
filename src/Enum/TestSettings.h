@@ -1,42 +1,10 @@
 #pragma once
 #include <string>
+#include "Statistic.h"
+#include "GenotypeSource.h"
+#include "Variance.h"
 
-enum class Statistic { NONE, COMMON, CAST, SKAT, CALPHA };
-enum class Variance { NONE, REGULAR, RVS, RVSFALSE };
-enum class GenotypeSource { NONE, EXPECTED, TRUE, CALL, VCF_CALL };
-enum class Family { NONE, NORMAL, BINOMIAL };
-enum class Depth { HIGH, LOW };
-enum class CollapseType { COLLAPSE_K, COLLAPSE_GENE, COLLAPSE_EXON, NONE };
-enum class Filter { NONE, VALID, INVALID, IGNORE, NOT_SNP, NO_PASS, MISSING_DATA, NO_VARIATION, MAF };
-//enum class Bootstrap { NONE, PERMUTE,  };
-
-inline bool isRare(Statistic s) {return s == Statistic::CAST || s == Statistic::SKAT || s == Statistic::CALPHA;}
-
-inline std::string genotypeToString(GenotypeSource g){
-    switch(g) {
-        case GenotypeSource::EXPECTED: return "Expected";
-        case GenotypeSource::TRUE: return "True";
-        case GenotypeSource::CALL: return "Call";
-        case GenotypeSource::VCF_CALL: return "VCF Call";
-        default: return "_";
-    }
-}
-
-inline std::string filterToString(Filter f){
-    switch(f) {
-        case Filter::VALID: return "Valid";
-        case Filter::INVALID: return "Invalid information";
-        case Filter::IGNORE: return "Ignored";
-        case Filter::NOT_SNP: return "Not SNP";
-        case Filter::NO_PASS: return "PASS fail";
-        case Filter::MISSING_DATA: return "Missing";
-        case Filter::NO_VARIATION: return "No variation";
-        case Filter::MAF: return "MAF";
-        default: return "?";
-    }
-}
-
-struct Test {
+struct TestSettings {
 private:
     GenotypeSource genotype;
     Statistic statistic;
@@ -46,7 +14,7 @@ private:
     bool earlyStopping = false;
 
 public:
-    Test(GenotypeSource g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
+    TestSettings(GenotypeSource g, Statistic s, Variance v, int nbootstrap=-1, int nsamples=-1) : genotype(g), statistic(s), variance(v){
         this->nsamples = nsamples;
         this->nboot = nbootstrap;
     }

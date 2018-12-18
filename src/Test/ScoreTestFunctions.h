@@ -1,12 +1,8 @@
 #pragma once
-#include "../Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXi;
+#include "../Math/EigenStructures.h"
 
 class Group;
-#include "../Enums.h"
+enum class Family;
 
 VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X);
 

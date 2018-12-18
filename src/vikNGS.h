@@ -10,7 +10,7 @@
 #include "Variant.h"
 #include "Request.h"
 
-struct Test;
+struct TestSettings;
 enum class GenotypeSource;
 enum class Statistic;
 bool isRare(Statistic s);
@@ -31,7 +31,7 @@ struct Data {
 
     SampleInfo sampleInfo;
     IntervalSet intervals;
-    std::vector<Test> tests;
+    std::vector<TestSettings> tests;
     std::vector<VariantSet> variants;
 
 

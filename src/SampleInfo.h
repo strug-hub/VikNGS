@@ -1,5 +1,7 @@
 #pragma once
-#include "Enums.h"
+#include "Enum/Family.h"
+#include "Enum/Depth.h"
+
 #include <map>
 #include "Eigen/Dense"
 using Eigen::MatrixXd;

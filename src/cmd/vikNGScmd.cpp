@@ -162,43 +162,43 @@ int main(int argc, char* argv[]) {
 
     if(lower(rare) == "cast"){
         if(lower(gt) == "call"){
-            req.addTest(Test(GenotypeSource::CALL, Statistic::CAST, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::CAST, Variance::REGULAR));
             printInfo("Preparing to run rare variant association (CAST p-values, called genotypes)...");
         }
         else if(lower(gt) == "vcf"){
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::CAST, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::CAST, Variance::RVS));
             printInfo("Preparing to run rare variant association (CAST p-values, VCF GT)...");
         }
         else{
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::CAST, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::CAST, Variance::REGULAR));
             printInfo("Preparing to run rare variant association (CAST p-values, expected GT/vRVS)...");
         }
     }
     else if(lower(rare) == "skat"){
         if(lower(gt) == "call"){
-            req.addTest(Test(GenotypeSource::CALL, Statistic::SKAT, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::SKAT, Variance::REGULAR));
             printInfo("Preparing to run rare variant association (SKAT p-values, called genotypes)...");
         }
         else if(lower(gt) == "vcf"){
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::RVS));
             printInfo("Preparing to run rare variant association (SKAT p-values, VCF GT)...");
         }
         else{
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::REGULAR));
             printInfo("Preparing to run rare variant association (SKAT p-values, expected GT/vRVS)...");
         }
     }
     else if(common){
         if(lower(gt) == "call"){
-            req.addTest(Test(GenotypeSource::CALL, Statistic::COMMON, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::COMMON, Variance::REGULAR));
             printInfo("Preparing to run common variant association (called genotypes)...");
         }
         else if(lower(gt) == "vcf"){
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::RVS));
             printInfo("Preparing to run common variant association (VCF GT)...");
         }
         else{
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::REGULAR));
             printInfo("Preparing to run common variant association (expected GT/vRVS)...");
         }
     }

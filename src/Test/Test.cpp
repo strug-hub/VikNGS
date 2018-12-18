@@ -14,7 +14,7 @@ Calculates test statistic.
 
 @return test statistic
 */
-double calculateTestStatistic(TestObject& o, Test& test, Family family, bool print) {
+double calculateTestStatistic(TestObject& o, TestSettings& test, Family family, bool print) {
 
     VectorXd score = getScoreVector(*o.getYcenter(), *o.getX());
     MatrixXd variance = getVarianceMatrix(o, test, family);
@@ -71,7 +71,7 @@ double calculateTestStatistic(TestObject& o, Test& test, Family family, bool pri
     return NAN;
 }
 
-double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family bootFam, int nboot, bool stopEarly){
+double bootstrapTest(double testStatistic, TestObject& o, TestSettings bootTest, Family bootFam, int nboot, bool stopEarly){
 
     bootTest.setRVSFalse();
 
@@ -103,7 +103,7 @@ double bootstrapTest(double testStatistic, TestObject& o, Test bootTest, Family 
     return (tcount + 1) / (bootCount + 1) ;
 }
 
-double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot, bool stopEarly){
+double runTest(SampleInfo* sampleInfo, VariantSet* variant, TestSettings test, int nboot, bool stopEarly){
 
     if(STOP_RUNNING_THREAD)
         return NAN;

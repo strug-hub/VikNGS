@@ -255,7 +255,6 @@ HEADERS += \
     ../SampleInfo.h \
     ../Parser/Parser.h \
     ../Parser/Filter.h \
-    ../Enums.h \
     ../Math/Math.h \
     ../Interval.h \
     ../Test/Test.h \
@@ -266,6 +265,15 @@ HEADERS += \
     ../Test/Group.h \
     ../Test/Genotype.h \
     ../Test/Phenotype.h \
-    CLI11.h
+    CLI11.h \
+    ../Enum/Statistic.h \
+    ../Enum/Family.h \
+    ../Enum/Depth.h \
+    ../Enum/Filter.h \
+    ../Enum/CollapseType.h \
+    ../Enum/Variance.h \
+    ../Enum/GenotypeSource.h \
+    ../Math/EigenStructures.h \
+    ../Enum/TestSettings.h
 
 

@@ -67,7 +67,7 @@ public:
     inline VectorXd* getMU(){ return pheno.getMu(); }
     inline VectorXd* getYcenter(){ return &Ycenter; }
 
-    inline void bootstrap(Test& test, Family family) {
+    inline void bootstrap(TestSettings& test, Family family) {
 
        if(test.isExpectedGenotypes()){
            calculateXcenter();

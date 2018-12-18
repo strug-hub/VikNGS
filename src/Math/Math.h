@@ -1,14 +1,11 @@
 #pragma once
-#include "../Enums.h"
+#include "../Enum/Family.h"
+#include "EigenStructures.h"
 
 #include <vector>
 #include <map>
 #include <random>
-#include "../Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXi;
+
 
 class Group;
 

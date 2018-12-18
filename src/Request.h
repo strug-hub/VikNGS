@@ -1,5 +1,6 @@
 #pragma once
-#include "Enums.h"
+#include "Enum/CollapseType.h"
+#include "Enum/TestSettings.h"
 
 struct IntervalSet;
 
@@ -19,7 +20,7 @@ private:
     bool makePlot;
     bool retainGt;
 
-    std::vector<Test> tests;
+    std::vector<TestSettings> tests;
 
     IntervalSet* intervals;
     CollapseType collapse;
@@ -52,7 +53,7 @@ public:
     inline void setCollapseFile(std::string bedDir){ this->bedDir = bedDir; }
     inline void setOutputDir(std::string outputDir){ this->outputDir = outputDir; }
 
-    inline void addTest(Test t) { this->tests.push_back(t); }
+    inline void addTest(TestSettings t) { this->tests.push_back(t); }
 
     inline void setCollapseGene(){ collapse = CollapseType::COLLAPSE_GENE; }
     inline void setCollapseExon(){ collapse = CollapseType::COLLAPSE_EXON; }
@@ -79,29 +80,29 @@ public:
 
     inline bool requireExpectedGenotypes(){
         bool result = false;
-        for(Test t : tests)
+        for(TestSettings t : tests)
             result = result || t.needExpectedGenotypes();
         return result;
     }
     inline bool requireGenotypeCalls(){
         bool result = false;
-        for(Test t : tests)
+        for(TestSettings t : tests)
             result = result || t.needGenotypeCalls();
         return result;
     }
     inline bool requireVCFCalls(){
         bool result = false;
-        for(Test t : tests)
+        for(TestSettings t : tests)
             result = result || t.needVCFCalls();
         return result;
     }
     inline bool useCommon(){
         bool result = false;
-        for(Test t : tests)
+        for(TestSettings t : tests)
             result = result || t.isCommonTest();
         return result;
     }
-    inline std::vector<Test> getTests() { return tests; }
+    inline std::vector<TestSettings> getTests() { return tests; }
 
     inline bool shouldCollapseBed() {return this->collapse != CollapseType::COLLAPSE_K && bedDir.size() > 0; }
     inline bool shouldCollapseK() { return this->collapse == CollapseType::COLLAPSE_K; }

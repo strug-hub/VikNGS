@@ -63,7 +63,7 @@ private:
 
     void getPvalues(std::vector<VariantSet>& variants);
     std::vector<std::vector<double>> pvalues;
-    std::vector<Test> tests;
+    std::vector<TestSettings> tests;
 
     int nsteps;
     int testsPerStep;

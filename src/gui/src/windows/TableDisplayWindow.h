@@ -31,7 +31,7 @@ private:
     Ui::TableDisplayWindow *ui;
     int selectedVariantIndex = 0;
 
-    std::vector<Test>* tests;
+    std::vector<TestSettings>* tests;
     std::vector<int> testIndexes;
     std::vector<VariantSet>* variants;
     int nsamples;

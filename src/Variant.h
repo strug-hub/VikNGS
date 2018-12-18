@@ -1,6 +1,8 @@
 #pragma once
 #include "./Math/Math.h"
 #include "Interval.h"
+#include "Enum/GenotypeSource.h"
+#include "Enum/Filter.h"
 
 #include <string>
 #include <iostream>

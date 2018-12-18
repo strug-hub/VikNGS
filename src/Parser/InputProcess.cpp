@@ -203,7 +203,7 @@ bool testBatch(Request* req, SampleInfo* sampleInfo, std::vector<VariantSet*> &v
         nboot = req->bootstrapSize();
 
     for(int i = 0; i < variants.size(); i++){
-        for(Test t : req->getTests()){
+        for(TestSettings t : req->getTests()){
             if(variants[i]->validSize() > 0){
                 double pval = runTest(sampleInfo, variants[i], t, nboot, req->useStopEarly());
                 variants[i]->addPval(pval);

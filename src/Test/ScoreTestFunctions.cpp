@@ -13,7 +13,7 @@ VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     return score;
 }
 
-MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixXd& Z, MatrixXd& P, Test& test, Family family){
+MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixXd& Z, MatrixXd& P, TestSettings& test, Family family){
 
     if(test.getVariance() == Variance::RVS){
 
@@ -29,7 +29,7 @@ MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, Matrix
     throwError("ScoreTestFunctions", "Unsure how to calculate variance in score test. This should not happen.");
 }
 
-MatrixXd getVarianceMatrix(TestObject& o, Test& test, Family family){
+MatrixXd getVarianceMatrix(TestObject& o, TestSettings& test, Family family){
 
     if(test.getVariance() == Variance::RVS){
         if(family == Family::BINOMIAL)

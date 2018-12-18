@@ -1,21 +1,17 @@
 #pragma once
-#include "../Enums.h"
+#include "../Math/EigenStructures.h"
 
 #include <map>
 #include <vector>
 
+enum class CollapseType;
+enum class Depth;
 struct File;
 struct Variant;
 struct Interval;
 struct IntervalSet;
 struct SampleInfo;
 struct Request;
-
-#include "../Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXi;
 
 SampleInfo parseSampleInfo(Request & req);
 

@@ -1,6 +1,7 @@
 #include "Parser.h"
 #include "File.h"
 #include "../Log.h"
+#include "../Enum/Depth.h"
 
 #include <fstream>
 

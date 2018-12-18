@@ -276,7 +276,6 @@ HEADERS += \
     ../SampleInfo.h \
     ../Parser/Parser.h \
     ../Parser/Filter.h \
-    ../Enums.h \
     ../Math/Math.h \
     ../Interval.h \
     ../Test/Test.h \
@@ -295,7 +294,16 @@ HEADERS += \
     ../Test/Group.h \
     ../Test/Genotype.h \
     ../Test/Phenotype.h \
-    src/windows/VikngsUiConstants.h
+    src/windows/VikngsUiConstants.h \
+    ../Enum/Test.h \
+    ../Enum/CollapseType.h \
+    ../Enum/Depth.h \
+    ../Enum/Family.h \
+    ../Enum/Filter.h \
+    ../Enum/GenotypeSource.h \
+    ../Enum/Statistic.h \
+    ../Enum/Test.h \
+    ../Enum/Variance.h
 
 
 FORMS += \

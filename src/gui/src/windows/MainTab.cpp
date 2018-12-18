@@ -201,11 +201,11 @@ Request MainWindow::createRequest(){
     if(ui->main_testCommonBtn->isChecked()){
 
         if(ui->main_vcfGT->isChecked())
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::COMMON, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::COMMON, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::COMMON, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::COMMON, Variance::RVS));
         if(ui->main_gtChk->isChecked())
-            req.addTest(Test(GenotypeSource::CALL, Statistic::COMMON, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::COMMON, Variance::REGULAR));
 
         printInfo("Preparing to run common variant association...");
         commands.push_back("-c");
@@ -214,11 +214,11 @@ Request MainWindow::createRequest(){
     if(ui->main_testRareCastBtn->isChecked()){
 
         if(ui->main_vcfGT->isChecked())
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::CAST, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::CAST, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::CAST, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::CAST, Variance::RVS));
         if(ui->main_gtChk->isChecked())
-            req.addTest(Test(GenotypeSource::CALL, Statistic::CAST, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::CAST, Variance::REGULAR));
 
         printInfo("Preparing to run rare variant association (CAST p-values)...");
         commands.push_back("-r cast");
@@ -227,11 +227,11 @@ Request MainWindow::createRequest(){
     if(ui->main_testRareSkatBtn->isChecked()){
 
         if(ui->main_vcfGT->isChecked())
-            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
-            req.addTest(Test(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::RVS));
+            req.addTest(TestSettings(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::RVS));
         if(ui->main_gtChk->isChecked())
-            req.addTest(Test(GenotypeSource::CALL, Statistic::SKAT, Variance::REGULAR));
+            req.addTest(TestSettings(GenotypeSource::CALL, Statistic::SKAT, Variance::REGULAR));
 
         printInfo("Preparing to run rare variant association (SKAT p-values)...");
         commands.push_back("-r skat");

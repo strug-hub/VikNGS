@@ -1,5 +1,6 @@
 #include "Parser.h"
 #include "File.h"
+#include "../Enum/CollapseType.h"
 #include "../Interval.h"
 #include "../Log.h"
 

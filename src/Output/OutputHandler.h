@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "../Variant.h"
+#include "../Enum/TestSettings.h"
 
 static const std::string dfile = "/debug.txt";
 static const std::string pfile = "/pvalues.txt";
@@ -23,7 +24,7 @@ inline void initializeOutputFiles (std::string outputDir){
 	filtered.close();
 }
 
-inline void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<Test>& test) {
+inline void outputPvals(std::vector<VariantSet>& variants, std::string outputDir, std::vector<TestSettings>& test) {
 	
     std::ofstream pvals((outputDir + pfile), std::ios_base::app);
 

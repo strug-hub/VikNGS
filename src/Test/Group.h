@@ -1,6 +1,8 @@
 #pragma once
 #include "../Math/Math.h"
+#include "../Enum/Depth.h"
 #include <set>
+
 
 class Group {
     VectorXi G;

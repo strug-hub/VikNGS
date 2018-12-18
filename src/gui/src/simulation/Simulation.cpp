@@ -4,7 +4,7 @@
 #include <thread>
 #include <chrono>
 
-bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<VariantSet*>& variants, Test& test, int nboot, bool stopEarly){
+bool testBatch(SampleInfo* sampleInfo, MatrixXd& Y, MatrixXd& Z, std::vector<VariantSet*>& variants, TestSettings& test, int nboot, bool stopEarly){
     if(variants.size() <= 0)
         return true;
 
@@ -43,7 +43,7 @@ class ParallelTest
 {
 private:
     SampleInfo sampleInfo;
-    std::vector<Test> tests;
+    std::vector<TestSettings> tests;
     MatrixXd* Y;
 
     bool useZ = false;
@@ -52,7 +52,7 @@ private:
     MatrixXd Ysubset;
     MatrixXd Zsubset;
 
-    Test t = Test(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
+    TestSettings t = TestSettings(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
 
     bool running;
     std::future<bool> testingDone;
@@ -64,7 +64,7 @@ public:
     ParallelTest(SampleInfo si, MatrixXd* phenotypes) : sampleInfo(si), Y(phenotypes) { running = false;}
     void updateSampleInfoY(VectorXd Y){ this->sampleInfo.setY(Y); }
     void addZ(MatrixXd* Z){ this->Z = Z; useZ = true; }
-    void beginAssociationTest(int startIdx, std::vector<VariantSet*>& variants, Test& test, int nboot, bool stopEarly){
+    void beginAssociationTest(int startIdx, std::vector<VariantSet*>& variants, TestSettings& test, int nboot, bool stopEarly){
         running = true;
         this->pointers = variants;
         this->nboot = nboot;
@@ -201,10 +201,10 @@ Data startSimulation(SimulationRequest& simReq) {
 
     printInfo("Starting tests...");
 
-    std::vector<Test> tests;
-    Test trueGT(GenotypeSource::TRUE, simReq.testStatistic, Variance::REGULAR);
-    Test expectedGT(GenotypeSource::EXPECTED, simReq.testStatistic, Variance::RVS);
-    Test calledGT(GenotypeSource::CALL, simReq.testStatistic, Variance::REGULAR);
+    std::vector<TestSettings> tests;
+    TestSettings trueGT(GenotypeSource::TRUE, simReq.testStatistic, Variance::REGULAR);
+    TestSettings expectedGT(GenotypeSource::EXPECTED, simReq.testStatistic, Variance::RVS);
+    TestSettings calledGT(GenotypeSource::CALL, simReq.testStatistic, Variance::REGULAR);
 
     tests.push_back(trueGT);
     tests.push_back(expectedGT);
@@ -220,7 +220,7 @@ Data startSimulation(SimulationRequest& simReq) {
 
     size_t nthreads = simReq.nthreads;
     std::vector<ParallelTest> threads;
-    Test null(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
+    TestSettings null(GenotypeSource::NONE, Statistic::NONE, Variance::NONE);
     for(size_t i = 0; i < nthreads; i++){
         threads.emplace_back(info, &Y);
         if(useZ)

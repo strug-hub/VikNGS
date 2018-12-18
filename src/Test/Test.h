@@ -1,19 +1,15 @@
 #pragma once
+#include "../Math/EigenStructures.h"
 
-#include "../Enums.h"
+enum class Family;
 struct SampleInfo;
 struct VariantSet;
 
-#include "../Eigen/Dense"
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
-using Eigen::Vector3d;
-using Eigen::VectorXi;
-
+class TestSettings;
 class TestObject;
 
 //Test.cpp
-double runTest(SampleInfo* sampleInfo, VariantSet* variant, Test test, int nboot, bool stopEarly);
+double runTest(SampleInfo* sampleInfo, VariantSet* variant, TestSettings test, int nboot, bool stopEarly);
 
 //TestRareHelper.cpp
-MatrixXd getVarianceMatrix(TestObject& o, Test& test, Family family);
+MatrixXd getVarianceMatrix(TestObject& o, TestSettings& test, Family family);
