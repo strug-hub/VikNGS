@@ -3,22 +3,6 @@
 #include <fstream>
 
 /**
-Extracts string from a MemoryMapped class
-
-@param charArray MemoryMapped to extract string from.
-@param start Index to start extracting string from.
-@param end Index to stop extracting string from.
-@return Extracted string.
-*/
-std::string extractString(MemoryMapped &charArray, int start, int end) {
-    std::string ret( static_cast<size_t>(end - start), '_');
-    size_t i = static_cast<size_t>(start);
-    size_t n = static_cast<size_t>(end);
-    for (; i < n; i++) { ret[i] = static_cast<char>(charArray[i]); }
-    return ret;
-}
-
-/**
 Removes whitespace from a string
 
 @param str String to remove whitespace from.

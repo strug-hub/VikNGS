@@ -1,4 +1,5 @@
 #include "Math.h"
+#include "../Log.h"
 
 static const std::string ERROR_SOURCE = "STATISTICS_HELPER";
 

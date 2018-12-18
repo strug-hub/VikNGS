@@ -1,5 +1,6 @@
 #pragma once
 #include "../src/vikNGS.h"
+#include "../src/Log.h"
 #include <string>
 #include <vector>
 #include <map>

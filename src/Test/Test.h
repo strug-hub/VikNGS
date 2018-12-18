@@ -1,6 +1,14 @@
 #pragma once
-#include "../Math/Math.h"
-#include "../vikNGS.h"
+
+#include "../Enums.h"
+struct SampleInfo;
+struct VariantSet;
+
+#include "../Eigen/Dense"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::Vector3d;
+using Eigen::VectorXi;
 
 class TestObject;
 

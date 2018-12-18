@@ -22,7 +22,7 @@ public:
 
     Phenotype(MatrixXd phenotype, MatrixXd covariates, Family distribution) : Y(phenotype), Z(covariates), family(distribution) {
         isMuCalculated = false;
-        if(Z.cols() < 1)
+        if(Z.rows() < 1 || Z.cols() < 1)
             Z = MatrixXd::Constant(Y.rows(), 1, 1);
     }
     Phenotype(MatrixXd phenotype, Family distribution) : Y(phenotype), family(distribution) {

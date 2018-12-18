@@ -1,6 +1,12 @@
 #include "Parser.h"
 #include "Filter.h"
 #include "../Test/Test.h"
+#include "File.h"
+#include "../Output/OutputHandler.h"
+#include "../Request.h"
+#include "../SampleInfo.h"
+#include "../vikNGS.h"
+#include "../Log.h"
 
 #include <future>
 #include <thread>
@@ -10,11 +16,13 @@
 static const std::string ERROR_SOURCE = "INPUT_PARSER";
 
 SampleInfo parseSampleInfo(Request & req) {
-	
+
+
     SampleInfo sampleInfo;
     std::string dir = req.getSampleDir();
 
     std::map<std::string, int> IDmap = getSampleIDMap(req.getVCFDir());
+
     validateSampleIDs(dir, IDmap);
 
     sampleInfo.setY(parseSamplePhenotype(dir, IDmap));

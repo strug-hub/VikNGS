@@ -1,5 +1,6 @@
-#include "Parser.h"
 #include "Filter.h"
+#include "../Request.h"
+#include "../Variant.h"
 
 /*
 Filters variants read from VCF file based variant specific columns of VCF file.

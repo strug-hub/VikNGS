@@ -1,4 +1,7 @@
 #include "Parser.h"
+#include "File.h"
+#include "../Interval.h"
+#include "../Log.h"
 
 static const std::string ERROR_SOURCE = "BED_PARSER";
 

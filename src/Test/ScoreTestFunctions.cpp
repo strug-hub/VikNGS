@@ -1,6 +1,8 @@
 #include "ScoreTestFunctions.h"
 #include "TestObject.h"
 #include "Group.h"
+#include "../Math/Math.h"
+#include "../Log.h"
 
 VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     int nsnp = X.cols();

@@ -1,8 +1,17 @@
 #pragma once
-#include "../vikNGS.h"
+#include "../Enums.h"
 
 #include <vector>
 #include <string>
+
+struct Request;
+struct Variant;
+
+#include "../Eigen/Dense"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::Vector3d;
+using Eigen::VectorXi;
 
 inline bool validBase(std::string &base) {
     return base == "T" || base == "A" || base == "C" || base == "G";

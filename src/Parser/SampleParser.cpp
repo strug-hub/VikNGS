@@ -1,6 +1,16 @@
 #include "Parser.h"
+#include "File.h"
+#include "../Log.h"
+
+#include <fstream>
 
 static const std::string ERROR_SOURCE = "SAMPLE_INFO_PARSER";
+static const int ID_COL = 0;
+static const int PHENOTYPE_COL = 1;
+static const int GROUP_COL = 2;
+static const int DEPTH_COL = 3;
+static const int COV_COL = 4;
+static const char SAMPLE_SEP = '\t';
 
 /**
 Parses a data file containing tab-separated info for each sample. Verifies the ID column
@@ -13,17 +23,17 @@ Parses a data file containing tab-separated info for each sample. Verifies the I
 */
 bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap){
 
-    File sampleInfo;
-    sampleInfo.open(sampleDir);
-
     std::vector<std::string> lineSplit;
 
     std::map<std::string, int> ID;
     std::string line;
 
-    while (sampleInfo.hasNext()) {
+    int lineIndex = 0;
 
-        line = sampleInfo.nextLine();
+    std::ifstream file(sampleDir);
+    while (std::getline(file, line)){
+
+        lineIndex++;
         lineSplit = splitString(line, SAMPLE_SEP);
 
         if (lineSplit.size() < 2)
@@ -32,12 +42,12 @@ bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap)
         std::string sampleID = lineSplit[ID_COL];
 
         if(ID.count(sampleID) > 0){
-            std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
+            std::string message = "Line " + std::to_string(lineIndex) +
             " in sample information file - ID not unique in file.";
             throwError(ERROR_SOURCE, message, sampleID);
         }
         if (IDmap.count(sampleID) < 1) {
-            std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
+            std::string message = "Line " + std::to_string(lineIndex) +
             " in sample information file - ID does not correspond to an ID in VCF file.";
             throwError(ERROR_SOURCE, message, sampleID);
         }
@@ -45,7 +55,7 @@ bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap)
         ID[sampleID] = 1;
     }
 
-    sampleInfo.close();
+    file.close();
 
     std::vector<std::string> missingSample;
     for (auto it = IDmap.begin(); it != IDmap.end(); ++it) {
@@ -77,8 +87,6 @@ Parses a data file containing tab-separated info for each sample. Extracts pheno
 */
 VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> &IDmap){
 
-    File sampleInfo;
-    sampleInfo.open(sampleDir);
 
     VectorXd Y = VectorXd(IDmap.size());
     for(int i = 0; i < Y.rows(); i++)
@@ -87,10 +95,16 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
     std::vector<std::string> lineSplit;
     std::string line;
 
-    while (sampleInfo.hasNext()) {
+    int lineIndex = 0;
 
-        line = sampleInfo.nextLine();
+    std::ifstream file(sampleDir);
+    while (std::getline(file, line)){
+
+
+        lineIndex++;
         lineSplit = splitString(line, SAMPLE_SEP);
+        std::cout << line <<std::endl;
+        std::cout << lineSplit[1] <<std::endl;
 
         if (lineSplit.size() < 2)
             break;
@@ -99,19 +113,20 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
         int index = IDmap[sampleID];
 
         try {
+
             Y[index] = std::stod(lineSplit[PHENOTYPE_COL]);
         }
         catch (...) {
             if(! (lineSplit[PHENOTYPE_COL] == "NA")){
-                std::string message = "Line " + std::to_string(sampleInfo.lineNumber) +
+                std::string message = "Line " + std::to_string(lineIndex) +
                 " in sample information file - Unexpected value non-numeric value in phenotype column. Use NA if missing.";
-                sampleInfo.close();
+                file.close();
                 throwError(ERROR_SOURCE, message, lineSplit[PHENOTYPE_COL]);
             }
         }
     }
 
-    sampleInfo.close();
+    file.close();
     return Y;
 }
 

@@ -1,7 +1,12 @@
 #pragma once
-#include "../Math/Math.h"
+#include "../Eigen/Dense"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::Vector3d;
+using Eigen::VectorXi;
 
 class Group;
+#include "../Enums.h"
 
 VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X);
 

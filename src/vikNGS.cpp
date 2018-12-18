@@ -2,11 +2,8 @@
 #include "Parser/Parser.h"
 #include "Test/Test.h"
 #include "Output/OutputHandler.h"
+#include "Log.h"
 
-#include <string>
-#include <vector>
-#include <fstream>
-#include <iomanip>
 #include <chrono>
 
 Data startVikNGS(Request req) {

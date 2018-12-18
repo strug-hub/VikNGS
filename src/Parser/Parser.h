@@ -1,19 +1,23 @@
 #pragma once
-#include "../vikNGS.h"
-#include "File.h"
-#include "../Math/Math.h"
+#include "../Enums.h"
 
-#include <iostream>  
-#include <algorithm>
+#include <map>
+#include <vector>
+
+struct File;
+struct Variant;
+struct Interval;
+struct IntervalSet;
+struct SampleInfo;
+struct Request;
+
+#include "../Eigen/Dense"
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
+using Eigen::Vector3d;
+using Eigen::VectorXi;
 
 SampleInfo parseSampleInfo(Request & req);
-
-static const int ID_COL = 0;
-static const int PHENOTYPE_COL = 1;
-static const int GROUP_COL = 2;
-static const int DEPTH_COL = 3;
-static const int COV_COL = 4;
-static const char SAMPLE_SEP = '\t';
 
 //SampleParser.cpp
 bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap);
@@ -48,7 +52,6 @@ std::vector<Interval> lineToExons(std::vector<std::string> lineSplit, int lineNu
 
 //StringTools.cpp
 std::vector<std::vector<int>> collapseEveryK(int k, int n);
-std::string extractString(MemoryMapped &charArray, int start, int end);
 std::string trim(std::string str);
 std::vector<std::string> splitString(std::string &s, char sep);
 std::vector<std::string> splitString(std::string &s, char sep, int stop);

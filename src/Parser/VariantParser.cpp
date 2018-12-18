@@ -1,7 +1,10 @@
 #include "Parser.h"
 #include "../Math/Math.h"
-
+#include "File.h"
+#include "../Variant.h"
+#include "../Log.h"
 static const std::string ERROR_SOURCE = "VCF_PARSER";
+
 
 /**
 Extracts the last header row from a VCF file
@@ -13,6 +16,7 @@ Extracts the last header row from a VCF file
 std::vector<std::string> extractHeader(File &vcf) {
     std::string header = extractHeaderLine(vcf);
     return splitString(header, VCF_SEP);
+
 }
 
 std::string extractHeaderLine(File &vcf) {
@@ -28,6 +32,7 @@ std::string extractHeaderLine(File &vcf) {
             break;
         else
             throwError(ERROR_SOURCE, "Problem identifying header. Ensure column header begins with a single '#'.");
+
     }
 
     return line;

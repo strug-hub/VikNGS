@@ -1,4 +1,5 @@
 #include "Request.h"
+#include "Log.h"
 
 #include <fstream>
 
@@ -16,7 +17,7 @@ Request getDefaultRequest() {
     r.setStopEarly(false);
     r.setNumberThreads(1);
     r.setBatchSize(1000);
-    r.setKeepFiltered(false);
+    r.setKeepFiltered(true);
     r.setMakePlot(false);
     r.setRetainGenotypes(false);
 

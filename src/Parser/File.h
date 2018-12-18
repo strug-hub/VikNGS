@@ -2,6 +2,7 @@
 #include "MemoryMapped/MemoryMapped.h"
 #include <algorithm>
 #include <stdexcept>
+#include <iostream>
 
 struct File {
     MemoryMapped mmap;
@@ -14,17 +15,17 @@ struct File {
 
     bool lastSegment;
     uint64_t lineNumber;
-    uint64_t memory = static_cast<uint64_t>(4e9); //4gb
+    uint64_t memory = 4e9; //4gb
 
     inline void open(std::string directory) {
         try {
 
-            pageSize = static_cast<uint64_t>(mmap.getpagesize());
+            pageSize = mmap.getpagesize();
             pagesPerSegment = memory/pageSize;
             uint64_t one = 1;
             pagesPerSegment = std::max(one, pagesPerSegment);
 
-            mmap.open(directory, static_cast<size_t>(pagesPerSegment * pageSize), MemoryMapped::CacheHint::SequentialScan);
+            mmap.open(directory, pagesPerSegment * pageSize, MemoryMapped::CacheHint::SequentialScan);
             currentPage = pagesPerSegment;
 
             pos = 0;
@@ -37,7 +38,7 @@ struct File {
 
         }
         catch (...) {
-            throw std::runtime_error("Cannot open file from provided directory: " + directory);
+            //throwError("file struct", "Cannot open file from provided directory.", directory);
         }
     }
 
@@ -62,7 +63,8 @@ struct File {
             if (mmap[pos] == '\n')
                 break;
 
-            line += static_cast<char>(mmap[pos]);
+
+            line+= mmap[pos];
             pos++;
         }
 
@@ -72,7 +74,7 @@ struct File {
         return line;
     }
 
-    inline uint64_t getLineNumber() {
+    inline int getLineNumber() {
         return lineNumber;
     }
 
@@ -82,8 +84,9 @@ struct File {
 
     void remap() {
 
-        uint64_t offset = currentPage * pageSize;
-        uint64_t mapSize = pagesPerSegment * pageSize;
+       // printInfo("Reading another 4GB");
+        size_t offset = currentPage * pageSize;
+        size_t mapSize = pagesPerSegment * pageSize;
 
         mmap.remap(offset, mapSize);
         segmentSize = mmap.mappedSize();

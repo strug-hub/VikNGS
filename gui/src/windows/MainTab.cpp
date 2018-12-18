@@ -200,6 +200,8 @@ Request MainWindow::createRequest(){
 
     if(ui->main_testCommonBtn->isChecked()){
 
+        if(ui->main_vcfGT->isChecked())
+            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::COMMON, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
             req.addTest(Test(GenotypeSource::EXPECTED, Statistic::COMMON, Variance::RVS));
         if(ui->main_gtChk->isChecked())
@@ -211,6 +213,8 @@ Request MainWindow::createRequest(){
 
     if(ui->main_testRareCastBtn->isChecked()){
 
+        if(ui->main_vcfGT->isChecked())
+            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::CAST, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
             req.addTest(Test(GenotypeSource::EXPECTED, Statistic::CAST, Variance::RVS));
         if(ui->main_gtChk->isChecked())
@@ -222,6 +226,8 @@ Request MainWindow::createRequest(){
 
     if(ui->main_testRareSkatBtn->isChecked()){
 
+        if(ui->main_vcfGT->isChecked())
+            req.addTest(Test(GenotypeSource::VCF_CALL, Statistic::SKAT, Variance::REGULAR));
         if(ui->main_rvsChk->isChecked())
             req.addTest(Test(GenotypeSource::EXPECTED, Statistic::SKAT, Variance::RVS));
         if(ui->main_gtChk->isChecked())
@@ -229,7 +235,6 @@ Request MainWindow::createRequest(){
 
         printInfo("Preparing to run rare variant association (SKAT p-values)...");
         commands.push_back("-r skat");
-
     }
 
     std::string bedDir = ui->main_bedDirTxt->text().toStdString();

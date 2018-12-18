@@ -1,9 +1,10 @@
 #pragma once
-#include "Interval.h"
 #include "Enums.h"
-#include "Log.h"
+
+struct IntervalSet;
 
 #include <string>
+#include <vector>
 
 struct Request {
 private:

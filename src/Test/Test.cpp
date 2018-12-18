@@ -3,6 +3,7 @@
 #include "../Math/CompQuadForm.h"
 #include "ScoreTestFunctions.h"
 #include "TestObject.h"
+#include "../Log.h"
 
 /*
 Calculates test statistic.

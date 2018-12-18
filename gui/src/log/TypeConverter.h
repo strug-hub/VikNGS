@@ -3,10 +3,10 @@
 #include <string>
 #include <iostream>
 #include <limits>
-#include "../src/vikNGS.h"
+#include "../src/Log.h"
 
-int infinity = std::numeric_limits<int>::max();
-int neginfinity = std::numeric_limits<int>::min();
+static const int infinity = std::numeric_limits<int>::max();
+static const int neginfinity = std::numeric_limits<int>::min();
 
 inline double toDouble(std::string valueName, std::string value){
     try{
