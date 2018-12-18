@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icon.png</file>
+        <file>icon.svg</file>
+        <file>vikings logo.svg</file>
+    </qresource>
+</RCC>

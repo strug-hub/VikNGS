@@ -1,20 +1,20 @@
 CC=g++ -std=c++11 -D_GNU_SOURCE 
 CFLAGS=-c
 SOURCE=../src/
-
+CMD=cmd/
 all: build
 
 build: vikNGS.o root math test parser Global.o vikNGScmd.o 
-	$(CC)  Log.o Request.o MemoryMapped.o \
+	$(CC) Log.o Request.o MemoryMapped.o \
 VectorHelper.o GeneticsHelper.o RandomHelper.o StatisticsHelper.o \
 StringTools.o VariantParser.o Filter.o SampleParser.o BEDParser.o  \
-Test.o ScoreTestFunctions.o InputProcess.o vikNGS.o Global.o vikNGScmd.o \
+Test.o ScoreTestFunctions.o InputProcess.o vikNGS.o $(OUT)Global.o vikNGScmd.o \
 -pthread -o vikNGS
 	
 root: Log.o Request.o MemoryMapped.o
 
 Log.o:
-	$(CC) $(CFLAGS) $(SOURCE)Log.cpp
+	$(CC) $(CFLAGS) $(SOURCE)$(CMD)Log.cpp
 Global.o:
 	$(CC) $(CFLAGS) $(SOURCE)Global.cpp
 Request.o:
@@ -62,7 +62,7 @@ BEDParser.o:
 
 
 vikNGScmd.o: 
-	$(CC) $(CFLAGS) $(SOURCE)vikNGScmd.cpp
+	$(CC) $(CFLAGS) $(SOURCE)$(CMD)vikNGScmd.cpp
 vikNGS.o: 
 	$(CC) $(CFLAGS) $(SOURCE)vikNGS.cpp
 clean:
