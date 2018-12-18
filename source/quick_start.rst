@@ -19,7 +19,7 @@ Running the file VikNGS-X.X.X in the appropriate operating system folder should 
 
 * Windows: Windows 10 64x (compiled with Microsoft Visual C++ 2017)
 
-* Mac: TODO
+* Mac: macOS 10.13.4 High Sierra
 
 * Linux: Ubuntu 18.04 64x
 
