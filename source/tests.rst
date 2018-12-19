@@ -52,7 +52,7 @@ This test related to the CAST method described by Morgenthaler and Thilly (2007 
 Quadratic Test (SKAT-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This test related to the SKAT method described by Wu *et al*. (2011 `🔗 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3135811>`_). Similar to the linear test, a score vector of size \\(J\\) is calculated, each element corresponding to a different variant. Variants are weighted based on minor allele frequency (MAF): \\(w^{1/2}=1/[MAF(1-MAF)]^{1/2})\\. The p-value is calculated using the C++ code underlying the `_CompQuadForm <https://cran.r-project.org/web/packages/CompQuadForm/index.html>`_ (Distribution Function of Quadratic Forms in Normal Variables) R library which is used in the R SKAT package.
+This test related to the SKAT method described by Wu *et al*. (2011 `🔗 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3135811>`_). Similar to the linear test, a score vector of size \\(J\\) is calculated, each element corresponding to a different variant. Variants are weighted based on minor allele frequency (MAF): \\(w^{1/2}=1/[MAF(1-MAF)]^{1/2}\\). The p-value is calculated using the C++ code underlying the `CompQuadForm <https://cran.r-project.org/web/packages/CompQuadForm/index.html>`_ (Distribution Function of Quadratic Forms in Normal Variables) R library which is used in the R SKAT package.
 
 .. note::
    This method should be preferred over the linear test when both protective and harmful variants being collapsed together (of if it is unclear whether the variants are potentially protective or harmful).
