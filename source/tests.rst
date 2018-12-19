@@ -29,8 +29,17 @@ Rare Variant Association Test
 
 For joint variant analysis, the score statistics for \\(J\\) variants, \\(\\boldsymbol{S}=[S_1,...,S_J]\\). Please review the common variant section above to review the general structure of a score test. In VikNGS, multiple differen genetic association tests are available which are described below.
 
+For the CAST- and SKAT-like tests, we recommend the use of permutation to calculate p-values. This involves shuffling the phenotype vector \\(Y\\) and recalculating the p-value many times for every variant. After iteratively calculating a set of p-values, the final p-value is calculated based on the number of values that are less than or equal to the value that was calculated for the unshuffled data set divided by the number of iterations plus 1. 
+
+.. note::
+    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`).
+    
+    In VikNGS, these tests can be run by assuming the asymptoic distribution by setting the number of iterations to 1. Based on our testing, the results appear to be behaved but we offer no statistical guarantees.
+
 Linear Test (CAST-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`). In this  "Linear" refers to the fact that the score in this test is a linear combination of 
 
 
 \item \textbf{When using true genotypes or genotype calls in conventional score test:}\\
@@ -46,27 +55,9 @@ Quadratic Test (SKAT-like)
 \begin{itemize}
 \item \textbf{vRVS}: ``CAST-like" and ``"SKAT-like" refer to CAST \citep{morgenthaler:2007} and SKAT with weights $w^{1/2}=1/[MAF(1-MAF)]^{1/2}$ \citep{wu:2011}, respectively, where $E(G_{ij} \mid {D_{ij}})$ are used instead of genotype calls (MAF=minor allele frequency). Since the distribution of the expected genotypes given sequence data, $E(G_{ij} \mid {D_{ij}})$, depends on read depth, permutation is not valid. We adopted the bootstrap approach defined in \citet{derkach:2014} for binary trait analysis. We basically use centered expected genotypes for $J$ variants,  $\left[ E(G_{i1} \mid {D_{i1}})- \overline{E(G_{i1} \mid {D_{i1}})} ... E(G_{iJ} \mid {D_{iJ}})- \overline{ E(G_{iJ} \mid {D_{iJ}})} \right.]$ and sample these with replacement, separately for each read depth group. \textit{\textbf{Without covariates}}, we bootstrap on the expected genotypes only. \textit{\textbf{When covariates are added}}, we also bootstrap the added covariates, independently from expected genotypes. For quantitative trait analysis, we implement the permutation methodology defined in \citet{lin:2011} within each read depth group.
 
-To reduce running time, an early stopping procedure can be chosen. It terminates the iterations early if calculations suggest a big P-value \citep{jiang:2012}.
-
 
 
 Likelihood Method (Coming soon)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This method refers to the test described in *Association testing for next-generation sequencing data using score statistics* `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/22570057>`_ from Skotte and Albrechtsen (2012) Their method provides a score test where genotype calls are substituted by their expected values, \\(E(G_{ikj}\\mid D_{ikj})\\). The variance of the score test is obtained from the second derivative of the joint likelihood of the observed \\(Y_i\\) and the observed sequencing data, \\(D_{ij}\\) individual \\(i\\) at locus \\(j\\). The p-values are calculated using the asymptotic distribution of the score test. For a joint rare aanalysis of \\(J\\) variants, the score test is distributed as a chi-square distribution with \\(J\\) degrees of freedom.  This can also be used for common variant association test which is distributed as chi-squared with one degree of freedom. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This method refers to the test described in *Association testing for next-generation sequencing data using score statistics* _ from Skotte and Albrechtsen (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/22570057>`) Their method provides a score test where genotype calls are substituted by their expected values, \\(E(G_{ikj}\\mid D_{ikj})\\). The variance of the score test is obtained from the second derivative of the joint likelihood of the observed \\(Y_i\\) and the observed sequencing data, \\(D_{ij}\\) individual \\(i\\) at locus \\(j\\). The p-values are calculated using the asymptotic distribution of the score test. For a joint rare analysis of \\(J\\) variants, the score test is distributed as a chi-square distribution with \\(J\\) degrees of freedom.  This can also be used for common single variant association test which is distributed as chi-squared with one degree of freedom.
