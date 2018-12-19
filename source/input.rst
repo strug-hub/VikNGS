@@ -9,7 +9,7 @@ Quick Summary
 VikNGS takes 3 different file types as input:
 
 - a multisample VCF that provides genotype information
-   - genotype information is extracted from **GL** (referred), **PL**, and **GT** fields
+   - genotype information is extracted from **GL** (preferred), **PL**, and **GT** fields
 - a tab-separated sample information text file containing phenotype and covariate information
    - must be created by user ref:`see column details code<sample_info>` for what this file should contain
 - a BED file to specify the variant collapsing strategy (optional)
