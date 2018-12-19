@@ -138,8 +138,11 @@ Variant constructVariant(std::vector<std::string> &columns, bool calculateExpect
         }
         if(getVCFCalls){
             VectorXd calls(nsamp);
-            for (size_t i = FORMAT + 1; i < columns.size(); i++)
-                calls[static_cast<int>(i)] = getVCFGenotypeCall(columns[i], indexGT);
+            int index = 0;
+            for (size_t i = FORMAT + 1; i < columns.size(); i++){
+                calls[index] = getVCFGenotypeCall(columns[i], indexGT);
+                index++;
+            }
 
             variant.setVCFCallGenotypes(calls);
         }

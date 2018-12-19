@@ -5,29 +5,46 @@
 
 void MainWindow::on_main_vcfDirBtn_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                    "/home",
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastDirectory,
                                                     tr("VCF File (*.vcf);;All files (*.*)"));
-    if(!fileName.isNull())
+
+    if(!fileName.isNull()){
         ui->main_vcfDirTxt->setText(fileName);
+        QFileInfo fi(fileName);
+        lastDirectory = fi.absolutePath();
+    }
 }
 
 void MainWindow::on_main_sampleDirBtn_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                    "/home",
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastDirectory,
                                                     tr("Text File (*.txt);;All files (*.*)"));
-    if(!fileName.isNull())
+    if(!fileName.isNull()){
         ui->main_sampleDirTxt->setText(fileName);
+        QFileInfo fi(fileName);
+        lastDirectory = fi.absolutePath();
+    }
 }
 
 void MainWindow::on_main_bedDirBtn_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-                                                    "/home",
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastDirectory,
                                                     tr("BED File (*.bed);;Text File (*.txt);;All files (*.*)"));
-    if(!fileName.isNull())
+    if(!fileName.isNull()){
         ui->main_bedDirTxt->setText(fileName);
+        QFileInfo fi(fileName);
+        lastDirectory = fi.absolutePath();
+    }
+}
+
+void MainWindow::on_main_outDirBtn_pressed()
+{
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Open Directory"), lastDirectory);
+
+    if(!dirName.isNull()){
+        lastDirectory = dirName;
+        ui->main_outDirTxt->setText(dirName);
+    }
 }
 
 void MainWindow::on_main_testRareCastBtn_toggled(bool checked){
@@ -109,16 +126,24 @@ Request MainWindow::createRequest(){
     std::string vcfDir = ui->main_vcfDirTxt->text().toStdString();
     printInfo("VCF file: " + vcfDir);
     //commands.push_back("--vcf " + vcfDir);
-    commands.push_back("--vcf [...]");
+    commands.push_back("--vcf " + vcfDir);
     std::string sampleDir = ui->main_sampleDirTxt->text().toStdString();
     printInfo("Sample info file: " + sampleDir);
     //commands.push_back("--sample " + sampleDir);
-    commands.push_back("--sample [...]");
+    commands.push_back("--sample " + sampleDir);
 
     req.setInputFiles(vcfDir, sampleDir);
 
+    std::string outDir = ui->main_outDirTxt->text().toStdString();
+    if(outDir.size() > 0){
+        printInfo("Output directory: " + outDir);
+        commands.push_back("-o " + sampleDir);
+        req.setOutputDir(outDir);
+    }
+
     std::string mafCutOff = ui->main_vcfMafTxt->text().toStdString();
     double maf = toDouble("Minor allele frequency threshold", mafCutOff);
+    printInfo("Output directory: " + sampleDir);
     mafCutOff = toString(maf);
     commands.push_back("-m " + mafCutOff);
     printInfo("Minor allele frequency threshold: " + mafCutOff);

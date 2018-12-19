@@ -104,8 +104,6 @@ VectorXd parseSamplePhenotype(std::string sampleDir, std::map<std::string, int> 
 
         lineIndex++;
         lineSplit = splitString(line, SAMPLE_SEP);
-        std::cout << line <<std::endl;
-        std::cout << lineSplit[1] <<std::endl;
 
         if (lineSplit.size() < 2)
             break;

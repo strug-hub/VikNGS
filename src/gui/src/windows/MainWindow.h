@@ -95,12 +95,16 @@ private slots:
 
     void on_pushButton_pressed();
 
+    void on_main_outDirBtn_pressed();
+
 signals:
     void sendPlotData(QVector<double> values);
 
 private:
     Ui::MainWindow *ui;
     QThread* jobThread;
+
+    QString lastDirectory = ".";
 
     int getNumberOfStepsSim();
     int getHighLowCutoffSim();

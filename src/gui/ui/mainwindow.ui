@@ -41,14 +41,145 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,1">
         <item>
-         <layout class="QVBoxLayout" name="InputLayout1" stretch="0,0,0,0,0">
+         <layout class="QVBoxLayout" name="InputLayout1" stretch="0,0,0">
           <item>
            <widget class="QGroupBox" name="main_vcfGrp">
             <property name="title">
-             <string>Multisample VCF File</string>
+             <string>Input</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_8">
-             <item row="0" column="4">
+             <item row="5" column="1" colspan="4">
+              <widget class="Line" name="line">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="9" column="1">
+              <spacer name="verticalSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="1" column="1" colspan="3">
+              <widget class="QLineEdit" name="main_vcfDirTxt">
+               <property name="text">
+                <string>./example.vcf</string>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="3">
+              <widget class="QRadioButton" name="main_gtChk">
+               <property name="text">
+                <string>Use GT calls</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="7" column="1" colspan="2">
+              <widget class="QLabel" name="main_sampleInfoLbl">
+               <property name="text">
+                <string>Sample Information File</string>
+               </property>
+              </widget>
+             </item>
+             <item row="11" column="1">
+              <spacer name="verticalSpacer_5">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="19" column="1" colspan="3">
+              <widget class="QLineEdit" name="main_outDirTxt">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <widget class="QLabel" name="main_vcfLbl">
+               <property name="text">
+                <string>VCF File</string>
+               </property>
+              </widget>
+             </item>
+             <item row="13" column="1" colspan="3">
+              <widget class="QLineEdit" name="main_bedDirTxt">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="14" column="1">
+              <spacer name="verticalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="3" column="1">
+              <widget class="QRadioButton" name="main_vcfGT">
+               <property name="text">
+                <string>Use VCF GT</string>
+               </property>
+              </widget>
+             </item>
+             <item row="12" column="1" colspan="2">
+              <widget class="QLabel" name="main_bedLbl">
+               <property name="text">
+                <string>BED File (optional)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="13" column="4">
+              <widget class="QPushButton" name="main_bedDirBtn">
+               <property name="maximumSize">
+                <size>
+                 <width>20</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="18" column="1" colspan="2">
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>Output Directory</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="4">
               <widget class="QPushButton" name="main_vcfDirBtn">
                <property name="maximumSize">
                 <size>
@@ -61,53 +192,33 @@
                </property>
               </widget>
              </item>
-             <item row="0" column="1" colspan="3">
-              <widget class="QLineEdit" name="main_vcfDirTxt">
-               <property name="text">
-                <string>./example.vcf</string>
+             <item row="4" column="1">
+              <spacer name="verticalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
-               <property name="readOnly">
-                <bool>true</bool>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
                </property>
-              </widget>
+              </spacer>
              </item>
-             <item row="2" column="1">
-              <widget class="QRadioButton" name="main_vcfGT">
-               <property name="text">
-                <string>Use VCF GT</string>
+             <item row="6" column="1">
+              <spacer name="verticalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
                </property>
-              </widget>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
-             <item row="2" column="2">
-              <widget class="QRadioButton" name="main_rvsChk">
-               <property name="text">
-                <string>Use Expected GT</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="3">
-              <widget class="QRadioButton" name="main_gtChk">
-               <property name="text">
-                <string>Use GT calls</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="main_sampleGrp">
-            <property name="title">
-             <string>Sample Data File</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
+             <item row="8" column="1" colspan="3">
               <widget class="QLineEdit" name="main_sampleDirTxt">
                <property name="text">
                 <string>./example_info.txt</string>
@@ -117,7 +228,7 @@
                </property>
               </widget>
              </item>
-             <item>
+             <item row="8" column="4">
               <widget class="QPushButton" name="main_sampleDirBtn">
                <property name="maximumSize">
                 <size>
@@ -130,27 +241,18 @@
                </property>
               </widget>
              </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="main_bedGrp">
-            <property name="title">
-             <string>BED file (optional)</string>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLineEdit" name="main_bedDirTxt">
+             <item row="3" column="2">
+              <widget class="QRadioButton" name="main_rvsChk">
                <property name="text">
-                <string/>
+                <string>Use Expected GT</string>
                </property>
-               <property name="readOnly">
+               <property name="checked">
                 <bool>true</bool>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="main_bedDirBtn">
+             <item row="19" column="4">
+              <widget class="QPushButton" name="main_outDirBtn">
                <property name="maximumSize">
                 <size>
                  <width>20</width>
@@ -161,6 +263,33 @@
                 <string>...</string>
                </property>
               </widget>
+             </item>
+             <item row="15" column="1" colspan="4">
+              <widget class="Line" name="line_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="10" column="1" colspan="4">
+              <widget class="Line" name="line_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="17" column="1">
+              <spacer name="verticalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </widget>
@@ -181,13 +310,10 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="2">
-              <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
+             <item row="4" column="0" colspan="2">
+              <widget class="QLineEdit" name="main_bedCollapseKTxt">
                <property name="text">
-                <string>Entire gene</string>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
+                <string>5</string>
                </property>
               </widget>
              </item>
@@ -198,17 +324,20 @@
                </property>
               </widget>
              </item>
-             <item row="4" column="0" colspan="2">
-              <widget class="QLineEdit" name="main_bedCollapseKTxt">
-               <property name="text">
-                <string>5</string>
-               </property>
-              </widget>
-             </item>
              <item row="4" column="2">
               <widget class="QLabel" name="main_bedCollapseSizeLbl">
                <property name="text">
                 <string>Collapse Size</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QRadioButton" name="main_bedCollapseGeneBtn">
+               <property name="text">
+                <string>Entire gene</string>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
