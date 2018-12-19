@@ -28,5 +28,6 @@ The code is `freely available on GitHub <https://github.com/ScottMastro/vikNGS>`
    input
    parameters
    tests
+   output
    power_calculation
 
