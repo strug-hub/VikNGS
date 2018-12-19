@@ -3,23 +3,26 @@
 Association Tests
 ==================================
 
-Common Variant Association Test
+Common Single Variant Association Test
 ----------------------------------
 
-\\(\\)
+For both quantitative and binary trait analyses, a common variant test refers to a score test which has a \\({\chi}^2\\) distribution with 1 degree of freedom under no association hypothesis. The general form of the score test appears as follows:
 
-For both quantitative and binary trait analyses, a common variant test refers to a score test which has a \\(\chi^2\\) distribution with 1 degree of freedom under no association hypothesis. The general form of the score test appears as follows:
+    :math:`T={{S^2} \over var(S)}`
 
-:math:`T={{S^2_j} \over var(S)}`
+Where \\(T\\) is the test statistic following a \\({\chi}^2\\) distribution and \\(S\\) is the score. This test is used to perform a genetic association analysis between the phenotype \\(Y\\) and a single variant \\(G_j\\). For testing variant \\(j\\) given \\(n\\) indivduals and phenotype vector \\(Y\\) and genotype matrix \\(G\\),
 
-Where \\(T\\) is the test statistic following a \\(\chi^2\\) distribution and \\(S\\) is the score. For testing the variant \\(j\\) given \\(n\\) indivduals and phenotype \\(Y\\),
+:math:`S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
 
-:math:`S_j=\sum_{i=1}^n[Y_i-E(Y_i)]G_{ij}`
-    
-\\(E(Y_i)\\) is estimated from the observed phenotypes. e.g. $\hat{Y}=\bar{Y}$ when there are no covariates. This test is used to perform a genetic association analysis between the phenotype $Y$ and a single variant $G$. For ``True common" and ``Call common", the conventional variance formula of the score statistics is used.  
+:math:`E(Y_i)=Y_i - \hat{Y}`
 
-Note that the score test for vRVS is  $T_j=S^2_j/var(S_j)$ where $S_j=\sum_{i=1}^n(Y_i-E(Y_i))E(G_{ij}\mid D_{ij})$. When we consider integrating sequence data from a arbitrary number of cohorts$(k)$,   $S_j=\sum_{i=1}^{n_k} (Y_{ik}-E(Y_{ik}))E(G_{ikj}\mid D_{ikj})$. The details of the derivation of $Var(S_j)$ are given in the Supplementary document of the paper ``VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis".
+\\(E(Y_i)\\) is estimated from a vector of fitted values \\(\hat{Y}\\) which is dependent on the underlying distribution of \\(Y\\) (ex. case-control vs quantatitive). With no covariates, \\(\hat{Y}=\bar{Y}\\) which is the simple average of the observed phenotypes. 
 
+Under a case-control setting with no covariates, the score is an indication of how often the tested genotype appears in one group over the other. When coded as \\(y_{case}=1\\) and  \\(y_{control}=0\\), and genotypes coded as {0,1,2} corresponding to the number of alleles a particular individual possesses. Given this framwork, cases with the allele of interest contribute positively to the overall score and controls contribute negatively. Therefore, the more a particular allele is associated with one group, the larger the magnitude of the score.
+
+For genotypes hardcoded as {0,1,2}, the conventional variance formula is used to calculate \\(var(S_j)\\).  
+
+In the vRVS methodology available in VikNGS, the genotype value \\(G_{ij}\\) is replaced with the expected genotype value calulated from the sequence read data \\(E(G_{ikj}\mid D_{ikj})\\). When integrating data from an arbitrary number of cohorts, the variance is calculated for each group separately and summed together to produce \\(var(S_j)\\). The details of the derivation of \\(var(S_j)\\) are given in the Supplementary document of the VikNGS paper *VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis*.
 
 
 Rare Variant Association Test
