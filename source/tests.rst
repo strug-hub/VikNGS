@@ -8,15 +8,15 @@ Common Variant Association Test
 
 \\(\\)
 
-For both quantitative and binary trait analyses, a common variant test refers to a score test which has a \\(\chi^2\\) distribution with 1 degree of freedom under no association hypothesis. The standard score test is calculated as follows:
+For both quantitative and binary trait analyses, a common variant test refers to a score test which has a \\(\chi^2\\) distribution with 1 degree of freedom under no association hypothesis. The general form of the score test appears as follows:
 
-:math:`T=S^2_j/var(S)`
+:math:`T={{S^2_j} \over var(S)}`
 
 Where \\(T\\) is the test statistic following a \\(\chi^2\\) distribution and \\(S\\) is the score. For testing the variant \\(j\\) given \\(n\\) indivduals and phenotype \\(Y\\),
 
-:math:`S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
+:math:`S_j=\sum_{i=1}^n[Y_i-E(Y_i)]G_{ij}`
     
-\\(E(Y_i)\\) is estimated from the fitted values $\hat{Y}$ of $Y$ based on the model assumed. e.g. $\hat{Y}=\bar{Y}$ when there are no covariates. This test is used to perform a genetic association analysis between the phenotype $Y$ and a single variant $G$. For ``True common" and ``Call common", the conventional variance formula of the score statistics is used.  
+\\(E(Y_i)\\) is estimated from the observed phenotypes. e.g. $\hat{Y}=\bar{Y}$ when there are no covariates. This test is used to perform a genetic association analysis between the phenotype $Y$ and a single variant $G$. For ``True common" and ``Call common", the conventional variance formula of the score statistics is used.  
 
 Note that the score test for vRVS is  $T_j=S^2_j/var(S_j)$ where $S_j=\sum_{i=1}^n(Y_i-E(Y_i))E(G_{ij}\mid D_{ij})$. When we consider integrating sequence data from a arbitrary number of cohorts$(k)$,   $S_j=\sum_{i=1}^{n_k} (Y_{ik}-E(Y_{ik}))E(G_{ikj}\mid D_{ikj})$. The details of the derivation of $Var(S_j)$ are given in the Supplementary document of the paper ``VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis".
 
