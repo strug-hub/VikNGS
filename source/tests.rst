@@ -32,20 +32,21 @@ For joint variant analysis, the score statistics for \\(J\\) variants, \\(\\bold
 For the CAST- and SKAT-like tests, we recommend the use of permutation to calculate p-values. This involves shuffling the phenotype vector \\(Y\\) and recalculating the p-value many times for every variant. After iteratively calculating a set of p-values, the final p-value is calculated based on the number of values that are less than or equal to the value that was calculated for the unshuffled data set divided by the number of iterations plus 1. 
 
 .. note::
-    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1)}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`_).
-    
-    In VikNGS, these tests can be run by assuming the asymptoic distribution by setting the number of iterations to 1. Based on our testing, the results appear to be behaved but we offer no statistical guarantees.
+    Using permutation, the smallest p-value obtainable is 1/(# iterations + 1). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`_).
 
+When using expected genotypes and the vRVS methodology, the fact that data could be combined from multiple different cohorts prevents the use of a simple permutation test. Instead, the bootstrap approach defined by Derkach *et al*. (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/24733292>`_) was adopted the for binary trait (case-control) analysis. Given a matrix of expected genotypes, the mean genotype is subtracted from each matrix element and rows are selected at random with replacement to form a shuffled matrix. This is done for every group separately. Covariates are also boostrapped independely from the genotypes.  For quantitative trait analysis using expected genotypes, we implement the permutation methodology defined by Lin and Tang (2011 `🔗 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3169821/>`_) within each combined group.
+
+.. warning::
+    In VikNGS, these tests can be run by assuming the asymptoic distribution by setting the number of iterations to 1. Based on our limited testing, the results appear to behave as expected but we offer no statistical guarantees.
+    
+    
 Linear Test (CAST-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`_). In this  "Linear" refers to the fact that the score in this test is a linear combination of 
 
 
-\item \textbf{When using true genotypes or genotype calls in conventional score test:}\\
-``CAST-like" and ``"SKAT-like" refer to the CAST \citep{morgenthaler:2007} and SKAT with weights $w^{1/2}=1/[MAF(1-MAF)]^{1/2}$ \citep{wu:2011} respectively, when the true genotypes (in simulation part) and genotype calls are used.  The P-values can be obtain through permutation. 
-\textit{\textbf{Without covariates}}, the $Y_i$s are permuted and a test statistics is calculated for each permuted data set where the user defines the number of iterations, e.g. 1,000. At the end of the iterations, P-value is calculated based on the number of values that are less than or equal to the value that was calculated for the initial data set divided by the number of iterations plus 1. \textit{\textbf{When covariates are added}}, we implement the bootstrap methodology defined in \citep{lin:2011} for for binary and quantitative trait analyses.
-The user can also use asymptotic distribution to compute the P-values. In that case, the user should define the number of iterations as 1 in VikNGS (e.g. see Figure 2 in the paper ``VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis")
+
 
 
 Quadratic Test (SKAT-like)
