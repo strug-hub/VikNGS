@@ -18,11 +18,11 @@ Where \\(T\\) is the test statistic following a \\(\\chi^2\\) distribution and \
 
 \\(E(Y_i)\\) is estimated from a vector of fitted values \\(\\hat{Y}\\) which is dependent on the underlying distribution of \\(Y\\) (ex. case-control vs quantatitive). With no covariates, \\(\\hat{Y}=\\bar{Y}\\) which is the simple average of the observed phenotypes. 
 
-Under a case-control setting with no covariates, the score is an indication of how often the tested genotype appears in one group over the other. When coded as \\(Y_{i_{case}}=1\\) and  \\(y_{i_{control}}=0\\), and genotypes coded as {0,1,2} corresponding to the number of alleles a particular individual possesses. Given this framwork, cases with the allele of interest contribute positively to the overall score and controls contribute negatively. Therefore, the more a particular allele is associated with one group, the larger the magnitude of the score.
+Under a case-control setting with no covariates, the score is an indication of how often the tested genotype appears in one group over the other. When coded as \\(Y_i=1\\) for cases and \\(Y_i=0\\) for controls, and genotypes coded as {0,1,2} corresponding to the number of alleles a particular individual possesses. Given this framwork, cases with the allele of interest contribute positively to the overall score and controls contribute negatively. Therefore, the more a particular allele is associated with one group, the larger the magnitude of the score.
 
 For genotypes hardcoded as {0,1,2}, the conventional variance formula is used to calculate \\(var(S_j)\\).  
 
-In the vRVS methodology available in VikNGS, the genotype value \\(G_{ij}\\) is replaced with the expected genotype value calulated from the sequence read data \\(E(G_{ikj}\mid D_{ikj})\\). When integrating data from an arbitrary number of cohorts, the variance is calculated for each group separately and summed together to produce \\(var(S_j)\\). The details of the derivation of \\(var(S_j)\\) are given in the Supplementary document of the VikNGS paper *VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis*.
+In the vRVS methodology available in VikNGS, the genotype value \\(G_{ij}\\) is replaced with the expected genotype value calulated from the sequence read data \\(E(G_{ikj}\\mid D_{ikj})\\). When integrating data from an arbitrary number of cohorts, the variance is calculated for each group separately and summed together to produce \\(var(S_j)\\). The details of the derivation of \\(var(S_j)\\) are given in the Supplementary document of the VikNGS paper *VIKNGS: A C++ Variant Integration Kit for next generation sequencing association analysis*.
 
 Rare Variant Association Test
 ----------------------------------
@@ -31,6 +31,7 @@ For joint variant analysis, the score statistics for \\(J\\) variants, \\(\\bold
 
 Linear Test (CAST-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 \item \textbf{When using true genotypes or genotype calls in conventional score test:}\\
 ``CAST-like" and ``"SKAT-like" refer to the CAST \citep{morgenthaler:2007} and SKAT with weights $w^{1/2}=1/[MAF(1-MAF)]^{1/2}$ \citep{wu:2011} respectively, when the true genotypes (in simulation part) and genotype calls are used.  The P-values can be obtain through permutation. 
@@ -52,7 +53,7 @@ To reduce running time, an early stopping procedure can be chosen. It terminates
 Likelihood Method (Coming soon)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\item \textbf{Likelihood}: The ``Likelihood" method refers to the method described in  \citep{skotte:2012}. Their method provides a score test where genotype calls are substituted by their expected values, $E(G_{ij} \mid {D_{ij}})$. The variance of the score test is obtained from the second derivative of the joint likelihood of the observed $Y_i$ and the observed sequencing data, $D_{ij}$ for individual $i$ at locus $j$. The p-values are calculated using the asymptotic distribution of the score test. For a joint rare aanalysis of $J$ variants, the score test is distributed as a chi-square distribution with $J$ degrees of freedom.  This can also be used for common variant association test which is distributed as chi-squared with one degree of freedom. 
+This method refers to the test described in `*Association testing for next-generation sequencing data using score statistics* <https://www.ncbi.nlm.nih.gov/pubmed/22570057>`_ from Skotte and Albrechtsen. Their method provides a score test where genotype calls are substituted by their expected values, \\(E(G_{ikj}\\mid D_{ikj}\\). The variance of the score test is obtained from the second derivative of the joint likelihood of the observed \\(Y_i\\) and the observed sequencing data, \\(D_{ij}\\) individual \\(i\\) at locus \\(j\\). The p-values are calculated using the asymptotic distribution of the score test. For a joint rare aanalysis of \\(J\\) variants, the score test is distributed as a chi-square distribution with \\(J\\) degrees of freedom.  This can also be used for common variant association test which is distributed as chi-squared with one degree of freedom. 
 
 
 
