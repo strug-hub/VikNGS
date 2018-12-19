@@ -12,11 +12,11 @@ For both quantitative and binary trait analyses, a common variant test refers to
 
 Where \\(T\\) is the test statistic following a \\(\\chi^2\\) distribution and \\(S\\) is the score. This test is used to perform a genetic association analysis between the phenotype \\(Y\\) and a single variant \\(G_j\\). For testing variant \\(j\\) given \\(n\\) indivduals and phenotype vector \\(Y\\) and genotype matrix \\(G\\),
 
-:math:`S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
+    :math:`S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
 
-:math:`E(Y_i)=Y_i - \hat{Y}`
+    :math:`E(Y_i)=Y_i - \hat{Y}`
 
-\\(E(Y_i)\\) is estimated from a vector of fitted values \\(\hat{Y}\\) which is dependent on the underlying distribution of \\(Y\\) (ex. case-control vs quantatitive). With no covariates, \\(\hat{Y}=\bar{Y}\\) which is the simple average of the observed phenotypes. 
+\\(E(Y_i)\\) is estimated from a vector of fitted values \\(\\hat{Y}\\) which is dependent on the underlying distribution of \\(Y\\) (ex. case-control vs quantatitive). With no covariates, \\(\\hat{Y}=\\bar{Y}\\) which is the simple average of the observed phenotypes. 
 
 Under a case-control setting with no covariates, the score is an indication of how often the tested genotype appears in one group over the other. When coded as \\(y_{case}=1\\) and  \\(y_{control}=0\\), and genotypes coded as {0,1,2} corresponding to the number of alleles a particular individual possesses. Given this framwork, cases with the allele of interest contribute positively to the overall score and controls contribute negatively. Therefore, the more a particular allele is associated with one group, the larger the magnitude of the score.
 
