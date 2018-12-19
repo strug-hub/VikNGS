@@ -32,14 +32,14 @@ For joint variant analysis, the score statistics for \\(J\\) variants, \\(\\bold
 For the CAST- and SKAT-like tests, we recommend the use of permutation to calculate p-values. This involves shuffling the phenotype vector \\(Y\\) and recalculating the p-value many times for every variant. After iteratively calculating a set of p-values, the final p-value is calculated based on the number of values that are less than or equal to the value that was calculated for the unshuffled data set divided by the number of iterations plus 1. 
 
 .. note::
-    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`).
+    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`_).
     
     In VikNGS, these tests can be run by assuming the asymptoic distribution by setting the number of iterations to 1. Based on our testing, the results appear to be behaved but we offer no statistical guarantees.
 
 Linear Test (CAST-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`). In this  "Linear" refers to the fact that the score in this test is a linear combination of 
+This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`_). In this  "Linear" refers to the fact that the score in this test is a linear combination of 
 
 
 \item \textbf{When using true genotypes or genotype calls in conventional score test:}\\
@@ -60,4 +60,4 @@ Quadratic Test (SKAT-like)
 Likelihood Method (Coming soon)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This method refers to the test described in *Association testing for next-generation sequencing data using score statistics* _ from Skotte and Albrechtsen (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/22570057>`) Their method provides a score test where genotype calls are substituted by their expected values, \\(E(G_{ikj}\\mid D_{ikj})\\). The variance of the score test is obtained from the second derivative of the joint likelihood of the observed \\(Y_i\\) and the observed sequencing data, \\(D_{ij}\\) individual \\(i\\) at locus \\(j\\). The p-values are calculated using the asymptotic distribution of the score test. For a joint rare analysis of \\(J\\) variants, the score test is distributed as a chi-square distribution with \\(J\\) degrees of freedom.  This can also be used for common single variant association test which is distributed as chi-squared with one degree of freedom.
+This method refers to the test described in *Association testing for next-generation sequencing data using score statistics* _ from Skotte and Albrechtsen (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/22570057>`_) Their method provides a score test where genotype calls are substituted by their expected values, \\(E(G_{ikj}\\mid D_{ikj})\\). The variance of the score test is obtained from the second derivative of the joint likelihood of the observed \\(Y_i\\) and the observed sequencing data, \\(D_{ij}\\) individual \\(i\\) at locus \\(j\\). The p-values are calculated using the asymptotic distribution of the score test. For a joint rare analysis of \\(J\\) variants, the score test is distributed as a chi-square distribution with \\(J\\) degrees of freedom.  This can also be used for common single variant association test which is distributed as chi-squared with one degree of freedom.
