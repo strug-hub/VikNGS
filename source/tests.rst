@@ -32,7 +32,7 @@ For joint variant analysis, the score statistics for \\(J\\) variants, \\(\\bold
 For the CAST- and SKAT-like tests, we recommend the use of permutation to calculate p-values. This involves shuffling the phenotype vector \\(Y\\) and recalculating the p-value many times for every variant. After iteratively calculating a set of p-values, the final p-value is calculated based on the number of values that are less than or equal to the value that was calculated for the unshuffled data set divided by the number of iterations plus 1. 
 
 .. note::
-    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`_).
+    Using permutation, the smallest p-value obtainable is \\(1/{(# iterations + 1)}\\). Since this method can be very computationally expensive, an an early stopping procedure is avaliable to terminate the calculation early if the p-value appears to be > 0.05. This uses the method designed by  Jiang and Salzman (2012 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/23843675>`_).
     
     In VikNGS, these tests can be run by assuming the asymptoic distribution by setting the number of iterations to 1. Based on our testing, the results appear to be behaved but we offer no statistical guarantees.
 
