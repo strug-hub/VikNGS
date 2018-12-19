@@ -6,11 +6,10 @@ Association Tests
 Common Variant Association Test
 ----------------------------------
 
-For both quantitative and binary trait analyses, a common variant test refers to a score test which has a chi-square distribution with 1 degree of freedom under no association hypothesis. For testing the variant   
+For both quantitative and binary trait analyses, a common variant test refers to a score test which has a chi-square distribution with 1 degree of freedom under no association hypothesis. For testing the variant $$j$$ and then we try this one \\(a > 0\\) and kepe typongssfdsgfsdfg
 
-$$j$$
 
-\\(a > 0\\)
+
 
 
 :math:`j`
