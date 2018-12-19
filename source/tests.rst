@@ -8,7 +8,7 @@ Common Variant Association Test
 
 For both quantitative and binary trait analyses, a common variant test refers to a score test which has a chi-square distribution with 1 degree of freedom under no association hypothesis. For testing the variant     
 :math: $j$, let  $T_j=S^2_j/var(S_j)$ where
-    :math: S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}
+    :math: `S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
     
     
 $E(Y_i)$ is estimated from the fitted values $\hat{Y}$ of $Y$ based on the model assumed. e.g. $\hat{Y}=\bar{Y}$ when there are no covariates. This test is used to perform a genetic association analysis between the phenotype $Y$ and a single variant $G$. For ``True common" and ``Call common", the conventional variance formula of the score statistics is used.  
