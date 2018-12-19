@@ -43,19 +43,16 @@ When using expected genotypes and the vRVS methodology, the fact that data could
 Linear Test (CAST-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`_). In this  "Linear" refers to the fact that the score in this test is a linear combination of 
+This test related to the CAST method described by Morgenthaler and Thilly (2007 `🔗 <https://www.ncbi.nlm.nih.gov/pubmed/17101154>`_). In this test, a score vector of size \\(J\\) is calculated, each element corresponding to a different variant. Each score in the vector is calculated using the method described in the common variant section above. A single score value is produced by summing the elements of the score vector.
 
-
-
+.. note::
+   Since this test uses a sum of scores, it is very powerful when all variants have the same directional impact on disease risk. Combining protective and harmful variants in the same test will result in severely reduced statistical power.
 
 
 Quadratic Test (SKAT-like)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\item \textbf{When using expected genotypes:}\\
-\begin{itemize}
-\item \textbf{vRVS}: ``CAST-like" and ``"SKAT-like" refer to CAST \citep{morgenthaler:2007} and SKAT with weights $w^{1/2}=1/[MAF(1-MAF)]^{1/2}$ \citep{wu:2011}, respectively, where $E(G_{ij} \mid {D_{ij}})$ are used instead of genotype calls (MAF=minor allele frequency). Since the distribution of the expected genotypes given sequence data, $E(G_{ij} \mid {D_{ij}})$, depends on read depth, permutation is not valid. We adopted the bootstrap approach defined in \citet{derkach:2014} for binary trait analysis. We basically use centered expected genotypes for $J$ variants,  $\left[ E(G_{i1} \mid {D_{i1}})- \overline{E(G_{i1} \mid {D_{i1}})} ... E(G_{iJ} \mid {D_{iJ}})- \overline{ E(G_{iJ} \mid {D_{iJ}})} \right.]$ and sample these with replacement, separately for each read depth group. \textit{\textbf{Without covariates}}, we bootstrap on the expected genotypes only. \textit{\textbf{When covariates are added}}, we also bootstrap the added covariates, independently from expected genotypes. For quantitative trait analysis, we implement the permutation methodology defined in \citet{lin:2011} within each read depth group.
-
+This test related to the SKAT method described by Wu *et al*. (2011 `🔗 <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3135811>`_). Similar to the linear test, a score vector of size \\(J\\) is calculated, each element corresponding to a different variant. Variants are weighted based on minor allele frequency (MAF): \\(w^{1/2}=1/[MAF(1-MAF)]^{1/2})\\. The p-value is calculated using the C++ code underlying the `_CompQuadForm <https://cran.r-project.org/web/packages/CompQuadForm/index.html>`_ (Distribution Function of Quadratic Forms in Normal Variables) R library which is used in the R SKAT package.
 
 
 Likelihood Method (Coming soon)
