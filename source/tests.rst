@@ -6,11 +6,11 @@ Association Tests
 Common Single Variant Association Test
 ----------------------------------
 
-For both quantitative and binary trait analyses, a common variant test refers to a score test which has a \\(\{chi}^2\\) distribution with 1 degree of freedom under no association hypothesis. The general form of the score test appears as follows:
+For both quantitative and binary trait analyses, a common variant test refers to a score test which has a Chi-square distribution with 1 degree of freedom under no association hypothesis. The general form of the score test appears as follows:
 
     :math:`T={{S^2} \over var(S)}`
 
-Where \\(T\\) is the test statistic following a \\({\chi}^2\\) distribution and \\(S\\) is the score. This test is used to perform a genetic association analysis between the phenotype \\(Y\\) and a single variant \\(G_j\\). For testing variant \\(j\\) given \\(n\\) indivduals and phenotype vector \\(Y\\) and genotype matrix \\(G\\),
+Where \\(T\\) is the test statistic following a \\(\\chi^2\\) distribution and \\(S\\) is the score. This test is used to perform a genetic association analysis between the phenotype \\(Y\\) and a single variant \\(G_j\\). For testing variant \\(j\\) given \\(n\\) indivduals and phenotype vector \\(Y\\) and genotype matrix \\(G\\),
 
 :math:`S_j=\sum_{i=1}^n(Y_i-E(Y_i))G_{ij}`
 
