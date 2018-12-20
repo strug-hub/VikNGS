@@ -36,10 +36,8 @@ Running Command Line
 
 From the command line, run the following commands:
 
-.. code-block:: bash
-  git clone https://github.com/ScottMastro/vikNGS.git
-  cd vikNGS/bin
-
-.. code-block:: bash
-  make
+``wget -O vikNGS https://github.com/ScottMastro/vikNGS/archive/master.zip``
+``unzip vikNGS``
+``cd vikNGS/bin``
+``make``
 
