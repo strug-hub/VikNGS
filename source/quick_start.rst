@@ -36,8 +36,13 @@ Running Command Line
 
 From the command line, run the following commands:
 
-| ``wget -O vikNGS https://github.com/ScottMastro/vikNGS/archive/master.zip``
-| ``unzip vikNGS``
-| ``cd vikNGS/bin``
+| ``wget https://github.com/ScottMastro/vikNGS/archive/master.zip``
+| ``unzip master.zip``
+| ``cd vikNGS-master/bin``
 | ``make``
+
+To test the binary executable file, try running the following command:
+
+| ``./vikNGS --vcf example.vcf --sample example_info.txt``
+
 
