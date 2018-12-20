@@ -23,7 +23,7 @@ Effect size (odds ratio for case-control and \\(R^2\\) correlation for quantitat
 
 Phenotype and Cohort Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- High/low cut-off defines the value which discriminates between high and low read depth groups. A high/low cut-off of 30 indicates that cohorts with a mean read depth less than 30x will be considered a low read depth cohort. This parameter is used by vRVS. Changing the number of steps alters the sample size increment on the cohort table (e.g. given a sample size of 500:1500 defined for controls and steps=3, three sets of simulations will run with the number of controls as 500, 1000 and 1500). The results will be saved and plotted on the sample size versus power graph.  
+High/low cut-off defines the value which discriminates between high and low read depth groups. A high/low cut-off of 30 indicates that cohorts with a mean read depth less than 30x will be considered a low read depth cohort. This parameter is used by vRVS. Changing the number of steps alters the sample size increment on the cohort table (e.g. given a sample size of 500:1500 defined for controls and steps=3, three sets of simulations will run with the number of controls as 500, 1000 and 1500). The results will be saved and plotted on the sample size versus power graph.  
 
 Output
 ------------------------------
