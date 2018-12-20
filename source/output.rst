@@ -19,4 +19,4 @@ Filtered File
 
 The structure is as follows:
 
-``Chromosome  Position  Reference Alternative Explaination``
+``Chromosome      Position     Reference    Alternative    Explaination``
