@@ -72,13 +72,13 @@ Variants which do not contain "*PASS*" in the **FILTER** column of the VCF are f
 Read Depth High/Low Cutoff
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Samples with read depth above this threshold are considered high read depth samples (default=30). This is only used for the vRVS test if reaad depth values are provided in the sample infomation file.
+Samples with read depth above this threshold are considered high read depth samples (default=30). This is only used for the vRVS test if read depth values are provided in the sample infomation file.
 
 
 Collapse Variants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See information on the :ref:`BED file section <bed_file>` on the Inout page for details. 
+See information on the :ref:`BED file section <bed_file>` on the Input page for details. 
 
 
 Testing Parameters
@@ -111,4 +111,4 @@ Retain Genotypes
 This setting will store genotypes parsed from the VCF file in memory and will enable exploration of these values after p-values have been calculated.
 
 .. warning::
-    Retaining all genotypes is extremely memory-intesnive since a large amount of the data from the VCF file is being stored in memory simultantously. Please only use this option for small datasets or on machines with very large amounts of memory. 
+    Retaining all genotypes is extremely memory-intensive since a large amount of the data from the VCF file is being stored in memory simultaneously. Please only use this option for small datasets or on machines with very large amounts of memory. 
