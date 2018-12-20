@@ -4,12 +4,12 @@ Choosing Parameters
 Command Line Parameters
 ------------------------------
 
-A command line version of vikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a :ref:`multisample VCF file <multisample_vcf>` and corresponding :ref:`sample information file <sample_info>`. By default, the command will run a common association tests on a single thread.
+A command line version of vikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a :ref:`multi-sample VCF file <multisample_vcf>` and corresponding :ref:`sample information file <sample_info>`. By default, the command will run a common association tests on a single thread.
 
 ==================== ================= =============== 
 Parameter            Value/Default     Description
 ==================== ================= ===============
-**-\\-vcf, -i**      [DIRECTORY]       Directory of a multisample VCF file (required)   
+**-\\-vcf, -i**      [DIRECTORY]       Directory of a multi-sample VCF file (required)   
 **-\\-sample, -g**   [DIRECTORY]       Directory of a file containing sample information (required)
 **-\\-bed,-b**       [DIRECTORY]       directory of a BED file for collapsing variants
 **-\\-out, -o**      [DIRECTORY]= .    Directory for output (defaults to current directory)
@@ -31,8 +31,6 @@ Parameter            Value/Default     Description
 **-\\-threads, -t**  [INT]=1           Number of threads
 **-\\-batch, -h**    [INT]=1000        Number of variants to read from VCF before beginning tests
 ==================== ================= ===============
-
-TODO: TEST THESE EXAMPLES
 
 **Example 1.** Running a common test on 16 threads for variants on chromosome 7 with minor allele frequency > 10% and ignoring what is in the **FILTER** column of the VCF: ::
 
@@ -56,7 +54,7 @@ While reading the VCF file, vikNGS computes an allele frequency for each variant
 Missing Data Threshold 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Variants may have ambiguous or missing genotype information (ex. **GT** = ./.) for some of the individuals in the multisample VCF file. If too much data is missing, association tests may produce misleading results. Any variant that is missing more data than this threshold will be excluded from testing. The default value is 0.1 which means if more than 10% of sample calls cannot be determined, the variant will be ignored.
+Variants may have ambiguous or missing genotype information (ex. **GT** = ./.) for some of the individuals in the multi-sample VCF file. If too much data is missing, association tests may produce misleading results. Any variant that is missing more data than this threshold will be excluded from testing. The default value is 0.1 which means if more than 10% of sample calls cannot be determined, the variant will be ignored.
 
 .. note::
      If running a quantitative association test, the proportion of missing data will be calculated from all samples. In a case-control test, two proportions will be calculated (one for all cases, one for all controls) if either cases *or* controls fail to satisfy the missing threshold, the variant will be excluded.
@@ -69,38 +67,48 @@ Enables filtering of variants based on the **CHR** and **POS** values in the VCF
 Must *PASS*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Variants which do not contain *PASS* in the **FILTER** column of the VCF are filtered out. By default this filtering step is on, turning it off will cause the contents of the **FILTER** column to be ignored.
+Variants which do not contain "*PASS*" in the **FILTER** column of the VCF are filtered out. By default this filtering step is on, turning it off will cause the contents of the **FILTER** column to be ignored.
 
 Read Depth High/Low Cutoff
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
-samples with read depth above this threshold are considered high read depth samples (default=30).
+Samples with read depth above this threshold are considered high read depth samples (default=30). This is only used for the vRVS test if reaad depth values are provided in the sample infomation file.
 
 
 Collapse Variants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+See information on the :ref:`BED file section <bed_file>` on the Inout page for details. 
 
-Rare vs Common Testing
+
+Testing Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See information on the  :ref:`Tests <tests>` page for details. 
+See information on the :ref:`Tests <tests>` page for details on the tests available.
 
-Bootstrap and Early Stopping
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO
 
 Threads and Batch Size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO
+Number of threads to perform association testing on. Batch size is the number of variants to process at one time on a given thread.
+
+.. warning::
+    VikNGS will parse the VCF file line-by-line and store the data in memory. When using a large batch size, please keep in mind the memory limits of your device as these settings will determine how much memory is used.
 
 Plot Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Only available on the graphical user interface. A plotting interface will be displayed following the association testing in a new window if this setting is checked.
 
+Explain Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Writes a file that explain why filtered variants were filtered if checked. See `Output <output>` for more details. 
+
+Retain Genotypes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This setting will store genotypes parsed from the VCF file in memory and will enable exploration of these values after p-values have been calculated.
+
+.. warning::
+    Retaining all genotypes is extremely memory-intesnive since a large amount of the data from the VCF file is being stored in memory simultantously. Please only use this option for small datasets or on machines with very large amounts of memory. 
