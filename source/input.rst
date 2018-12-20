@@ -144,20 +144,17 @@ To collapse variants in a more biologically relevant way, a BED file must be pro
 
 The first three columns specify the gene 
 
-1: chrom - The name of the chromosome matching the first column in the VCF file.
-
-2: chromStart - The starting position of the gene on the chromosome (starting from 0)
-
-3: chromEnd - The ending position of the gene on the chromosome. This base is not included in the gene.
+1. chrom - The name of the chromosome matching the first column in the VCF file.
+2. chromStart - The starting position of the gene on the chromosome (starting from 0)
+3. chromEnd - The ending position of the gene on the chromosome. This base is not included in the gene.
 
 For example, to specify the first 250 bases on chromosome 4:
 chr4    0    250
 
 The next six column are specified by the BED format but are not used in variant collapsing:
 
-4: name - Optional identifier for this region.
-
-5: score -  Not used.
+4. name - Optional identifier for this region.
+5. score -  Not used.
 
 6: strand - Not used.
 
