@@ -144,33 +144,27 @@ To collapse variants in a more biologically relevant way, a BED file must be pro
 
 The first three columns specify the gene 
 
-1. chrom - The name of the chromosome matching the first column in the VCF file.
-2. chromStart - The starting position of the gene on the chromosome (starting from 0)
-3. chromEnd - The ending position of the gene on the chromosome. This base is not included in the gene.
+1. **chrom** - The name of the chromosome matching the first column in the VCF file.
+2. **chromStart** - The starting position of the gene on the chromosome (starting from 0)
+3. **chromEnd** - The ending position of the gene on the chromosome. This base is not included in the gene.
 
 For example, to specify the first 250 bases on chromosome 4:
 chr4    0    250
 
 The next six column are specified by the BED format but are not used in variant collapsing:
 
-4. name - Optional identifier for this region.
-5. score -  Not used.
-
-6: strand - Not used.
-
-7: thickStart - Not used.
-
-8: thickEnd - Not used.
-
-9: itemRgb - Not used.
+4. **name** - Optional identifier for this region.
+5. **score** -  Not used.
+6. **strand** - Not used.
+7. **thickStart** - Not used.
+8. **thickEnd** - Not used.
+9. **itemRgb** - Not used.
 
 The last three columns are potentially used if collapsing:
 
-10: blockCount - The number of blocks (exons) in the gene.
-
-11: blockSizes - The size of each exon, comma separated list the size of blockCount.
-
-12: blockStarts - Positions where each exon should begin, relative to chromStart. Comma separated list the size of blockCount
+10. **blockCount** - The number of blocks (exons) in the gene.
+11. **blockSizes** - The size of each exon, comma separated list the size of blockCount.
+12. **blockStarts** - Positions where each exon should begin, relative to chromStart. Comma separated list the size of blockCount
 
 
 To collapse variants by gene, the first three columns are required to indicate where each gene begins and ends.
