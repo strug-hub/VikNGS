@@ -96,14 +96,6 @@ When running an association test in VikNGS, different genotype values can potent
 .. note::
     Note that if **GT** values are indicated as “missing” (ex. ./.) then the variant will be skipped even if values for **GL** and **PL** are present.
 
-.. _make_vcf:
-
-Generating a Multisample VCF
-------------------------------------
-
-COMING SOON
-
-
 .. _sample_info:
 
 Sample Information File
@@ -128,7 +120,6 @@ Group ID
 ~~~~~~~~
 Use this column to specify if samples are from different groups or studies. Any samples with the same value in the column will be put in the same group.
 
-
 Read Depth
 ~~~~~~~~~~
 If using the expected genotype method, the score test calculates the variance for each group separately and needs to be aware of which groups are high read depth versus low read depth. The read depth of each sample must be specified in this column. The numerical read depth value (ex. 32) can be provided for each sample or simply a letter specifying whether a sample is from a high or low sequencing run (H = high, L = low). Note that all samples with a shared group ID must also share high/low read depth status. Therefore, the first read depth value encountered for a group will be applied to all members of that group.
@@ -137,26 +128,26 @@ Covariates
 ~~~~~~~~~~
 The remaining columns are used to specify covariates. Covariates can either be continuous or categorical. If every value in a covariate column is numeric, the column will be treated as a continuous covariate. If a single non-numeric value is identified, the covariate will be treated as categorical and a new dummy covariate will be made for EVERY unique value (high cardinality categorical variables can result in significantly longer computation time).
 
-
 BED File (Optional)
 -----------------------
 
 Elucidation of associated rare variants can be challenging because the frequency of the associated allele can be extremely low. To improve the power of statistical tests that identify rare alleles, it is necessary to collapse a group of linked variants and perform the association test on a genetic region rather than individual SNPs. For rare variant association in vikiNGS, a collapsing strategy must be specified.
 
-There are four types of collapsing strategies available:
-Collapse every k
-Collapse by gene
-Collapse by coding region
-Collapse by exon
+There are three types of collapsing strategies available:
+- Collapse every \\(k\\)
+- Collapse by gene
+- Collapse by exon
 
-By default, the variants will be read and filtered from an input VCF file. After the filtering step, the first kth variants will be collapsed together, followed by the next set of k non-overlapping variants and so on (k=5 by default).
+By default, the variants will be read and filtered from an input VCF file. After the filtering step, the first \\(k\\)th variants will be collapsed together, followed by the next set of \\(k\\) non-overlapping variants and so on (\\(k=5\\) by default).
 
-To collapse variants in a more biologically relevant way, a BED file must be provided specifying the collapsible regions. A BED file is a tab-delimited which describes genomic features intended to be used for visualization in a genome browser. The format is specified by UCSC Genome Bioinformatics, detailed information can be found on their web page. Every line describes a single region as follows
+To collapse variants in a more biologically relevant way, a BED file must be provided specifying the collapsible regions. A BED file is a tab-delimited table which describes genomic features intended to be used for visualization in a genome browser. The format is specified by UCSC Genome Bioinformatics, detailed information can be found on their `web page <https://genome.ucsc.edu/FAQ/FAQformat.html>`_ web page. Every line describes a single region as follows
 
 The first three columns specify the gene 
 
-1:chrom - The name of the chromosome matching the first column in the VCF file.
+1: chrom - The name of the chromosome matching the first column in the VCF file.
+
 2: chromStart - The starting position of the gene on the chromosome (starting from 0)
+
 3: chromEnd - The ending position of the gene on the chromosome. This base is not included in the gene.
 
 For example, to specify the first 250 bases on chromosome 4:
@@ -165,20 +156,29 @@ chr4    0    250
 The next six column are specified by the BED format but are not used in variant collapsing:
 
 4: name - Optional identifier for this region.
+
 5: score -  Not used.
+
 6: strand - Not used.
+
 7: thickStart - Not used.
+
 8: thickEnd - Not used.
+
 9: itemRgb - Not used.
 
-The last three columns are used if collapsing:
+The last three columns are potentially used if collapsing:
 
 10: blockCount - The number of blocks (exons) in the gene.
+
 11: blockSizes - The size of each exon, comma separated list the size of blockCount.
+
 12: blockStarts - Positions where each exon should begin, relative to chromStart. Comma separated list the size of blockCount
 
 
 To collapse variants by gene, the first three columns are required to indicate where each gene begins and ends.
 
-To collapse variants by coding region or by exon, all twelve columns must be present. The coding region is defined to be where the first block/exon starts to where the last one ends. Each exon is specified by a block and variants within that block will be collapsed.
+To collapse variants by exon, all twelve columns must be present. The coding region is defined to be where the first block/exon starts to where the last one ends. Each exon is specified by a block and variants within that block will be collapsed.
+
+.. warning:: Genes and exons can be very large and could contain thousands of variants to collapse in a single test. This can cause large computational burden, especially if a permutation test is used to calculate the p-value. Therefore, a maximum collapse size can be specified. Variants will be collapsed into a single test until the maximum size is reached and subsequent variants will be put into a new collapsed set.
 
