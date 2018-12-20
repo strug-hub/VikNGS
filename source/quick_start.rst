@@ -36,8 +36,8 @@ Running Command Line
 
 From the command line, run the following commands:
 
-``wget -O vikNGS https://github.com/ScottMastro/vikNGS/archive/master.zip``
-``unzip vikNGS``
-``cd vikNGS/bin``
-``make``
+| ``wget -O vikNGS https://github.com/ScottMastro/vikNGS/archive/master.zip``
+| ``unzip vikNGS``
+| ``cd vikNGS/bin``
+| ``make``
 
