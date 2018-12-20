@@ -57,6 +57,9 @@ Filter filterByGenotypes(Request* req, Variant& variant, VectorXd& Y, Family fam
         VectorXd* X = variant.getGenotype(gt);
         if(!missingTest(X, Y, req->getMissingThreshold(), family))
             return Filter::MISSING_DATA;
+
+        if(!checkVariability(X))
+            return Filter::NO_VARIATION;
     }
 
     return Filter::VALID;
@@ -132,7 +135,7 @@ Filters variants based on minor allele frequency. Removes rare or common variant
 @param keepCommon Indicates whether to keep common or rare variants, (common = true, rare = false).
 @return True if variant is valid.
 */
-inline bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon) {
+bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon) {
 
     double maf = 0.5 * P->coeff(1) + P->coeff(2);
 
@@ -144,4 +147,28 @@ inline bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon) {
     else
         return false;
 
+}
+
+bool checkVariability(VectorXd* X){
+
+    double mean = 0;
+    double n = 0;
+    for(int i = 0; i < X->rows(); i++)
+        if(!std::isnan((*X)[i])){
+            mean += (*X)[i];
+            n++;
+        }
+
+    if(n < 2)
+        return false;
+
+    mean = mean/n;
+    double var = 0;
+
+    for(int i = 0; i < X->rows(); i++)
+        if(!std::isnan((*X)[i]))
+            var += ((*X)[i] - mean) * ((*X)[i] - mean);
+
+    var = var/(n-1);
+    return var > 1e-6;
 }

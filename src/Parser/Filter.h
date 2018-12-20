@@ -16,7 +16,8 @@ inline bool validBase(std::string &base) {
 Filter filterByVariantInfo(Request * req, std::string &chrom, std::string &pos, std::string &ref, std::string &alt, std::string &filter);
 Filter filterByGenotypes(Request *req, Variant &variant, VectorXd &Y, Family family);
 
-inline bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon);
+bool mafTest(Vector3d* P, double mafCutoff, bool keepCommon);
+bool checkVariability(VectorXd* X);
 bool missingTestCaseControl(VectorXd* X, VectorXd &Y, double missingThreshold);
 bool missingTestQuantitative(VectorXd* X, double missingThreshold);
 

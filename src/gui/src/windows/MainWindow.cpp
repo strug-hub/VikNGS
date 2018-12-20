@@ -194,8 +194,7 @@ void MainWindow::on_main_randomBtn_pressed(){
      plotter->show();
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *e)
-{
+void MainWindow::keyPressEvent(QKeyEvent *e){
     if ( (e->key() == Qt::Key_Ampersand)  && QApplication::keyboardModifiers() && Qt::ControlModifier){
         if(ui->sim_covariateChk->isVisible())
             setCovariateMode(false);
@@ -209,8 +208,6 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
     }
 }
 
-void MainWindow::on_pushButton_pressed()
-{
+void MainWindow::on_pushButton_pressed(){
     QDesktopServices::openUrl(QUrl("https://vikngsdocs.readthedocs.io/en/latest/index.html"));
-
 }

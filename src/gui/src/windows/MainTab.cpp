@@ -267,7 +267,7 @@ Request MainWindow::createRequest(){
     bool collapseExon = ui->main_bedCollapseExonBtn->isChecked();
     //bool collapseK = ui->main_bedCollapseKBtn->isChecked();
 
-    if(req.useBootstrap()){
+    if(ui->main_testRareSkatBtn->isChecked() || ui->main_testRareCastBtn->isChecked()){
         std::string everyk = ui->main_bedCollapseKTxt->text().toStdString();
         int k = toInt("Collapse k value", everyk);
         everyk = toString(k);
