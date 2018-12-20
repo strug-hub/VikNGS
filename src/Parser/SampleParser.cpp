@@ -40,7 +40,7 @@ bool validateSampleIDs(std::string sampleDir, std::map<std::string, int> &IDmap)
         if (lineSplit.size() < 2)
             break;
 
-        std::string sampleID = lineSplit[ID_COL];
+        std::string sampleID = trim(lineSplit[ID_COL]);
 
         if(ID.count(sampleID) > 0){
             std::string message = "Line " + std::to_string(lineIndex) +

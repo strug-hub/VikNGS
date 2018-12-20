@@ -45,8 +45,8 @@ public:
         this->genotypes[GenotypeSource::CALL] = calculateGenotypeCalls(likelihoods, P[GenotypeSource::CALL]);
     }
     inline void setTrueGenotypes(VectorXd& gt) {
-        P[GenotypeSource::TRUE] = calculateGenotypeFrequencies(gt);
-        this->genotypes[GenotypeSource::TRUE] = gt;
+        P[GenotypeSource::TRUEGT] = calculateGenotypeFrequencies(gt);
+        this->genotypes[GenotypeSource::TRUEGT] = gt;
     }
     inline void setVCFCallGenotypes(VectorXd& gt) {
         P[GenotypeSource::VCF_CALL] = calculateGenotypeFrequencies(gt);

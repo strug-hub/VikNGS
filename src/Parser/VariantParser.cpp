@@ -61,7 +61,7 @@ std::map<std::string, int> getSampleIDMap(std::string vcfDir) {
 
     for (size_t i = 0; i < ID.size(); i++) {
         if (flag) {
-            IDmap[ID[i]] = count;
+            IDmap[trim(ID[i])] = count;
             count++;
         }
         else if (ID[i] == "FORMAT")

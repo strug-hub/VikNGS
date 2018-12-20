@@ -53,7 +53,7 @@ public:
                 break;
             case GenotypeSource::CALL : part1 = "Genotype Calls"; break;
             case GenotypeSource::VCF_CALL : part1 = "VCF Calls"; break;
-            case GenotypeSource::TRUE : part1 = "True Genotypes"; break;
+            case GenotypeSource::TRUEGT : part1 = "True Genotypes"; break;
             default: part1 = "???"; break;
         }
         switch(statistic)
@@ -77,7 +77,7 @@ public:
                 break;
             case GenotypeSource::CALL : part1 = "Call"; break;
             case GenotypeSource::VCF_CALL : part1 = "VCF"; break;
-            case GenotypeSource::TRUE : part1 = "True"; break;
+            case GenotypeSource::TRUEGT : part1 = "True"; break;
             default: part1 = "???"; break;
         }
         switch(statistic)

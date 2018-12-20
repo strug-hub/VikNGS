@@ -10,6 +10,7 @@ Removes whitespace from a string
 */
 std::string trim(std::string str){
     str.erase(std::remove(str.begin(), str.end(), '\t'), str.end());
+    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
     return str;
 }

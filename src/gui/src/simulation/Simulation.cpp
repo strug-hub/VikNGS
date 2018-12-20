@@ -202,7 +202,7 @@ Data startSimulation(SimulationRequest& simReq) {
     printInfo("Starting tests...");
 
     std::vector<TestSettings> tests;
-    TestSettings trueGT(GenotypeSource::TRUE, simReq.testStatistic, Variance::REGULAR);
+    TestSettings trueGT(GenotypeSource::TRUEGT, simReq.testStatistic, Variance::REGULAR);
     TestSettings expectedGT(GenotypeSource::EXPECTED, simReq.testStatistic, Variance::RVS);
     TestSettings calledGT(GenotypeSource::CALL, simReq.testStatistic, Variance::REGULAR);
 
