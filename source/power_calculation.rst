@@ -2,9 +2,9 @@ Power Simulation Package
 ==================================
 Power simulation package can be used for two purposes:
 
-Type I error: The user can test the performance of the association tests with respect to the control of Type I error under different sequencing settings, e.g. different combinations of read depths with varying sample sizes, different base calling errors. In this setting odds ratio ((\\OR\\)) for a binary trait analysis is set to 1, and the proportion of variation explained by the genetic effect (\\(R^2\\)-coefficient of determination) for quantitative trait analysis is set to 0.
+Type I error: The user can test the performance of the association tests with respect to the control of Type I error under different sequencing settings, e.g. different combinations of read depths with varying sample sizes, different base calling errors. In this setting odds ratio (\\(OR\\)) for a binary trait analysis is set to 1, and the proportion of variation explained by the genetic effect (\\(R^2\\)-coefficient of determination) for quantitative trait analysis is set to 0.
 
-Power analysis: The user can calculate the minimum sample size required to detect a prespecified effect size, e.g. (\\OR=1.2\\) for a binary trait analysis and (\\(R^2=0.1\\) for quantitative trait analysis. 
+Power analysis: The user can calculate the minimum sample size required to detect a prespecified effect size, e.g. \\(OR=1.2\\) for a binary trait analysis and (\\(R^2=0.1\\) for quantitative trait analysis. 
 
 Parameters
 ------------------------------
