@@ -1,22 +1,26 @@
+.. _parameters:
+
 Choosing Parameters
 ==================================
 
 Command Line Parameters
-------------------------------
+-----------------------------
 
 A command line version of vikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a :ref:`multi-sample VCF file <multisample_vcf>` and corresponding :ref:`sample information file <sample_info>`. By default, the command will run a common association tests on a single thread.
+
+Run ``vikNGS -h`` for the list of relevant commands.
 
 ==================== ================= =============== 
 Parameter            Value/Default     Description
 ==================== ================= ===============
-**-\\-vcf, -i**      [DIRECTORY]       Directory of a multi-sample VCF file (required)   
-**-\\-sample, -g**   [DIRECTORY]       Directory of a file containing sample information (required)
+**-\\-vcf, -v**      [DIRECTORY]       Directory of a multi-sample VCF file (required)   
+**-\\-sample, -i**   [DIRECTORY]       Directory of a file containing sample information (required)
 **-\\-bed,-b**       [DIRECTORY]       directory of a BED file for collapsing variants
 **-\\-out, -o**      [DIRECTORY]= .    Directory for output (defaults to current directory)
 **-\\-help, -h**                       Print a help message and exit
 **-\\-common, -c**                     Perform a common variant association test (default)
 **-\\-rare, -r**     [TEST NAME]       Perform a rare variant association test
-**-\\-boot, -n**     [INT]=1000         Number of bootstrap iterations to calculate
+**-\\-boot, -n**     [INT]=1000        Number of bootstrap iterations to calculate
 **-\\-stop, -s**                       Stop bootstrapping if p-value looks to be > 0.05
 **-\\-collapse, -k** [INT]=5           Collapse every k variants (rare only)
 **-\\-gene**                           Collapse variants by gene if BED file specified (default)
@@ -38,8 +42,7 @@ Parameter            Value/Default     Description
 
 **Example 2.** Running a rare test (CAST) on 4 threads, collapsing variants along genes and using one million bootstrap iterations with early stopping: ::
 
-    ./vikNGS --vcf [...] --sample [...] --bed [...] -r CAST --gene -n 1000000 --stop -t 4
-
+    ./vikNGS --vcf [...] --sample [...] --bed [...] -r cast --gene -n 1000000 --stop -t 4
 
 .. _explain_param:
 
@@ -86,6 +89,8 @@ Testing Parameters
 
 See information on the :ref:`Tests <tests>` page for details on the tests available.
 
+.. _note:
+    Use ``-r cast`` and ``-r skat`` for the CAST-like and SKAT-like tests, respectively.
 
 Threads and Batch Size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
