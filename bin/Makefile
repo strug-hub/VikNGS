@@ -1,4 +1,4 @@
-CC=g++ -std=c++11 -D_GNU_SOURCE 
+CC=g++ -std=c++11 -O3 -D_GNU_SOURCE 
 CFLAGS=-c
 SOURCE=../src/
 CMD=cmd/

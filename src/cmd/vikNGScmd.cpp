@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
             printInfo("Preparing to run rare variant association (SKAT p-values, expected GT/vRVS)...");
         }
     }
-    else if(common){
+    else{
         if(lower(gt) == "call"){
             req.addTest(TestSettings(GenotypeSource::CALL, Statistic::COMMON, Variance::REGULAR));
             printInfo("Preparing to run common variant association (called genotypes)...");
