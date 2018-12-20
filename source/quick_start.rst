@@ -34,9 +34,8 @@ In the same directory where the VikNGS-X.X.X application lives, two example file
 Running Command Line
 ------------------------------
 
-From the command line, run the following commands:
+From the command line, run the following commands::
 
-.. code::
   git clone https://github.com/ScottMastro/vikNGS.git
   cd vikNGS/bin
   make
