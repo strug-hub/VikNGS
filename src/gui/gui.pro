@@ -295,7 +295,7 @@ HEADERS += \
     ../Test/Genotype.h \
     ../Test/Phenotype.h \
     src/windows/VikngsUiConstants.h \
-    ../Enum/Test.h \
+    ../Enum/TestSettings.h \
     ../Enum/CollapseType.h \
     ../Enum/Depth.h \
     ../Enum/Family.h \
