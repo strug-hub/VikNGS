@@ -28,10 +28,15 @@ If there is an issue running the software, we recommend trying a different syste
 Running Example on User Interface
 ------------------------------
 
+In the same directory where the VikNGS-X.X.X application lives, two example files are present. On the Association Test tab of VikNGS, provide *example.vcf* as input in the section labelled "VCF File" and *example_info.txt* as input in the section labelled "Sample Information File". Clicking the "RUN" button should then trigger the association tests using these files as input.
+
 
 Running Command Line
 ------------------------------
 
+From the command line, run the following commands:
 
-Running Example on Command Line
-------------------------------
+git clone https://github.com/ScottMastro/vikNGS.git
+cd vikNGS/bin
+make
+
