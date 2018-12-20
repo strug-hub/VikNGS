@@ -8,7 +8,7 @@ Quick Summary
 
 VikNGS takes 3 different file types as input:
 
-- a multisample VCF that provides genotype information
+- a multi=sample VCF that provides genotype information
    - genotype information is extracted from **GL** (preferred), **PL**, and **GT** fields
 - a tab-separated sample information text file containing phenotype and covariate information
    - must be created by user ref:`see column details code<sample_info>` for what this file should contain
@@ -16,28 +16,27 @@ VikNGS takes 3 different file types as input:
    - genes and exons specified in the file can be used to define regions to collapse upon
    - can be generated automatically from the `UCSC Table Browser <http://genome.ucsc.edu/cgi-bin/hgTables>`_
 
-Below, the different types of files are explained in further detail.
-
+Below, the different types of files are explained in further detail.-
 
 .. _multisample_vcf:
 
-Multisample VCF
+Multi-sample VCF
 ---------------
 
 A Variant Call Format (VCF) file is a standard way of storing variant information called from sequencing data. Each row of a VCF file corresponds to a genetic variant (insertion, deletion or substitution) and contains information such as the genomic position of the variant, the confidence in the variant call and many other additional annotations.
 
-A multisample VCF is formatted identically to a single-sample VCF except it contains an extra set of columns corresponding to sample-specific data.
+A multi-sample VCF is formatted identically to a single-sample VCF except it contains an extra set of columns corresponding to sample-specific data.
 
 .. figure:: resources/vcf_layout.png
    :alt: Multsample VCF Layout
    :align: center
 
-   The general layout of a multisample VCF file.
+   The general layout of a multi-sample VCF file.
 
 The first set of lines in a VCF file make up the header and are denoted by the characters *##*. The header includes information about the data source and how the VCF file was constructed. This information is ignored when by VikNGS. The last line of the header is denoted with a single *#* and includes the column names in addition to a unique identifier for every sample. The first nine columns must be (tab-delimited, in order) **CHROM**, **POS**, **ID**, **REF**, **ALT**, **QUAL**, **FILTER**, **INFO** and **FORMAT**. Every subsequent value is expected to be a unique sample identifier.
 
 .. code-block:: python
-   :caption: *Example of a multisample VCF*
+   :caption: *Example of a multi-sample VCF*
 
     ##fileformat=VCFv4.1
     ##FILTER=<ID=PASS,Description="All filters passed">
@@ -127,6 +126,8 @@ If using the expected genotype method, the score test calculates the variance fo
 Covariates
 ~~~~~~~~~~
 The remaining columns are used to specify covariates. Covariates can either be continuous or categorical. If every value in a covariate column is numeric, the column will be treated as a continuous covariate. If a single non-numeric value is identified, the covariate will be treated as categorical and a new dummy covariate will be made for EVERY unique value (high cardinality categorical variables can result in significantly longer computation time).
+
+.. _bed_file:
 
 BED File (Optional)
 -----------------------
