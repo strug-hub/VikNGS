@@ -8,7 +8,7 @@ Compiling the VikNGS User Interface
 
 The VikNGS source code is contained in ``vikNGS/src/`` and the files specific to the graphical user interface (GUI) are found in ``vikNGS/src/gui``. To build the GUI version of the software, we recommend downloading and installing `QT 5.11+ and QT Creator <http://doc.qt.io/qt-5/index.html>`_. 
 
-Open QT Creator after downloading and press the "Open Project" button to load the user interface QT project. Navigate to the directory where the vikNGS was downloaded and load the file ``vikNGS/src/gui/gui.pro``. This should load the source code and prompt you to choose a compiler. After selecting a compiler, the 
+Open QT Creator after downloading and press the "Open Project" button to load the user interface QT project. Navigate to the directory where the vikNGS was downloaded and load the file ``vikNGS/src/gui/gui.pro``. This should load the source code and prompt you to choose a compiler. After selecting a compiler, the program can be build by switching to "Release" mode and pressing the top green arrow as seen below:
 
 .. figure:: resources/qt_build.png
    :target: source_code.html
