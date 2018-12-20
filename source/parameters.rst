@@ -89,7 +89,7 @@ Testing Parameters
 
 See information on the :ref:`Tests <tests>` page for details on the tests available.
 
-.. _note:
+.. note::
     Use ``-r cast`` and ``-r skat`` for the CAST-like and SKAT-like tests, respectively.
 
 Threads and Batch Size
