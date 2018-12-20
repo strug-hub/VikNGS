@@ -14,18 +14,11 @@ Open QT Creator after downloading and press the "Open Project" button to load th
    :target: source_code.html
    :alt: QT build button
 
+This should begin compiling the code (will take a few minutes) and will automatically open a window when it is complete.
+
 Compiling the VikNGS Command Line Tool
 ------------------------------
 
-A Makefile is provided to compile the code for command line use. The command line-specific files are contained in ``vikNGS/src/cmd`` 
+The command line-specific files are contained in ``vikNGS/src/cmd``. A Makefile is provided to compile the code for command line use and can be found in ``vikNGS/bin``. Simply going into this ``bin`` directory and typing ``make`` from the command line will begin compiling the code.
 
-From the command line, run the following commands:
-
-| ``wget https://github.com/ScottMastro/vikNGS/archive/master.zip``
-| ``unzip master.zip``
-| ``cd vikNGS-master/bin``
-| ``make``
-
-To test the binary executable file, try running the following command:
-
-| ``./vikNGS --vcf example.vcf --sample example_info.txt``
+.. note:: g++ and C++11 or later is required.
