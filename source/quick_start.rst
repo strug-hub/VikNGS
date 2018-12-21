@@ -21,8 +21,7 @@ If there is an issue running the software, we recommend trying a different syste
 Running Example on User Interface
 ------------------------------
 
-In the same directory where the VikNGS-X.X.X application lives, two example files are present. On the Association Test tab of VikNGS, provide *example.vcf* as input in the section labelled "VCF File" and *example_info.txt* as input in the section labelled "Sample Information File". Clicking the "RUN" button should then trigger the association tests using these files as input.
-
+In the same directory where the VikNGS-X.X.X application is found, two example files are present. Within the VikNGS interface, provide *example.vcf* as input in the section labelled "VCF File" and *example_info.txt* as input in the section labelled "Sample Information File". Clicking the "RUN" button should then trigger the association tests using these files as input.
 
 Running Command Line
 ------------------------------
@@ -37,5 +36,3 @@ From the command line, run the following commands:
 To test the binary executable file, try running the following command:
 
 | ``./vikNGS --vcf example.vcf --sample example_info.txt``
-
-
