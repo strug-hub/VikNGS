@@ -35,4 +35,4 @@ From the command line, run the following commands:
 
 To test the binary executable file, try running the following command:
 
-| ``./vikNGS --vcf example.vcf --sample example_info.txt``
+| ``./vikNGS --vcf ../example/example.vcf --sample ../example/example_info.txt``
