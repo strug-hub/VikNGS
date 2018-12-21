@@ -49,3 +49,6 @@ Temporary Items
 *.tlog
 *.ipch
 *.log
+
+# Other
+*.o
