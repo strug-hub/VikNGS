@@ -1,4 +1,4 @@
-[[https://github.com/ScottMastro/vikNGS/blob/master/src/gui/resources/vikngs_logo.png|alt=vikNGS]]
+![vikNGS logo](https://github.com/ScottMastro/vikNGS/blob/master/src/gui/resources/vikngs_logo.png)
 
 # VikNGS - Variant Integration Kit for NGS
 
