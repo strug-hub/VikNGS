@@ -1,3 +1,5 @@
+[[https://github.com/ScottMastro/vikNGS/blob/master/src/gui/resources/vikngs_logo.png|alt=vikNGS]]
+
 # VikNGS - Variant Integration Kit for NGS
 
 VikNGS was designed for association analysis of next generation sequencing data integrated across different studies. Combining cohorts with systematic differences in read depth can result in spurious association results. VikNGS features a robust variance score test (vRVS) which uses expected genotypes rather than hard genotype call. 
