@@ -53,3 +53,4 @@ Temporary Items
 # Other
 *.o
 *pro.user
+*.Rhistory
