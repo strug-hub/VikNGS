@@ -25,7 +25,7 @@ This file explains which variants were filtered prior to testing and the reasoni
 
 ``Chromosome  Position  Reference Alternative Explanation``
 
-The explanation values refer to the following:
+The ``Explanation`` values refer to the following:
 
 - Invalid information: variant was not properly parsed from the VCF file
 - Not SNP: variant was filtered for not being a single nucleotide polymorphism
