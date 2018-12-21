@@ -10,7 +10,7 @@ Data startVikNGS(Request req) {
 
     printInfo("Starting vikNGS...");
 
-    initializeOutputFiles(req.getOutputDir());
+    initializeOutputFiles(req.getOutputDir(), req.getRequestName());
 
     printInfo("Parsing files...");
 
@@ -33,7 +33,7 @@ Data startVikNGS(Request req) {
     result.evaluationTime = elapsed.count();
     result.processingTime = 0;
 
-    outputPvals(result.variants, req.getOutputDir(), result.tests);
+    outputPvals(result.variants, req.getOutputDir(), result.tests, req.getRequestName());
     printInfo("Results written to " + req.getOutputDir());
     return result;
 }

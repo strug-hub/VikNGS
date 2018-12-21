@@ -90,6 +90,9 @@ int main(int argc, char* argv[]) {
     CLI::Option *h = app.add_option("-a,--batch", batch, "Processes VCF in batches of this many variants");
     h->check(CLI::Range(1, 2147483647));
 
+    bool showFiltered = false;
+    CLI::Option *filt = app.add_flag("--explain-filter", showFiltered, "Output explaination for filtered variants");
+
     // -------------------------------------
 
     // -------------------------------------
@@ -230,6 +233,8 @@ int main(int argc, char* argv[]) {
         printInfo("Using " + std::to_string(threads) + " threads");
     }
     req.setNumberThreads(threads);
+
+    req.setKeepFiltered(showFiltered);
 
     startVikNGS(req);
     return 0;

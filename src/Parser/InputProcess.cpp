@@ -393,7 +393,7 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t&
             }
 
             if(filtered.size() > 0)
-                outputFiltered(filtered, req.getOutputDir());
+                outputFiltered(filtered, req.getOutputDir(), req.getRequestName());
 
         }
         if(lines.size() == 0 && parseOrder.size() == 0 && !vcf.hasNext()){

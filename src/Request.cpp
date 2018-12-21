@@ -5,9 +5,22 @@
 
 static const std::string ERROR_SOURCE = "REQUEST_BUILDER";
 
+// Get current date/time, format is YYYY-MM-DD_HH-mm-ss
+std::string currentDateTime() {
+    time_t now = time(0);
+    struct tm tstruct;
+    char buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%F_%H-%I-%M-%S", &tstruct);
+
+    return buf;
+}
+
 Request getDefaultRequest() {
 
 	Request r;
+    r.setRequestName(currentDateTime());
+
     r.setAsSimulation(false);
     r.setInputFiles("", "");
     r.setOutputDir(".");

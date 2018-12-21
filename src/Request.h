@@ -42,8 +42,12 @@ private:
     //filterChrName = "" means no filter
     std::string filterChrName;
 
+    std::string requestName;
+    std::string currentDateTime();
+
 public:
 
+    inline void setRequestName(std::string name){ this->requestName = name; }
     inline void setAsSimulation(bool value) { simulation = value; }
 
     inline void setInputFiles(std::string vcfDir, std::string sampleDir){
@@ -139,6 +143,9 @@ public:
 
     inline bool shouldKeepFiltered() { return keepFiltered; }
     inline IntervalSet* getIntervals() { return intervals; }
+
+    inline std::string getRequestName() { return requestName; }
+
     bool validate();
 };
 
