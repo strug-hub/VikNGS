@@ -120,7 +120,7 @@ MatrixXd subtractGroupMean(MatrixXd& M, VectorXi& G){
 
 std::vector<VectorXd> splitIntoGroups(VectorXd& v,  Group& g){
 
-    int ngroups = g.countGroups();
+    int ngroups = g.ngroups();
     std::vector<VectorXd> result(ngroups);
 
     for (int i = 0; i < ngroups; i++)
@@ -131,7 +131,7 @@ std::vector<VectorXd> splitIntoGroups(VectorXd& v,  Group& g){
 
 std::vector<MatrixXd> splitIntoGroups(MatrixXd& m, Group& g){
 
-    int ngroups = g.countGroups();
+    int ngroups = g.ngroups();
     std::vector<MatrixXd> result(ngroups);
 
     for (int i = 0; i < ngroups; i++)

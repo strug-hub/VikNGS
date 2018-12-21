@@ -55,6 +55,8 @@ MatrixXd getRobustVarianceBinomial(VectorXd& Ycenter, MatrixXd& X, Group& group,
     double minus1Factor = X.rows()*1.0/(X.rows()-1);
 
     for (size_t i = 0; i < x.size(); i++) {
+        if(x[i].size() < 1)
+            continue;
 
         double ym = y[i].array().pow(2).sum();
         ym = ym * minus1Factor;
@@ -86,6 +88,9 @@ MatrixXd getRobustVarianceNormal(VectorXd& Ycenter, MatrixXd& X, Group& group, V
     std::vector<MatrixXd> x = splitIntoGroups(X, group);
 
     for (size_t i = 0; i < x.size(); i++) {
+        if(x[i].size() < 1)
+            continue;
+
         n += x[i].rows();
         if (group.depth(i) == Depth::HIGH && rvs){
             MatrixXd v = x[i].rows() * (diagRobustVar.transpose() * correlation(x[i]) * diagRobustVar).array();
