@@ -6,7 +6,7 @@ Quick Start
 User Interface
 ------------------------------
 
-To download VikNGS, go to the `GitHub repository release page <https://github.com/ScottMastro/vikNGS/releases/>`_ and find the latest release. The releases contains precompiled versions of VikNGS for Windows, Mac and Linux operating systems. Download the appropriate release ZIP folder for your opperating system.
+To download VikNGS, go to the `GitHub repository release page <https://github.com/ScottMastro/VikNGS/releases/>`_ and find the latest release. The releases contains precompiled versions of VikNGS for Windows, Mac and Linux operating systems. Download the appropriate release ZIP folder for your opperating system.
 
 Unzip the folder and running file VikNGS-X.X.X should start up the user interface. The available versions were compiled on the following systems, so please try to run it under a similar setting:
 
@@ -28,11 +28,11 @@ Running Command Line
 
 From the command line, run the following commands:
 
-| ``wget https://github.com/ScottMastro/vikNGS/archive/master.zip``
+| ``wget https://github.com/ScottMastro/VikNGS/archive/master.zip``
 | ``unzip master.zip``
-| ``cd vikNGS-master/bin``
+| ``cd VikNGS-master/bin``
 | ``make``
 
 To test the binary executable file, try running the following command:
 
-| ``./vikNGS --vcf ../example/example.vcf --sample ../example/example_info.txt``
+| ``./VikNGS --vcf ../example/example.vcf --sample ../example/example_info.txt``
