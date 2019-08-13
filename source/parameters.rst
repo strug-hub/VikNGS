@@ -6,7 +6,7 @@ Choosing Parameters
 Command Line Parameters
 -----------------------------
 
-A command line version of vikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a :ref:`multi-sample VCF file <multisample_vcf>` and corresponding :ref:`sample information file <sample_info>`. By default, the command will run a common association tests on a single thread.
+A command line version of VikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a :ref:`multi-sample VCF file <multisample_vcf>` and corresponding :ref:`sample information file <sample_info>`. By default, the command will run a common association tests on a single thread.
 
 Run ``vikNGS -h`` for the list of relevant commands.
 
@@ -38,11 +38,11 @@ Parameter            Value/Default     Description
 
 **Example 1.** Running a common test on 16 threads for variants on chromosome 7 with minor allele frequency > 10% and ignoring what is in the **FILTER** column of the VCF: ::
 
-    ./vikNGS --vcf [...] --sample [...] --chr chr7 -m 0.1 --all -t 16
+    ./VikNGS --vcf [...] --sample [...] --chr chr7 -m 0.1 --all -t 16
 
 **Example 2.** Running a rare test (CAST) on 4 threads, collapsing variants along genes and using one million bootstrap iterations with early stopping: ::
 
-    ./vikNGS --vcf [...] --sample [...] --bed [...] -r cast --gene -n 1000000 --stop -t 4
+    ./VikNGS --vcf [...] --sample [...] --bed [...] -r cast --gene -n 1000000 --stop -t 4
 
 .. _explain_param:
 
@@ -52,7 +52,7 @@ Parameter Explaination
 Minor Allele Frequency Cutoff 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-While reading the VCF file, vikNGS computes an allele frequency for each variant. The minor allele frequency (MAF) is estimated only using the samples included in the multisample VCF file. The MAF cutoff is used to define which variants are considered "rare" versus "common". When running a common association test, variants with estimated minor allele frequencies *less than* the MAF cutoff (ie. rare variants) will be excluded from testing. Likewise, when running a rare association test, variants with estimated minor allele frequencies *greater than* the MAF cutoff (ie. common variants) will be excluded from testing.
+While reading the VCF file, VikNGS computes an allele frequency for each variant. The minor allele frequency (MAF) is estimated only using the samples included in the multisample VCF file. The MAF cutoff is used to define which variants are considered "rare" versus "common". When running a common association test, variants with estimated minor allele frequencies *less than* the MAF cutoff (ie. rare variants) will be excluded from testing. Likewise, when running a rare association test, variants with estimated minor allele frequencies *greater than* the MAF cutoff (ie. common variants) will be excluded from testing.
 
 Missing Data Threshold 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
