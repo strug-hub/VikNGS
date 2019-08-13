@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'vikNGS'
+project = u'VikNGS'
 copyright = u'2018, Scott Mastromatteo'
 author = u'Scott Mastromatteo'
 
