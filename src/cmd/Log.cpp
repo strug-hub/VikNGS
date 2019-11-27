@@ -1,5 +1,6 @@
 #include "../Log.h"
 #include <iostream>
+#include <stdexcept>
 
 std::string newline = "\n";
 
