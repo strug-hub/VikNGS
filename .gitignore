@@ -69,4 +69,12 @@ tests/.venv/
 
 # CMake build tree
 build/
+build-wasm/
 bin/vikngs
+
+# WASM build output
+web/public/vikngs-core.js
+web/public/vikngs-core.wasm
+web/public/vikngs-core.worker.js
+web/node_modules/
+web/dist/

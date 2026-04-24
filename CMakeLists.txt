@@ -53,15 +53,45 @@ add_library(vikngs-sim STATIC
 target_link_libraries(vikngs-sim PUBLIC vikngs-core)
 
 # -----------------------------------------------------------------------------
-# CLI binaries
+# CLI binaries — native builds only (skip under Emscripten).
 # -----------------------------------------------------------------------------
-add_executable(vikngs ${VIKNGS_SRC}/cmd/vikNGScmd.cpp)
-target_link_libraries(vikngs PRIVATE vikngs-core)
+if(NOT EMSCRIPTEN)
+    add_executable(vikngs ${VIKNGS_SRC}/cmd/vikNGScmd.cpp)
+    target_link_libraries(vikngs PRIVATE vikngs-core)
 
-add_executable(sim-cli ${VIKNGS_SRC}/cmd/simcmd.cpp)
-target_link_libraries(sim-cli PRIVATE vikngs-sim)
+    add_executable(sim-cli ${VIKNGS_SRC}/cmd/simcmd.cpp)
+    target_link_libraries(sim-cli PRIVATE vikngs-sim)
 
-# Match legacy bin/ output location so existing tests find the binaries.
-set_target_properties(vikngs sim-cli PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-)
+    # Match legacy bin/ output location so existing tests find the binaries.
+    set_target_properties(vikngs sim-cli PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+    )
+endif()
+
+# -----------------------------------------------------------------------------
+# WASM target — only active when building with Emscripten (emcmake cmake ...).
+# Produces vikngs-core.{js,wasm} in web/public/ for the browser app to load.
+# -----------------------------------------------------------------------------
+if(EMSCRIPTEN)
+    add_executable(vikngs-core-wasm ${VIKNGS_SRC}/wasm/bindings.cpp)
+    target_link_libraries(vikngs-core-wasm PRIVATE vikngs-core)
+
+    set_target_properties(vikngs-core-wasm PROPERTIES
+        OUTPUT_NAME "vikngs-core"
+        SUFFIX ".js"
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/web/public
+    )
+
+    target_link_options(vikngs-core-wasm PRIVATE
+        "-lembind"
+        "-O3"
+        "SHELL:-s MODULARIZE=1"
+        "SHELL:-s EXPORT_ES6=1"
+        "SHELL:-s EXPORT_NAME=createVikNGS"
+        "SHELL:-s ENVIRONMENT=worker,web"
+        "SHELL:-s ALLOW_MEMORY_GROWTH=1"
+        "SHELL:-s INITIAL_MEMORY=256MB"
+        "SHELL:-s ASYNCIFY=1"
+        "SHELL:-s ASYNCIFY_STACK_SIZE=65536"
+    )
+endif()

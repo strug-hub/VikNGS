@@ -1,4 +1,5 @@
 #include "Math.h"
+#include <algorithm>
 #include <random>
 
 static std::random_device rd;
@@ -30,7 +31,7 @@ MatrixXd shuffleColumnwiseWithoutReplacement(MatrixXd& M){
     MatrixXd shuffled(M.rows(), M.cols());
     VectorXi indices = VectorXi::LinSpaced(M.rows(), 0, M.rows());
     for(int i = 0; i < M.cols(); i++){
-        std::random_shuffle(indices.data(), indices.data() + M.rows());
+        std::shuffle(indices.data(), indices.data() + M.rows(), generate);
         shuffled.col(i) = indices.asPermutation() * M.col(i);
     }
 
@@ -41,7 +42,7 @@ VectorXd shuffleWithoutReplacement(VectorXd& V){
 
     VectorXd shuffled(V.rows());
     VectorXi indices = VectorXi::LinSpaced(V.rows(), 0, V.rows());
-    std::random_shuffle(indices.data(), indices.data() + V.rows());
+    std::shuffle(indices.data(), indices.data() + V.rows(), generate);
     shuffled = indices.asPermutation() * V;
 
     return shuffled;
@@ -86,7 +87,7 @@ VectorXd groupwiseShuffleWithoutReplacement(VectorXd& V, VectorXi& G, std::map<i
 
     for (std::pair<int, std::vector<int>> e : group){
         std::vector<int> v = e.second;
-        std::random_shuffle(v.begin(), v.end());
+        std::shuffle(v.begin(), v.end(), generate);
         groupShuffle[e.first] = v;
     }
 
