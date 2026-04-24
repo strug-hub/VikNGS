@@ -3,15 +3,16 @@
 
 REPO := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))..)
 
-.PHONY: test e2e stats unit build regen help
+.PHONY: test e2e stats unit web build regen help
 
 help:
 	@echo "Targets:"
 	@echo "  make build  — build bin/vikNGS, bin/sim-cli, bin/test-unit"
-	@echo "  make test   — run all test layers (e2e + stats + unit)"
+	@echo "  make test   — run all test layers (e2e + stats + unit + web)"
 	@echo "  make e2e    — regression tests against golden files"
 	@echo "  make stats  — simulation-driven statistical tests"
 	@echo "  make unit   — Catch2 unit tests"
+	@echo "  make web    — browser test (Playwright + Vite)"
 	@echo "  make regen  — regenerate e2e goldens (CONFIRM=1 required)"
 
 build:
@@ -19,7 +20,7 @@ build:
 	$(MAKE) -C $(REPO)/bin sim-cli
 	$(MAKE) -C $(REPO)/tests/unit
 
-test: e2e stats unit
+test: e2e stats unit web
 
 e2e:
 	cd $(REPO) && python3 -m pytest tests/e2e -v
@@ -30,6 +31,9 @@ stats:
 unit:
 	$(MAKE) -C $(REPO)/tests/unit
 	$(REPO)/bin/test-unit
+
+web:
+	cd $(REPO) && python3 -m pytest tests/web -v
 
 regen:
 ifeq ($(CONFIRM),1)

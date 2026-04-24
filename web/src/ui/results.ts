@@ -15,7 +15,9 @@ export function renderResultsTable(el: HTMLElement, rows: ResultRow[]) {
         const tr = document.createElement("tr");
         tr.innerHTML =
             `<td>${r.chrom}</td><td>${r.pos}</td><td>${r.ref}</td><td>${r.alt}</td>` +
-            `<td>${r.pvalue.toExponential(4)}</td><td>${r.testDesc}</td>`;
+            // 10-digit precision is plenty for display and round-trips cleanly
+            // through parseFloat for the browser regression test.
+            `<td>${r.pvalue.toPrecision(10)}</td><td>${r.testDesc}</td>`;
         tbody.appendChild(tr);
     }
     table.appendChild(tbody);
