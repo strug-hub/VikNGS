@@ -5,9 +5,11 @@ build:
   tools:
     python: "3.11"
 
+# Paths are relative to the repo root. The docs live under docs/ after
+# vikngsdocs was merged in as a subtree.
 sphinx:
-  configuration: source/conf.py
+  configuration: docs/source/conf.py
 
 python:
   install:
-    - requirements: docs/requirements.txt
+    - requirements: docs/docs/requirements.txt
