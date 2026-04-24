@@ -66,3 +66,7 @@ tests/**/__pycache__/
 tests/.pytest_cache/
 tests/unit/build/
 tests/.venv/
+
+# CMake build tree
+build/
+bin/vikngs

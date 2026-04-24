@@ -13,6 +13,11 @@ VectorXd getScoreVector(VectorXd& Ycenter, MatrixXd& X) {
     return score;
 }
 
+// TODO(wasm-port): the Variance::RVS branch here is commented out, so any
+// caller that reaches this function with RVS silently falls through to
+// REGULAR variance (or hits throwError). Either delete getVarianceMatrix2
+// if it's dead (getVarianceMatrix below handles the same job with RVS
+// implemented), or finish the RVS branch. Check call sites before deleting.
 MatrixXd getVarianceMatrix2(VectorXd& Ycenter, VectorXd& Mu, MatrixXd& X, MatrixXd& Z, MatrixXd& P, TestSettings& test, Family family){
 
     if(test.getVariance() == Variance::RVS){
