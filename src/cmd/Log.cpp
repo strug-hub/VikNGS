@@ -5,15 +5,15 @@
 std::string newline = "\n";
 
 void printInfo(std::string message) {
-	std::cout << "[INFO] " << message << newline;
+	std::cerr << "[INFO] " << message << newline;
 }
 
 void printWarning(std::string message) {
-	std::cout << "[WARNING] " << message << newline;
+	std::cerr << "[WARNING] " << message << newline;
 }
 
 void printError(std::string message) {
-	std::cout << "[ERROR] " << message << newline;
+	std::cerr << "[ERROR] " << message << newline;
 }
 
 void throwError(std::string source, std::string message) {

@@ -20,16 +20,12 @@ Test.o ScoreTestFunctions.o InputProcess.o vikNGS.o Global.o \
 Simulation.o SimulationHelper.o simcmd.o \
 -pthread -o sim-cli
 
-# Simulation sources use `#include "../Foo.h"` relative paths that assume they
-# live one level below src/. They actually live in src/gui/src/simulation/, so
-# we add -I<any-src-subdir> to make `../Foo.h` resolve to src/Foo.h.
-SIM_INC=-I$(SOURCE)Parser
 Simulation.o:
-	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(SIM)Simulation.cpp
+	$(CC) $(CFLAGS) $(SOURCE)$(SIM)Simulation.cpp
 SimulationHelper.o:
-	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(SIM)SimulationHelper.cpp
+	$(CC) $(CFLAGS) $(SOURCE)$(SIM)SimulationHelper.cpp
 simcmd.o:
-	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(CMD)simcmd.cpp
+	$(CC) $(CFLAGS) $(SOURCE)$(CMD)simcmd.cpp
 	
 root: Log.o Request.o MemoryMapped.o
 

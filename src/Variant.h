@@ -135,9 +135,9 @@ public:
         return -1;
     }
     inline int getMaxPos() {
-        for(size_t i = variants.size()-1; i <= 0; i++)
-            if(variants[i].isValid())
-                return variants[i].getPosition();
+        for(size_t i = variants.size(); i > 0; i--)
+            if(variants[i-1].isValid())
+                return variants[i-1].getPosition();
 
         return -1;
     }

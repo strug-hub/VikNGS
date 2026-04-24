@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     CLI::Option *r = app.add_option("-r,--rare", rare, "Perform a rare variant association test");
 
     std::string gt = "";
-    CLI::Option *g = app.add_option("-g,--genotype", rare, "Genotype to use");
+    CLI::Option *g = app.add_option("-g,--genotype", gt, "Genotype to use");
 
     // -------------------------------------
 

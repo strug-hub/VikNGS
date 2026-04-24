@@ -4,6 +4,10 @@
 static std::random_device rd;
 static thread_local std::mt19937 generate(rd());
 
+void setRandomSeed(uint64_t seed) {
+    generate.seed(seed);
+}
+
 int randomInt(int from, int to) {
     std::uniform_int_distribution<> sample(from, to);
     return sample(generate);

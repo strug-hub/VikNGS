@@ -5,11 +5,13 @@
 #include <vector>
 #include <map>
 #include <random>
+#include <cstdint>
 
 
 class Group;
 
 //RandomHelper.cpp
+void setRandomSeed(uint64_t seed);
 int randomInt(int from, int to);
 double randomDouble(double from, double to);
 double randomNormal(double mean, double sd);

@@ -8,6 +8,7 @@
 #include "../Enum/GenotypeSource.h"
 #include "../Enum/Variance.h"
 #include "../Enum/Depth.h"
+#include "../Math/Math.h"
 #include "../gui/src/simulation/Simulation.h"
 #include "CLI11.h"
 
@@ -57,6 +58,7 @@ int main(int argc, char* argv[]) {
     int    caseHigh    = 1;               // 1 = Depth::HIGH, 0 = Depth::LOW
     int    ctrlHigh    = 1;
     bool   header      = false;
+    uint64_t seed      = 0;               // 0 = nondeterministic (use random_device init)
 
     app.add_option("--family", family,       "binomial (default) or normal");
     app.add_option("--stat",   stat,         "common | cast | skat (default common)");
@@ -77,8 +79,11 @@ int main(int argc, char* argv[]) {
     app.add_option("--case-high", caseHigh,  "1 = case is high-depth cohort (default), 0 = low");
     app.add_option("--control-high", ctrlHigh, "1 = control is high-depth cohort (default), 0 = low");
     app.add_flag("--header", header,         "Emit a TSV header line");
+    app.add_option("--seed", seed,           "RNG seed (nonzero = deterministic)");
 
     CLI11_PARSE(app, argc, argv);
+
+    if (seed != 0) setRandomSeed(seed);
 
     SimulationRequest req;
     req.nsnp       = nsnp;
