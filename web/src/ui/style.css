@@ -39,6 +39,83 @@ header .title .sub { color: var(--muted); font-size: 12px; }
 header .spacer { flex: 1 1 auto; }
 header .header-actions { display: flex; gap: 8px; }
 
+header nav.tabs { display: flex; gap: 2px; margin-left: 18px; }
+header nav.tabs .tab {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    padding: 6px 14px;
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: -1px;
+}
+header nav.tabs .tab:hover:not(.active) { color: var(--text); background: var(--accent-soft); }
+header nav.tabs .tab.active {
+    color: var(--text);
+    background: var(--bg);
+    border-color: var(--border);
+    border-bottom-color: var(--bg);
+}
+
+.tab-pane[hidden] { display: none; }
+.sim-summary { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.sim-summary strong { color: var(--text); font-weight: 600; }
+
+/* Simulation results pane fills available vertical space; power plot
+   takes the top half, QQ + histogram share the bottom half. */
+#results-panel > .tab-pane[data-tab="simulation"] {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+#results-panel > .tab-pane[data-tab="simulation"][hidden] { display: none; }
+#sim-power    { flex: 1 1 0; min-height: 180px; margin-bottom: 10px; }
+.sim-sub-row  { flex: 1 1 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 180px; }
+#sim-qq, #sim-hist { min-height: 0; display: flex; flex-direction: column; }
+#sim-qq > .sim-plot, #sim-hist > .sim-plot { flex: 1 1 auto; min-height: 0; }
+
+/* Preset strip along the top of the sim form. */
+.sim-presets { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.sim-presets button {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.sim-presets button:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.sim-presets .presets-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 4px 4px 0; align-self: center; }
+
+/* Sim tab: give the form more room since the groups table has 6 columns. */
+body[data-tab="simulation"] main {
+    grid-template-columns: 480px 1fr;
+}
+
+form table.sim-groups { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+form table.sim-groups th, form table.sim-groups td { padding: 3px 3px; text-align: left; border-bottom: 1px solid var(--border); }
+form table.sim-groups th { color: var(--muted); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+form table.sim-groups input, form table.sim-groups select { width: 100%; box-sizing: border-box; padding: 3px 4px; font-size: 12px; }
+form table.sim-groups td.row-del { text-align: center; width: 24px; padding: 0; }
+form table.sim-groups td.row-del button { padding: 2px 6px; font-size: 12px; }
+/* Column widths tuned so the "Sample size" input isn't cramped. */
+form table.sim-groups th:nth-child(1), form table.sim-groups td:nth-child(1) { width: 22%; }
+form table.sim-groups th:nth-child(2), form table.sim-groups td:nth-child(2) { width: 18%; }
+form table.sim-groups th:nth-child(3), form table.sim-groups td:nth-child(3) { width: 14%; }
+form table.sim-groups th:nth-child(4), form table.sim-groups td:nth-child(4) { width: 13%; }
+form table.sim-groups th:nth-child(5), form table.sim-groups td:nth-child(5) { width: 13%; }
+form table.sim-groups th:nth-child(6), form table.sim-groups td:nth-child(6) { width: 14%; }
+form .row-actions { margin-top: 6px; display: flex; gap: 6px; }
+form .row-actions button { padding: 3px 8px; font-size: 12px; }
+
 main {
     display: grid;
     grid-template-columns: 360px 1fr;

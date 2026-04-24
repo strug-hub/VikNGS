@@ -15,6 +15,10 @@
 #include "../Enum/GenotypeSource.h"
 #include "../Enum/Variance.h"
 #include "../Enum/CollapseType.h"
+#include "../Enum/Family.h"
+#include "../Enum/Depth.h"
+#include "../Math/Math.h"
+#include "../gui/src/simulation/Simulation.h"
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
@@ -189,6 +193,160 @@ static JsResults runVikNGS(JsRequest js) {
     return out;
 }
 
+// ---------------------------------------------------------------------------
+// Simulation bindings (MVP: binomial case-control, multi-step supported).
+// ---------------------------------------------------------------------------
+struct JsSimGroup {
+    int    n = 500;
+    int    nIncrement = 0;           // per-step sample-size increment
+    bool   isCase = true;
+    double meanDepth = 20.0;
+    double sdDepth = 2.0;
+    double errorRate = 0.01;
+    std::string readDepth = "high";  // "high" | "low"
+};
+
+struct JsSimRequest {
+    int    nsnp = 100;
+    double effectSize = 1.0;         // OR (binomial) or R^2 (normal)
+    double mafMin = 0.05;
+    double mafMax = 0.5;
+    int    steps = 1;
+
+    std::string family = "binomial"; // "binomial" (MVP) | "normal"
+    std::string statistic = "common";
+    int    collapse = 1;
+    int    nboot = 1;
+    bool   stopEarly = false;
+
+    std::vector<JsSimGroup> groups;
+
+    int    seed = 0;                 // 0 = nondeterministic
+};
+
+struct JsSimPvalRow {
+    int         stepIdx;
+    int         sampleSize;
+    int         testIdx;
+    std::string statName;
+    std::string genotypeSource;      // "true" | "expected" | "call"
+    int         variantIdx;
+    double      pvalue;
+};
+
+struct JsSimResult {
+    std::vector<JsSimPvalRow> rows;
+    double                    processingTime = 0.0;
+    double                    evaluationTime = 0.0;
+    int                       variantsParsed = 0;
+    std::string               errorMessage;
+};
+
+static const char* gtSourceName(GenotypeSource g) {
+    switch (g) {
+        case GenotypeSource::EXPECTED: return "expected";
+        case GenotypeSource::TRUEGT:   return "true";
+        case GenotypeSource::CALL:     return "call";
+        case GenotypeSource::VCF_CALL: return "vcf";
+        default:                       return "none";
+    }
+}
+
+static const char* statShortName(Statistic s) {
+    switch (s) {
+        case Statistic::COMMON: return "common";
+        case Statistic::CAST:   return "cast";
+        case Statistic::SKAT:   return "skat";
+        case Statistic::CALPHA: return "calpha";
+        default:                return "none";
+    }
+}
+
+static JsSimResult runSimulation(JsSimRequest js) {
+    JsSimResult out;
+    try {
+        if (js.seed != 0) setRandomSeed(static_cast<uint64_t>(js.seed));
+
+        SimulationRequest req;
+        req.nsnp         = js.nsnp;
+        req.effectSize   = js.effectSize;
+        req.mafMin       = js.mafMin;
+        req.mafMax       = js.mafMax;
+        req.steps        = js.steps < 1 ? 1 : js.steps;
+        req.collapse     = js.collapse;
+        req.nboot        = js.nboot;
+        req.useBootstrap = js.nboot > 1;
+        req.stopEarly    = js.stopEarly;
+        req.nthreads     = 1;          // WASM MVP: single-threaded
+
+        if (js.family == "binomial")    req.family = Family::BINOMIAL;
+        else if (js.family == "normal") req.family = Family::NORMAL;
+        else throw std::runtime_error("unknown family: " + js.family);
+
+        if (js.statistic == "common")      req.testStatistic = Statistic::COMMON;
+        else if (js.statistic == "cast")   req.testStatistic = Statistic::CAST;
+        else if (js.statistic == "skat")   req.testStatistic = Statistic::SKAT;
+        else if (js.statistic == "calpha") req.testStatistic = Statistic::CALPHA;
+        else throw std::runtime_error("unknown statistic: " + js.statistic);
+
+        for (size_t i = 0; i < js.groups.size(); i++) {
+            const JsSimGroup& jg = js.groups[i];
+            SimulationRequestGroup g;
+            g.index       = static_cast<int>(i);
+            g.n           = jg.n;
+            g.n_increment = jg.nIncrement;
+            g.family      = req.family;
+            g.isCase      = jg.isCase;
+            g.normalMean  = 0.0;
+            g.normalSd    = 1.0;
+            g.meanDepth   = jg.meanDepth;
+            g.sdDepth     = jg.sdDepth;
+            g.errorRate   = jg.errorRate;
+            g.readDepth   = (jg.readDepth == "low") ? Depth::LOW : Depth::HIGH;
+            req.groups.push_back(g);
+        }
+
+        req.validate();
+
+        TRACE("calling startSimulation");
+        Data data = startSimulation(req);
+        TRACE("startSimulation returned");
+
+        out.processingTime = data.processingTime;
+        out.evaluationTime = data.evaluationTime;
+        out.variantsParsed = static_cast<int>(data.variants.size());
+
+        int totalTests = static_cast<int>(data.tests.size());
+        int testsPerStep = req.steps > 0 ? (totalTests / req.steps) : totalTests;
+        if (testsPerStep <= 0) testsPerStep = 1;
+
+        for (size_t i = 0; i < data.variants.size(); i++) {
+            int np = data.variants[i].nPvals();
+            for (int k = 0; k < np; k++) {
+                TestSettings& ts = data.tests[k];
+                int stepIdx = k / testsPerStep;
+                JsSimPvalRow row;
+                row.stepIdx        = stepIdx;
+                row.sampleSize     = req.nsamp(stepIdx);
+                row.testIdx        = k % testsPerStep;
+                row.statName       = statShortName(ts.getStatistic());
+                row.genotypeSource = gtSourceName(ts.getGenotype());
+                row.variantIdx     = static_cast<int>(i);
+                row.pvalue         = data.variants[i].getPval(k);
+                out.rows.push_back(std::move(row));
+            }
+        }
+        TRACE("sim result packing done");
+    } catch (const std::exception& e) {
+        emscripten_console_error(e.what());
+        out.errorMessage = e.what();
+    } catch (...) {
+        emscripten_console_error("[bindings] unknown (non-std) exception in sim");
+        out.errorMessage = "unknown error";
+    }
+    return out;
+}
+
 // Backwards-compat smoke ping used by the original Phase-C hello test.
 static std::string hello(const std::string& name) {
     return "hello, " + name + ", from vikngs-core wasm";
@@ -231,6 +389,54 @@ EMSCRIPTEN_BINDINGS(vikngs_core) {
         .field("evaluationTime", &JsResults::evaluationTime)
         .field("variantsParsed", &JsResults::variantsParsed)
         .field("errorMessage",   &JsResults::errorMessage);
+
+    // -----------------------------------------------------------------------
+    // Simulation surface
+    // -----------------------------------------------------------------------
+    value_object<JsSimGroup>("SimGroup")
+        .field("n",          &JsSimGroup::n)
+        .field("nIncrement", &JsSimGroup::nIncrement)
+        .field("isCase",     &JsSimGroup::isCase)
+        .field("meanDepth",  &JsSimGroup::meanDepth)
+        .field("sdDepth",    &JsSimGroup::sdDepth)
+        .field("errorRate",  &JsSimGroup::errorRate)
+        .field("readDepth",  &JsSimGroup::readDepth);
+
+    register_vector<JsSimGroup>("VectorSimGroup");
+
+    value_object<JsSimRequest>("SimRequest")
+        .field("nsnp",       &JsSimRequest::nsnp)
+        .field("effectSize", &JsSimRequest::effectSize)
+        .field("mafMin",     &JsSimRequest::mafMin)
+        .field("mafMax",     &JsSimRequest::mafMax)
+        .field("steps",      &JsSimRequest::steps)
+        .field("family",     &JsSimRequest::family)
+        .field("statistic",  &JsSimRequest::statistic)
+        .field("collapse",   &JsSimRequest::collapse)
+        .field("nboot",      &JsSimRequest::nboot)
+        .field("stopEarly",  &JsSimRequest::stopEarly)
+        .field("groups",     &JsSimRequest::groups)
+        .field("seed",       &JsSimRequest::seed);
+
+    value_object<JsSimPvalRow>("SimPvalRow")
+        .field("stepIdx",        &JsSimPvalRow::stepIdx)
+        .field("sampleSize",     &JsSimPvalRow::sampleSize)
+        .field("testIdx",        &JsSimPvalRow::testIdx)
+        .field("statName",       &JsSimPvalRow::statName)
+        .field("genotypeSource", &JsSimPvalRow::genotypeSource)
+        .field("variantIdx",     &JsSimPvalRow::variantIdx)
+        .field("pvalue",         &JsSimPvalRow::pvalue);
+
+    register_vector<JsSimPvalRow>("VectorSimPvalRow");
+
+    value_object<JsSimResult>("SimResult")
+        .field("rows",           &JsSimResult::rows)
+        .field("processingTime", &JsSimResult::processingTime)
+        .field("evaluationTime", &JsSimResult::evaluationTime)
+        .field("variantsParsed", &JsSimResult::variantsParsed)
+        .field("errorMessage",   &JsSimResult::errorMessage);
+
+    function("runSimulation", &runSimulation);
 
     function("runVikNGS", &runVikNGS);
     function("hello",     &hello);

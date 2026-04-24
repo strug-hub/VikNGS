@@ -13,6 +13,10 @@
         <h1>VikNGS</h1>
         <span class="sub">Variant integration kit for NGS — in-browser</span>
       </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="analysis" role="tab">Analysis</button>
+        <button class="tab"        data-tab="simulation" role="tab">Simulation</button>
+      </nav>
       <div class="spacer"></div>
       <div class="header-actions">
         <button id="preload-example-btn" class="secondary" type="button" title="Fill the form with the bundled example VCF + sample info">
@@ -23,14 +27,26 @@
 
     <main>
       <section id="form-panel" class="panel">
-        <h2>Inputs</h2>
-        <form id="run-form">
-          <!-- form fields injected by ui/form.ts -->
-        </form>
-        <div class="actions">
-          <button id="run-btn" type="button">Run analysis</button>
-          <button id="stop-btn" type="button" disabled>Stop</button>
-          <span id="run-status"></span>
+        <!-- Analysis form -->
+        <div class="tab-pane" data-tab="analysis">
+          <h2>Inputs</h2>
+          <form id="run-form"></form>
+          <div class="actions">
+            <button id="run-btn" type="button">Run analysis</button>
+            <button id="stop-btn" type="button" disabled>Stop</button>
+            <span id="run-status"></span>
+          </div>
+        </div>
+
+        <!-- Simulation form -->
+        <div class="tab-pane" data-tab="simulation" hidden>
+          <h2>Simulation</h2>
+          <form id="sim-form"></form>
+          <div class="actions">
+            <button id="sim-run-btn" type="button">Run simulation</button>
+            <button id="sim-stop-btn" type="button" disabled>Stop</button>
+            <span id="sim-status"></span>
+          </div>
         </div>
       </section>
 
@@ -40,9 +56,22 @@
       </section>
 
       <section id="results-panel" class="panel">
-        <h2>Results</h2>
-        <div id="manhattan"></div>
-        <div id="results-table"></div>
+        <!-- Analysis results -->
+        <div class="tab-pane" data-tab="analysis">
+          <h2>Results</h2>
+          <div id="manhattan"></div>
+          <div id="results-table"></div>
+        </div>
+        <!-- Simulation results -->
+        <div class="tab-pane" data-tab="simulation" hidden>
+          <h2>Simulation results</h2>
+          <div id="sim-summary" class="sim-summary"></div>
+          <div id="sim-power"></div>
+          <div class="sim-sub-row">
+            <div id="sim-qq"></div>
+            <div id="sim-hist"></div>
+          </div>
+        </div>
       </section>
     </main>
 

@@ -81,7 +81,7 @@ if(EMSCRIPTEN)
 
     add_executable(vikngs-core-wasm ${VIKNGS_SRC}/wasm/bindings.cpp)
     target_compile_options(vikngs-core-wasm PRIVATE -fexceptions)
-    target_link_libraries(vikngs-core-wasm PRIVATE vikngs-core)
+    target_link_libraries(vikngs-core-wasm PRIVATE vikngs-sim)
 
     set_target_properties(vikngs-core-wasm PROPERTIES
         OUTPUT_NAME "vikngs-core"

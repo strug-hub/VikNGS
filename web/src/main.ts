@@ -1,32 +1,85 @@
 import { mountForm, collectForm } from "./ui/form";
+import { mountSimForm, collectSimForm } from "./ui/simForm";
 import { mountLog } from "./ui/log";
 import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
-import type { RunRequest, WorkerMessage } from "./types";
+import { renderSimResults, clearSimResults } from "./ui/simResults";
+import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 const form        = document.getElementById("run-form") as HTMLFormElement;
+const simForm     = document.getElementById("sim-form") as HTMLFormElement;
 const runBtn      = document.getElementById("run-btn") as HTMLButtonElement;
 const stopBtn     = document.getElementById("stop-btn") as HTMLButtonElement;
+const simRunBtn   = document.getElementById("sim-run-btn") as HTMLButtonElement;
+const simStopBtn  = document.getElementById("sim-stop-btn") as HTMLButtonElement;
 const preloadBtn  = document.getElementById("preload-example-btn") as HTMLButtonElement;
 const statusEl    = document.getElementById("run-status") as HTMLElement;
+const simStatusEl = document.getElementById("sim-status") as HTMLElement;
 const logEl       = document.getElementById("log") as HTMLElement;
 const tableEl     = document.getElementById("results-table") as HTMLElement;
 const plotEl      = document.getElementById("manhattan") as HTMLElement;
+const simSummaryEl = document.getElementById("sim-summary") as HTMLElement;
+const simPowerEl   = document.getElementById("sim-power") as HTMLElement;
+const simQqEl      = document.getElementById("sim-qq") as HTMLElement;
+const simHistEl    = document.getElementById("sim-hist") as HTMLElement;
 
 mountForm(form);
+mountSimForm(simForm);
 const log = mountLog(logEl);
 
+// --- Tab switching ---
+function setActiveTab(tab: "analysis" | "simulation") {
+    document.body.dataset.tab = tab;
+    for (const b of document.querySelectorAll<HTMLElement>("nav.tabs .tab")) {
+        b.classList.toggle("active", b.dataset.tab === tab);
+    }
+    for (const p of document.querySelectorAll<HTMLElement>(".tab-pane")) {
+        p.hidden = p.dataset.tab !== tab;
+    }
+    // Preload example is analysis-only.
+    preloadBtn.hidden = tab !== "analysis";
+}
+
+for (const b of document.querySelectorAll<HTMLButtonElement>("nav.tabs .tab")) {
+    b.addEventListener("click", () => setActiveTab(b.dataset.tab as "analysis" | "simulation"));
+}
+setActiveTab("analysis");
+
+// --- Worker run (shared for analysis + sim) ---
 let worker: Worker | null = null;
 
-function endRun(statusText = "") {
+function resetAnalysis(statusText = "") {
     runBtn.disabled = false;
     stopBtn.disabled = true;
     statusEl.className = "";
     statusEl.textContent = statusText;
+}
+function resetSim(statusText = "") {
+    simRunBtn.disabled = false;
+    simStopBtn.disabled = true;
+    simStatusEl.className = "";
+    simStatusEl.textContent = statusText;
+}
+function endRun() {
     if (worker) { worker.terminate(); worker = null; }
 }
 
-runBtn.addEventListener("click", async () => {
+function startWorker(req: UiToWorker, onDone: (m: WorkerMessage) => void) {
+    worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
+    worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
+        const m = ev.data;
+        if (m.kind === "log") { log[m.level](m.text); return; }
+        if (m.kind === "progress") return;
+        onDone(m);
+    };
+    worker.onerror = (e) => {
+        log.error("Worker error: " + e.message);
+        resetAnalysis(); resetSim(); endRun();
+    };
+    worker.postMessage(req);
+}
+
+runBtn.addEventListener("click", () => {
     log.clear();
     tableEl.innerHTML = "";
     plotEl.innerHTML = "";
@@ -40,36 +93,68 @@ runBtn.addEventListener("click", async () => {
     statusEl.textContent = "running…";
     log.info("Starting worker…");
 
-    worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
-    worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
-        const m = ev.data;
-        switch (m.kind) {
-            case "log":      log[m.level](m.text); break;
-            case "progress": break;  // Phase G
-            case "done":
-                log.ok(`Done. ${m.rows.length} rows, parsed ${m.variantsParsed} variants in ${m.evaluationTime.toFixed(2)}s.`);
-                renderResultsTable(tableEl, m.rows);
-                renderManhattan(plotEl, m.rows);
-                endRun(`done — ${m.rows.length} rows`);
-                break;
-            case "error":
-                log.error("Error: " + m.message);
-                endRun("error");
-                break;
-        }
-    };
-    worker.onerror = (e) => {
-        log.error("Worker error: " + e.message);
-        endRun();
-    };
-
     const req: RunRequest = gathered;
-    worker.postMessage(req);
+    startWorker(req, (m) => {
+        if (m.kind === "done") {
+            log.ok(`Done. ${m.rows.length} rows, parsed ${m.variantsParsed} variants in ${m.evaluationTime.toFixed(2)}s.`);
+            renderResultsTable(tableEl, m.rows);
+            renderManhattan(plotEl, m.rows);
+            resetAnalysis(`done — ${m.rows.length} rows`);
+            endRun();
+        } else if (m.kind === "error") {
+            log.error("Error: " + m.message);
+            resetAnalysis("error");
+            endRun();
+        }
+    });
 });
 
 stopBtn.addEventListener("click", () => {
     log.info("Stopping…");
-    endRun("stopped");
+    resetAnalysis("stopped");
+    endRun();
+});
+
+simRunBtn.addEventListener("click", () => {
+    log.clear();
+    clearSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl);
+
+    const gathered = collectSimForm(simForm);
+    if ("error" in gathered) { log.error(gathered.error); return; }
+
+    simRunBtn.disabled = true;
+    simStopBtn.disabled = false;
+    simStatusEl.className = "running";
+    simStatusEl.textContent = "simulating…";
+    log.info("Starting simulation worker…");
+
+    const req: SimRunRequest = gathered;
+    startWorker(req, (m) => {
+        if (m.kind === "sim-done") {
+            log.ok(`Done. ${m.rows.length} p-values from ${m.variantsParsed} variants × ${m.steps} step(s) in ${m.evaluationTime.toFixed(2)}s.`);
+            renderSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, {
+                rows: m.rows,
+                steps: m.steps,
+                summary: {
+                    variants: m.variantsParsed,
+                    processingTime: m.processingTime,
+                    evaluationTime: m.evaluationTime,
+                },
+            });
+            resetSim(`done — ${m.rows.length} p-values`);
+            endRun();
+        } else if (m.kind === "error") {
+            log.error("Error: " + m.message);
+            resetSim("error");
+            endRun();
+        }
+    });
+});
+
+simStopBtn.addEventListener("click", () => {
+    log.info("Stopping…");
+    resetSim("stopped");
+    endRun();
 });
 
 // Preload: fetch example VCF + sample info (served from /example/ via symlink

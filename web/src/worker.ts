@@ -1,7 +1,7 @@
 // Web Worker: loads vikngs-core.wasm, streams the uploaded files into MEMFS,
 // runs runVikNGS, and posts a completion message back to the UI thread.
 
-import type { RunRequest, WorkerMessage } from "./types";
+import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 // The Emscripten-generated module is UMD/CJS and not module-import-friendly
 // under Vite's ESM pipeline. Load it via importScripts in a classic worker,
@@ -24,6 +24,20 @@ interface VikNGSModule {
             chrom: string; pos: number; ref: string; alt: string;
             pvalue: number; testDesc: string;
         }};
+        evaluationTime: number;
+        variantsParsed: number;
+        errorMessage: string;
+    };
+    VectorSimGroup: new () => {
+        push_back: (g: unknown) => void;
+    };
+    runSimulation: (req: unknown) => {
+        rows: { size: () => number; get: (i: number) => {
+            stepIdx: number; sampleSize: number; testIdx: number;
+            statName: string; genotypeSource: string;
+            variantIdx: number; pvalue: number;
+        }};
+        processingTime: number;
         evaluationTime: number;
         variantsParsed: number;
         errorMessage: string;
@@ -67,44 +81,108 @@ async function loadModule(): Promise<VikNGSModule> {
     });
 }
 
-self.onmessage = async (ev: MessageEvent<RunRequest>) => {
+async function runSim(Module: VikNGSModule, req: SimRunRequest) {
+    post({ kind: "log", level: "info", text: `Simulating (stat=${req.statistic}, nsnp=${req.nsnp}, steps=${req.steps})…` });
+
+    const groupVec = new Module.VectorSimGroup();
+    for (const g of req.groups) {
+        groupVec.push_back({
+            n: g.n,
+            nIncrement: g.nIncrement,
+            isCase: g.isCase,
+            meanDepth: g.meanDepth,
+            sdDepth: g.sdDepth,
+            errorRate: g.errorRate,
+            readDepth: g.readDepth,
+        });
+    }
+
+    const cppReq = {
+        nsnp: req.nsnp,
+        effectSize: req.effectSize,
+        mafMin: req.mafMin,
+        mafMax: req.mafMax,
+        steps: req.steps,
+        family: req.family,
+        statistic: req.statistic,
+        collapse: req.collapse,
+        nboot: req.nboot,
+        stopEarly: req.stopEarly,
+        groups: groupVec,
+        seed: req.seed,
+    };
+
+    const result = Module.runSimulation(cppReq);
+    if (result.errorMessage) {
+        post({ kind: "error", message: result.errorMessage });
+        return;
+    }
+
+    const rows = [];
+    for (let i = 0; i < result.rows.size(); i++) {
+        const r = result.rows.get(i);
+        rows.push({
+            stepIdx: r.stepIdx, sampleSize: r.sampleSize, testIdx: r.testIdx,
+            statName: r.statName, genotypeSource: r.genotypeSource,
+            variantIdx: r.variantIdx, pvalue: r.pvalue,
+        });
+    }
+
+    post({
+        kind: "sim-done",
+        rows,
+        steps: req.steps,
+        processingTime: result.processingTime,
+        evaluationTime: result.evaluationTime,
+        variantsParsed: result.variantsParsed,
+    });
+}
+
+self.onmessage = async (ev: MessageEvent<UiToWorker>) => {
     const req = ev.data;
     try {
         const Module = await loadModule();
         post({ kind: "log", level: "info", text: "Module ready. Staging inputs…" });
 
+        if ((req as SimRunRequest).kind === "sim") {
+            await runSim(Module, req as SimRunRequest);
+            return;
+        }
+
+        const aReq = req as RunRequest;
+
         // Ensure /work exists in MEMFS.
         try { Module.FS.mkdir("/work"); } catch { /* already exists */ }
 
-        Module.FS.writeFile("/work/input.vcf", new Uint8Array(await req.vcf.arrayBuffer()));
-        Module.FS.writeFile("/work/sample.txt", new Uint8Array(await req.sample.arrayBuffer()));
+        Module.FS.writeFile("/work/input.vcf", new Uint8Array(await aReq.vcf.arrayBuffer()));
+        Module.FS.writeFile("/work/sample.txt", new Uint8Array(await aReq.sample.arrayBuffer()));
         let bedPath = "";
-        if (req.bed) {
-            Module.FS.writeFile("/work/regions.bed", new Uint8Array(await req.bed.arrayBuffer()));
+        if (aReq.bed) {
+            Module.FS.writeFile("/work/regions.bed", new Uint8Array(await aReq.bed.arrayBuffer()));
             bedPath = "/work/regions.bed";
         }
 
-        post({ kind: "log", level: "info", text: `Running analysis (stat=${req.statistic}, gt=${req.genotype})…` });
+        post({ kind: "log", level: "info", text: `Running analysis (stat=${aReq.statistic}, gt=${aReq.genotype})…` });
 
         const cppReq = {
             vcfPath: "/work/input.vcf",
             samplePath: "/work/sample.txt",
             bedPath,
             outputDir: "/work",
-            maf: req.maf,
-            depth: req.depth,
-            missing: req.missing,
-            mustPass: req.mustPass,
-            chrFilter: req.chrFilter,
-            fromPos: req.fromPos,
-            toPos: req.toPos,
-            statistic: req.statistic,
-            genotype: req.genotype,
-            nboot: req.nboot,
-            stopEarly: req.stopEarly,
-            collapseMode: req.collapseMode,
-            collapseK: req.collapseK,
-            batchSize: req.batchSize,
+            maf: aReq.maf,
+            depth: aReq.depth,
+            missing: aReq.missing,
+            mustPass: aReq.mustPass,
+            chrFilter: aReq.chrFilter,
+            fromPos: aReq.fromPos,
+            toPos: aReq.toPos,
+            statistic: aReq.statistic,
+            genotype: aReq.genotype,
+            nboot: aReq.nboot,
+            stopEarly: aReq.stopEarly,
+            collapseMode: aReq.collapseMode,
+            collapseK: aReq.collapseK,
+            batchSize: aReq.batchSize,
             threads: 1,
         };
 
