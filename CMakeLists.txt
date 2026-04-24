@@ -73,7 +73,14 @@ endif()
 # Produces vikngs-core.{js,wasm} in web/public/ for the browser app to load.
 # -----------------------------------------------------------------------------
 if(EMSCRIPTEN)
+    # Core throws std::runtime_error on bad input (caught in bindings.cpp),
+    # so every TU needs -fexceptions. InputProcess.cpp is already patched to
+    # use std::launch::deferred under __EMSCRIPTEN__ — no pthreads required.
+    target_compile_options(vikngs-core PRIVATE -fexceptions)
+    target_compile_options(vikngs-sim  PRIVATE -fexceptions)
+
     add_executable(vikngs-core-wasm ${VIKNGS_SRC}/wasm/bindings.cpp)
+    target_compile_options(vikngs-core-wasm PRIVATE -fexceptions)
     target_link_libraries(vikngs-core-wasm PRIVATE vikngs-core)
 
     set_target_properties(vikngs-core-wasm PROPERTIES
@@ -86,12 +93,13 @@ if(EMSCRIPTEN)
         "-lembind"
         "-O3"
         "SHELL:-s MODULARIZE=1"
-        "SHELL:-s EXPORT_ES6=1"
         "SHELL:-s EXPORT_NAME=createVikNGS"
-        "SHELL:-s ENVIRONMENT=worker,web"
+        "SHELL:-s ENVIRONMENT=worker,web,node"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s INITIAL_MEMORY=256MB"
-        "SHELL:-s ASYNCIFY=1"
-        "SHELL:-s ASYNCIFY_STACK_SIZE=65536"
+        "SHELL:-s EXPORTED_RUNTIME_METHODS=['FS']"
+        "SHELL:-s FORCE_FILESYSTEM=1"
+        "SHELL:-s ASSERTIONS=1"
+        "-fexceptions"
     )
 endif()

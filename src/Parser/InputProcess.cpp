@@ -234,6 +234,27 @@ private:
     std::future<std::vector<VariantSet>> futureVariantSets;
     std::future<bool> testingDone;
 
+    // WASM: run the work synchronously and hand back an immediately-ready
+    // future. Avoids std::async's thread semantics entirely, so the polling
+    // loop in processVCF behaves identically to the native async version.
+    // Native: real async thread.
+    template <typename F>
+    static auto launchTask(F&& f) -> std::future<decltype(f())> {
+#ifdef __EMSCRIPTEN__
+        using R = decltype(f());
+        std::promise<R> p;
+        try {
+            if constexpr (std::is_void_v<R>) { f(); p.set_value(); }
+            else                              { p.set_value(f()); }
+        } catch (...) {
+            p.set_exception(std::current_exception());
+        }
+        return p.get_future();
+#else
+        return std::async(std::launch::async, std::forward<F>(f));
+#endif
+    }
+
 public:
 
     ParallelProcess(Request *r, SampleInfo *si) : req(r), sampleInfo(si) {
@@ -260,7 +281,7 @@ public:
             lns.pop_front();
         }
 
-        futureVariants = std::async(std::launch::async,
+        futureVariants = launchTask(
                 [this] { return constructVariants(req, sampleInfo, lines); }) ;
     }
     inline bool isParseDone(){
@@ -287,7 +308,7 @@ public:
         }
 
         this->leftover = leftovers;
-        futureVariantSets = std::async(std::launch::async,
+        futureVariantSets = launchTask(
                 [this] { return collapseVariants(req, variants, leftover); }) ;
     }
     inline bool isCollapseDone(){
@@ -312,7 +333,7 @@ public:
             vs.pop_front();
         }
 
-        testingDone = std::async(std::launch::async,
+        testingDone = launchTask(
                 [this] { return testBatch(req, sampleInfo, pointers); }) ;
     }
     inline bool isTestingDone(){
