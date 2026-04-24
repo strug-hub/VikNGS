@@ -4,21 +4,24 @@ import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
 import type { RunRequest, WorkerMessage } from "./types";
 
-const form    = document.getElementById("run-form") as HTMLFormElement;
-const runBtn  = document.getElementById("run-btn") as HTMLButtonElement;
-const stopBtn = document.getElementById("stop-btn") as HTMLButtonElement;
-const logEl   = document.getElementById("log") as HTMLElement;
-const tableEl = document.getElementById("results-table") as HTMLElement;
-const plotEl  = document.getElementById("manhattan") as HTMLElement;
+const form      = document.getElementById("run-form") as HTMLFormElement;
+const runBtn    = document.getElementById("run-btn") as HTMLButtonElement;
+const stopBtn   = document.getElementById("stop-btn") as HTMLButtonElement;
+const statusEl  = document.getElementById("run-status") as HTMLElement;
+const logEl     = document.getElementById("log") as HTMLElement;
+const tableEl   = document.getElementById("results-table") as HTMLElement;
+const plotEl    = document.getElementById("manhattan") as HTMLElement;
 
 mountForm(form);
 const log = mountLog(logEl);
 
 let worker: Worker | null = null;
 
-function endRun() {
+function endRun(statusText = "") {
     runBtn.disabled = false;
     stopBtn.disabled = true;
+    statusEl.className = "";
+    statusEl.textContent = statusText;
     if (worker) { worker.terminate(); worker = null; }
 }
 
@@ -32,6 +35,8 @@ runBtn.addEventListener("click", async () => {
 
     runBtn.disabled = true;
     stopBtn.disabled = false;
+    statusEl.className = "running";
+    statusEl.textContent = "running…";
     log.info("Starting worker…");
 
     worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
@@ -44,11 +49,11 @@ runBtn.addEventListener("click", async () => {
                 log.ok(`Done. ${m.rows.length} rows, parsed ${m.variantsParsed} variants in ${m.evaluationTime.toFixed(2)}s.`);
                 renderResultsTable(tableEl, m.rows);
                 renderManhattan(plotEl, m.rows);
-                endRun();
+                endRun(`done — ${m.rows.length} rows`);
                 break;
             case "error":
                 log.error("Error: " + m.message);
-                endRun();
+                endRun("error");
                 break;
         }
     };
@@ -63,5 +68,5 @@ runBtn.addEventListener("click", async () => {
 
 stopBtn.addEventListener("click", () => {
     log.info("Stopping…");
-    endRun();
+    endRun("stopped");
 });

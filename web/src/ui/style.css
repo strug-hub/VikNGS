@@ -67,7 +67,20 @@ form input[type="text"], form input[type="number"], form select, form input[type
 }
 form input[type="checkbox"] { accent-color: var(--accent); }
 
-.actions { margin-top: 12px; display: flex; gap: 8px; }
+.actions { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+#run-status { color: var(--muted); font-size: 12px; }
+#run-status.running::before {
+    content: "";
+    display: inline-block;
+    width: 8px; height: 8px;
+    border: 2px solid var(--accent);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 button {
     background: var(--accent-dim);
     color: var(--text);

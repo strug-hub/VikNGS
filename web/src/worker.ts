@@ -17,6 +17,8 @@ interface VikNGSModule {
         writeFile: (path: string, data: Uint8Array) => void;
         analyzePath?: (path: string) => unknown;
     };
+    print?: (t: string) => void;
+    printErr?: (t: string) => void;
     runVikNGS: (req: unknown) => {
         rows: { size: () => number; get: (i: number) => {
             chrom: string; pos: number; ref: string; alt: string;
@@ -51,7 +53,18 @@ async function loadModule(): Promise<VikNGSModule> {
     const createVikNGS = fn(moduleHarness, moduleHarness.exports) as
         (opts?: object) => Promise<VikNGSModule>;
 
-    return await createVikNGS({ wasmBinary: wasmBytes });
+    // Forward the core's stdout/stderr (printInfo/printWarning/printError
+    // in src/cmd/Log.cpp) to the UI log pane so users see live progress.
+    return await createVikNGS({
+        wasmBinary: wasmBytes,
+        print:    (t: string) => post({ kind: "log", level: "info",  text: t }),
+        printErr: (t: string) => {
+            // Emscripten sends its own "warning: …" diagnostics through
+            // printErr too — those aren't errors from our core.
+            const level = t.startsWith("[ERROR]") ? "error" : "info";
+            post({ kind: "log", level, text: t });
+        },
+    });
 }
 
 self.onmessage = async (ev: MessageEvent<RunRequest>) => {
