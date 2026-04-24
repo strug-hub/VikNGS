@@ -75,3 +75,31 @@ def test_example_run_matches_cli_golden(vite_server: str):
         if errors:
             # Non-fatal but surfaced
             print("page events:\n" + "\n".join(errors))
+
+
+def test_preload_example_button(vite_server: str):
+    """The 'Preload example' header button should fetch the bundled files and
+    populate both file inputs; running after that should produce the same
+    CLI-golden-matching 16 rows as when uploaded manually.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(vite_server, wait_until="domcontentloaded")
+
+        page.locator("#preload-example-btn").click()
+        # Wait for the ok log line confirming the load finished.
+        page.wait_for_selector("#log .ok", timeout=10_000)
+
+        # File inputs should now report a selected file.
+        vcf_name = page.eval_on_selector("#f-vcf", "el => el.files[0]?.name")
+        sample_name = page.eval_on_selector("#f-sample", "el => el.files[0]?.name")
+        assert vcf_name == "example.vcf", f"vcf input: {vcf_name!r}"
+        assert sample_name == "example_info.txt", f"sample input: {sample_name!r}"
+
+        page.locator("#run-btn").click()
+        page.wait_for_selector("#results-table table", timeout=90_000)
+        row_count = page.locator("#results-table tbody tr").count()
+        assert row_count == 16, f"expected 16 rows, got {row_count}"
+
+        browser.close()

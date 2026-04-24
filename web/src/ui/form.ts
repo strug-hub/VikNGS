@@ -10,7 +10,12 @@ type FieldDef =
     | { id: string; label: string; type: "checkbox"; default: boolean }
     | { id: string; label: string; type: "select"; default: string; options: { value: string; label: string }[] };
 
-interface Group { label: string; fields: FieldDef[] }
+interface Group {
+    label: string;
+    fields: FieldDef[];
+    collapsible?: boolean;  // render as <details>; defaults to always-visible
+    startOpen?: boolean;    // only meaningful when collapsible
+}
 
 const SCHEMA: Group[] = [
     {
@@ -22,19 +27,9 @@ const SCHEMA: Group[] = [
         ],
     },
     {
-        label: "VCF filtering",
-        fields: [
-            { id: "maf",       label: "MAF threshold",            type: "number",  default: 0.05, step: "0.01", min: 0, max: 1 },
-            { id: "depth",     label: "Read-depth cutoff (high/low)", type: "number", default: 30, step: "1", min: 1 },
-            { id: "missing",   label: "Missing data threshold",   type: "number",  default: 0.1, step: "0.01", min: 0, max: 0.5 },
-            { id: "mustPass",  label: "Require FILTER=PASS",      type: "checkbox", default: false },
-            { id: "chrFilter", label: "Chromosome filter",        type: "text",    default: "", placeholder: "(all)" },
-            { id: "fromPos",   label: "Min position (-1 = none)", type: "number",  default: -1, step: "1" },
-            { id: "toPos",     label: "Max position (-1 = none)", type: "number",  default: -1, step: "1" },
-        ],
-    },
-    {
         label: "Test",
+        collapsible: true,
+        startOpen: true,
         fields: [
             { id: "statistic", label: "Statistic",        type: "select", default: "common", options: [
                 { value: "common", label: "Common variant" },
@@ -51,7 +46,23 @@ const SCHEMA: Group[] = [
         ],
     },
     {
+        label: "VCF filtering",
+        collapsible: true,
+        startOpen: false,
+        fields: [
+            { id: "maf",       label: "MAF threshold",            type: "number",  default: 0.05, step: "0.01", min: 0, max: 1 },
+            { id: "depth",     label: "Read-depth cutoff (high/low)", type: "number", default: 30, step: "1", min: 1 },
+            { id: "missing",   label: "Missing data threshold",   type: "number",  default: 0.1, step: "0.01", min: 0, max: 0.5 },
+            { id: "mustPass",  label: "Require FILTER=PASS",      type: "checkbox", default: false },
+            { id: "chrFilter", label: "Chromosome filter",        type: "text",    default: "", placeholder: "(all)" },
+            { id: "fromPos",   label: "Min position (-1 = none)", type: "number",  default: -1, step: "1" },
+            { id: "toPos",     label: "Max position (-1 = none)", type: "number",  default: -1, step: "1" },
+        ],
+    },
+    {
         label: "Collapsing (BED only)",
+        collapsible: true,
+        startOpen: false,
         fields: [
             { id: "collapseMode", label: "Mode", type: "select", default: "", options: [
                 { value: "",     label: "None" },
@@ -64,6 +75,8 @@ const SCHEMA: Group[] = [
     },
     {
         label: "Performance",
+        collapsible: true,
+        startOpen: false,
         fields: [
             { id: "batchSize", label: "Batch size", type: "number", default: 1000, step: "100", min: 1 },
         ],
@@ -72,12 +85,22 @@ const SCHEMA: Group[] = [
 
 export function mountForm(root: HTMLFormElement) {
     for (const group of SCHEMA) {
-        const g = document.createElement("div");
+        const g = group.collapsible
+            ? document.createElement("details")
+            : document.createElement("div");
         g.className = "group";
-        const lbl = document.createElement("div");
-        lbl.className = "group-label";
-        lbl.textContent = group.label;
-        g.appendChild(lbl);
+        if (group.collapsible) {
+            if (group.startOpen) (g as HTMLDetailsElement).open = true;
+            const summary = document.createElement("summary");
+            summary.className = "group-label";
+            summary.textContent = group.label;
+            g.appendChild(summary);
+        } else {
+            const lbl = document.createElement("div");
+            lbl.className = "group-label";
+            lbl.textContent = group.label;
+            g.appendChild(lbl);
+        }
 
         for (const f of group.fields) {
             const field = document.createElement("div");
