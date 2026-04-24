@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>VikNGS — Variant Association Testing</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="/src/ui/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>VikNGS</h1>
+      <span class="sub">Variant integration kit for NGS — in-browser</span>
+    </header>
+
+    <main>
+      <section id="form-panel" class="panel">
+        <h2>Inputs</h2>
+        <form id="run-form">
+          <!-- form fields injected by ui/form.ts -->
+        </form>
+        <div class="actions">
+          <button id="run-btn" type="button">Run analysis</button>
+          <button id="stop-btn" type="button" disabled>Stop</button>
+        </div>
+      </section>
+
+      <section id="log-panel" class="panel">
+        <h2>Log</h2>
+        <pre id="log"></pre>
+      </section>
+
+      <section id="results-panel" class="panel">
+        <h2>Results</h2>
+        <div id="manhattan"></div>
+        <div id="results-table"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
