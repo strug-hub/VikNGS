@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/sim-cli.dir/src/cmd/simcmd.cpp.o" -o /home/scott/scratch/VikNGS/bin/sim-cli  libvikngs-sim.a libvikngs-core.a 
