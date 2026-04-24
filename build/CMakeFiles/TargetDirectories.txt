@@ -1,0 +1,6 @@
+/home/scott/scratch/VikNGS/build/CMakeFiles/vikngs-core.dir
+/home/scott/scratch/VikNGS/build/CMakeFiles/vikngs-sim.dir
+/home/scott/scratch/VikNGS/build/CMakeFiles/vikngs.dir
+/home/scott/scratch/VikNGS/build/CMakeFiles/sim-cli.dir
+/home/scott/scratch/VikNGS/build/CMakeFiles/edit_cache.dir
+/home/scott/scratch/VikNGS/build/CMakeFiles/rebuild_cache.dir

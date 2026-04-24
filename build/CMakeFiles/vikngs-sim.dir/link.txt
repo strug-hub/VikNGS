@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvikngs-sim.a "CMakeFiles/vikngs-sim.dir/src/gui/src/simulation/Simulation.cpp.o" "CMakeFiles/vikngs-sim.dir/src/gui/src/simulation/SimulationHelper.cpp.o"
+/usr/bin/ranlib libvikngs-sim.a

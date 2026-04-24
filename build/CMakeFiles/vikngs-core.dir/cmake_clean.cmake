@@ -1,0 +1,43 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/vikngs-core.dir/src/Global.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Global.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Math/GeneticsHelper.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Math/GeneticsHelper.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Math/RandomHelper.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Math/RandomHelper.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Math/StatisticsHelper.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Math/StatisticsHelper.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Math/VectorHelper.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Math/VectorHelper.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/BEDParser.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/BEDParser.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/Filter.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/Filter.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/InputProcess.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/InputProcess.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/MemoryMapped/MemoryMapped.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/MemoryMapped/MemoryMapped.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/SampleParser.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/SampleParser.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/StringTools.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/StringTools.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Parser/VariantParser.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Parser/VariantParser.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Request.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Request.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Test/ScoreTestFunctions.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Test/ScoreTestFunctions.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/Test/Test.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/Test/Test.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/cmd/Log.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/cmd/Log.cpp.o.d"
+  "CMakeFiles/vikngs-core.dir/src/vikNGS.cpp.o"
+  "CMakeFiles/vikngs-core.dir/src/vikNGS.cpp.o.d"
+  "libvikngs-core.a"
+  "libvikngs-core.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/vikngs-core.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

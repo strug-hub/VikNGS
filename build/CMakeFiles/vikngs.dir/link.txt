@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/vikngs.dir/src/cmd/vikNGScmd.cpp.o -o /home/scott/scratch/VikNGS/bin/vikngs  libvikngs-core.a 
