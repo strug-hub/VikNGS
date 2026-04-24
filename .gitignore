@@ -54,3 +54,15 @@ Temporary Items
 *.o
 *pro.user
 *.Rhistory
+
+# Build artifacts
+bin/vikNGS
+bin/sim-cli
+bin/test-unit
+
+# Testing
+tests/__pycache__/
+tests/**/__pycache__/
+tests/.pytest_cache/
+tests/unit/build/
+tests/.venv/

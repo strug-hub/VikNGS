@@ -1,15 +1,35 @@
-CC=g++ -std=c++11 -O3 -D_GNU_SOURCE 
+CC=g++ -std=c++11 -O3 -D_GNU_SOURCE
 CFLAGS=-c
 SOURCE=../src/
 CMD=cmd/
+SIM=gui/src/simulation/
 all: build
 
-build: vikNGS.o root math test parser Global.o vikNGScmd.o 
+build: vikNGS.o root math test parser Global.o vikNGScmd.o
 	$(CC) Log.o Request.o MemoryMapped.o \
 VectorHelper.o GeneticsHelper.o RandomHelper.o StatisticsHelper.o \
 StringTools.o VariantParser.o Filter.o SampleParser.o BEDParser.o  \
 Test.o ScoreTestFunctions.o InputProcess.o vikNGS.o $(OUT)Global.o vikNGScmd.o \
 -pthread -o vikNGS
+
+sim-cli: vikNGS.o root math test parser Global.o Simulation.o SimulationHelper.o simcmd.o
+	$(CC) Log.o Request.o MemoryMapped.o \
+VectorHelper.o GeneticsHelper.o RandomHelper.o StatisticsHelper.o \
+StringTools.o VariantParser.o Filter.o SampleParser.o BEDParser.o  \
+Test.o ScoreTestFunctions.o InputProcess.o vikNGS.o Global.o \
+Simulation.o SimulationHelper.o simcmd.o \
+-pthread -o sim-cli
+
+# Simulation sources use `#include "../Foo.h"` relative paths that assume they
+# live one level below src/. They actually live in src/gui/src/simulation/, so
+# we add -I<any-src-subdir> to make `../Foo.h` resolve to src/Foo.h.
+SIM_INC=-I$(SOURCE)Parser
+Simulation.o:
+	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(SIM)Simulation.cpp
+SimulationHelper.o:
+	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(SIM)SimulationHelper.cpp
+simcmd.o:
+	$(CC) $(CFLAGS) $(SIM_INC) $(SOURCE)$(CMD)simcmd.cpp
 	
 root: Log.o Request.o MemoryMapped.o
 
