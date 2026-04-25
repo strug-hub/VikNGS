@@ -364,7 +364,11 @@ std::vector<VariantSet> processVCF(Request &req, SampleInfo &sampleInfo, size_t&
     std::queue<ParallelProcess*> collapseOrder;
 
     File vcf;
-    vcf.open(req.getVCFDir());
+    if (req.hasVcfStreamSource()) {
+        vcf.openStream(req.takeVcfStreamSource());
+    } else {
+        vcf.open(req.getVCFDir());
+    }
 
     totalLineCount = 0;
     size_t batchSize = static_cast<size_t>(req.getBatchSize());

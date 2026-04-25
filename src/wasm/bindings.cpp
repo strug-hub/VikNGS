@@ -461,6 +461,111 @@ static JsSimResult runSimulation(JsSimRequest js) {
     return out;
 }
 
+// ---------------------------------------------------------------------------
+// Streaming variant of runVikNGS. Same JsRequest fields, plus a JS reader
+// object whose `readNextChunk()` method returns
+//   { done: bool, bytes: Uint8Array }
+// synchronously. In a Web Worker, JS can build that on top of FileReaderSync
+// to pump bytes from a Blob without staging the whole VCF into MEMFS — so
+// multi-GB inputs work without hitting the 2GB MEMFS ceiling.
+//
+// `vcfPath` should still point to a small header-only file in MEMFS so
+// SampleParser can map sample IDs.
+// ---------------------------------------------------------------------------
+static JsResults runVikNGSStreaming(JsRequest js, emscripten::val jsReader) {
+    JsResults out;
+    try {
+        Request req = getDefaultRequest();
+        req.setInputFiles(js.vcfPath, js.samplePath);
+        req.setOutputDir(js.outputDir);
+
+        req.setMafCutOff(js.maf);
+        req.setHighLowCutOff(js.depth);
+        req.setMissingThreshold(js.missing);
+        req.setMustPASS(js.mustPass);
+        if (!js.chrFilter.empty()) req.setChromosomeFilter(js.chrFilter);
+        if (js.fromPos >= 0) req.setMinPos(js.fromPos);
+        if (js.toPos   >= 0) req.setMaxPos(js.toPos);
+
+        if (js.nboot > 1) {
+            req.setBootstrap(js.nboot);
+            req.setStopEarly(js.stopEarly);
+        }
+
+        if (!js.bedPath.empty()) {
+            req.setCollapseFile(js.bedPath);
+            if (js.collapseMode == "gene")      req.setCollapseGene();
+            else if (js.collapseMode == "exon") req.setCollapseExon();
+        }
+        if (js.collapseMode == "k" && js.collapseK >= 2) req.setCollapse(js.collapseK);
+
+        GenotypeSource gt = parseGenotypeSource(js.genotype);
+        req.addTest(buildTestSettings(js.statistic, gt));
+
+        req.setBatchSize(js.batchSize);
+        req.setNumberThreads(js.threads);
+        req.setRetainGenotypes(true);
+
+        // Wrap the JS reader as a synchronous ChunkCallback.
+        // The Reader returns { done: bool, bytes: Uint8Array }.
+        emscripten::val reader = jsReader;
+        req.setVcfStreamSource([reader](std::string& out) -> bool {
+            emscripten::val chunk = reader.call<emscripten::val>("readNextChunk");
+            if (chunk["done"].as<bool>()) return false;
+            emscripten::val bytes = chunk["bytes"];
+            int len = bytes["length"].as<int>();
+            if (len <= 0) return false;
+            // Resize once and copy via the typed-memory helper.
+            out.resize(static_cast<size_t>(len));
+            emscripten::val view{ emscripten::typed_memory_view(
+                static_cast<size_t>(len),
+                reinterpret_cast<uint8_t*>(out.data())) };
+            view.call<void>("set", bytes);
+            return true;
+        });
+
+        TRACE("calling startVikNGS (streaming)");
+        Data data = startVikNGS(req);
+        TRACE("startVikNGS returned");
+
+        out.evaluationTime = data.evaluationTime;
+        out.variantsParsed = static_cast<int>(data.variantsParsed);
+
+        auto tests = req.getTests();
+        std::string testDesc = tests.empty() ? "" : tests[0].toShortString();
+
+        g_detailIndex.clear();
+        for (size_t vsIdx = 0; vsIdx < data.variants.size(); vsIdx++) {
+            auto& vs = data.variants[vsIdx];
+            if (vs.nPvals() == 0) continue;
+            double p = vs.getPval(0);
+            auto* variants = vs.getVariants();
+            for (size_t vIdx = 0; vIdx < variants->size(); vIdx++) {
+                auto& v = (*variants)[vIdx];
+                if (!v.isValid()) continue;
+                JsResultRow row;
+                row.chrom    = v.getChromosome();
+                row.pos      = v.getPosition();
+                row.ref      = v.getRef();
+                row.alt      = v.getAlt();
+                row.pvalue   = p;
+                row.testDesc = testDesc;
+                out.rows.push_back(std::move(row));
+                g_detailIndex.emplace_back(static_cast<int>(vsIdx), static_cast<int>(vIdx));
+            }
+        }
+        g_lastAnalysis = std::move(data);
+        g_hasLastAnalysis = true;
+    } catch (const std::exception& e) {
+        emscripten_console_error(e.what());
+        out.errorMessage = e.what();
+    } catch (...) {
+        emscripten_console_error("[bindings] unknown (non-std) exception in streaming sim");
+        out.errorMessage = "unknown error";
+    }
+    return out;
+}
+
 // Backwards-compat smoke ping used by the original Phase-C hello test.
 static std::string hello(const std::string& name) {
     return "hello, " + name + ", from vikngs-core wasm";
@@ -581,6 +686,7 @@ EMSCRIPTEN_BINDINGS(vikngs_core) {
         .field("errorMessage", &JsAnalysisDetail::errorMessage);
 
     function("getAnalysisDetail", &getAnalysisDetail);
+    function("runVikNGSStreaming", &runVikNGSStreaming);
 
     function("hello",     &hello);
 }

@@ -63,14 +63,14 @@ bool checkFileExists(const std::string& dir) {
 
 bool Request::validate() {
 
-    if(!this->simulation && this->vcfDir.size() <= 0)
+    if(!this->simulation && this->vcfDir.size() <= 0 && !hasVcfStreamSource())
         throwError(ERROR_SOURCE, "No VCF file provided.");
     if(!this->simulation && this->sampleDir.size() <= 0)
         throwError(ERROR_SOURCE, "No sample info file provided.", sampleDir);
     if(this->tests.size() <= 0)
         throwError(ERROR_SOURCE, "No association tests specified.");
 
-    if (!checkFileExists(vcfDir))
+    if (!hasVcfStreamSource() && !checkFileExists(vcfDir))
         throwError(ERROR_SOURCE, "Cannot find file at VCF directory.", vcfDir);
     if (!checkFileExists(sampleDir))
         throwError(ERROR_SOURCE, "Cannot find file at sample info directory.", sampleDir);

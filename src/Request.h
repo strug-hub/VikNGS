@@ -1,9 +1,11 @@
 #pragma once
 #include "Enum/CollapseType.h"
 #include "Enum/TestSettings.h"
+#include "Parser/File.h"
 
 struct IntervalSet;
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -19,6 +21,11 @@ private:
     bool keepFiltered;
     bool makePlot;
     bool retainGt;
+
+    // Optional streaming hook. When set, processVCF uses File::openStream
+    // with this callback instead of File::open(vcfDir). Lets the WASM
+    // build feed bytes from a JS Blob without staging it through MEMFS.
+    ChunkCallback vcfStreamSource;
 
     std::vector<TestSettings> tests;
 
@@ -53,6 +60,13 @@ public:
     inline void setInputFiles(std::string vcfDir, std::string sampleDir){
         this->vcfDir = vcfDir;
         this->sampleDir = sampleDir;
+    }
+    inline void setVcfStreamSource(ChunkCallback cb) { this->vcfStreamSource = std::move(cb); }
+    inline bool hasVcfStreamSource() const { return static_cast<bool>(vcfStreamSource); }
+    inline ChunkCallback takeVcfStreamSource() {
+        ChunkCallback cb = std::move(this->vcfStreamSource);
+        this->vcfStreamSource = nullptr;
+        return cb;
     }
     inline void setCollapseFile(std::string bedDir){ this->bedDir = bedDir; }
     inline void setOutputDir(std::string outputDir){ this->outputDir = outputDir; }

@@ -28,6 +28,15 @@ interface VikNGSModule {
         variantsParsed: number;
         errorMessage: string;
     };
+    runVikNGSStreaming: (req: unknown, jsReader: unknown) => {
+        rows: { size: () => number; get: (i: number) => {
+            chrom: string; pos: number; ref: string; alt: string;
+            pvalue: number; testDesc: string;
+        }};
+        evaluationTime: number;
+        variantsParsed: number;
+        errorMessage: string;
+    };
     VectorSimGroup: new () => {
         push_back: (g: unknown) => void;
     };
@@ -159,6 +168,49 @@ async function runSim(Module: VikNGSModule, req: SimRunRequest) {
     });
 }
 
+// Find the byte offset of the first non-'#' line in the VCF (where data
+// starts). Returns the bytes [0, headerEnd) so SampleParser can read the
+// #CHROM line for sample IDs.
+async function extractHeaderBytes(file: File, reader: FileReaderSync, probe: number): Promise<Uint8Array> {
+    const limit = Math.min(probe, file.size);
+    const buf = new Uint8Array(reader.readAsArrayBuffer(file.slice(0, limit)));
+    // Scan line-by-line.
+    let i = 0;
+    while (i < buf.length) {
+        if (buf[i] !== 0x23 /* # */) {
+            // First data line — header ends at start of this line.
+            return buf.slice(0, i);
+        }
+        // Skip to end of line.
+        const nl = buf.indexOf(0x0a, i);
+        if (nl < 0) {
+            // No newline within probe; expand and retry. This happens for
+            // VCFs with massive ##FILTER comment blocks. Double the probe.
+            if (limit >= file.size) return buf;
+            return extractHeaderBytes(file, reader, probe * 4);
+        }
+        i = nl + 1;
+    }
+    // Probe was entirely header comments — expand.
+    if (limit >= file.size) return buf;
+    return extractHeaderBytes(file, reader, probe * 4);
+}
+
+interface ChunkReader { readNextChunk(): { done: boolean; bytes: Uint8Array }; }
+
+function makeChunkReader(file: File, reader: FileReaderSync, chunkSize: number): ChunkReader {
+    let offset = 0;
+    return {
+        readNextChunk() {
+            if (offset >= file.size) return { done: true, bytes: new Uint8Array(0) };
+            const end = Math.min(offset + chunkSize, file.size);
+            const buf = new Uint8Array(reader.readAsArrayBuffer(file.slice(offset, end)));
+            offset = end;
+            return { done: false, bytes: buf };
+        },
+    };
+}
+
 async function runDetail(Module: VikNGSModule, req: DetailRequest) {
     const r = Module.getAnalysisDetail(req.rowIdx);
     const samples = [];
@@ -207,7 +259,7 @@ self.onmessage = async (ev: MessageEvent<UiToWorker>) => {
         // Ensure /work exists in MEMFS.
         try { Module.FS.mkdir("/work"); } catch { /* already exists */ }
 
-        Module.FS.writeFile("/work/input.vcf", new Uint8Array(await aReq.vcf.arrayBuffer()));
+        // Sample file is small — stage it whole in MEMFS.
         Module.FS.writeFile("/work/sample.txt", new Uint8Array(await aReq.sample.arrayBuffer()));
         let bedPath = "";
         if (aReq.bed) {
@@ -215,10 +267,18 @@ self.onmessage = async (ev: MessageEvent<UiToWorker>) => {
             bedPath = "/work/regions.bed";
         }
 
-        post({ kind: "log", level: "info", text: `Running analysis (stat=${aReq.statistic}, gt=${aReq.genotype})…` });
+        // VCF: extract just the header (first contiguous '#'-prefixed lines)
+        // into a small MEMFS file for SampleParser, then stream the full
+        // file lazily into the parser via FileReaderSync.
+        const HEADER_PROBE = 256 * 1024;   // 256 KB usually covers a header
+        const fileReader = new FileReaderSync();
+        const headerBytes = await extractHeaderBytes(aReq.vcf, fileReader, HEADER_PROBE);
+        Module.FS.writeFile("/work/header.vcf", headerBytes);
+
+        post({ kind: "log", level: "info", text: `Running analysis on ${aReq.vcf.name} (${(aReq.vcf.size / (1024*1024)).toFixed(1)} MB streamed; stat=${aReq.statistic}, gt=${aReq.genotype})…` });
 
         const cppReq = {
-            vcfPath: "/work/input.vcf",
+            vcfPath: "/work/header.vcf",
             samplePath: "/work/sample.txt",
             bedPath,
             outputDir: "/work",
@@ -239,7 +299,12 @@ self.onmessage = async (ev: MessageEvent<UiToWorker>) => {
             threads: 1,
         };
 
-        const result = Module.runVikNGS(cppReq);
+        // Sync chunk reader the C++ side calls per `refill`. 4 MB chunks are
+        // a sweet spot — large enough to amortize the embind round-trip,
+        // small enough to keep peak heap usage bounded.
+        const reader = makeChunkReader(aReq.vcf, fileReader, 4 * 1024 * 1024);
+
+        const result = Module.runVikNGSStreaming(cppReq, reader);
         if (result.errorMessage) {
             post({ kind: "error", message: result.errorMessage });
             return;
