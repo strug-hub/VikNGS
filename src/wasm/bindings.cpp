@@ -85,6 +85,28 @@ struct JsResults {
     std::string               errorMessage;  // empty on success
 };
 
+// One row per sample for the drill-down table behind a Manhattan point.
+struct JsSampleGenotype {
+    int    sampleIdx;
+    int    group;
+    double phenotype;
+    // Genotype-source dosage vectors. Each entry is a 2-element [source-name,
+    // dosage] pair packed into a JsSampleDosage so embind can serialise it.
+    double trueDosage     = std::nan("");
+    double expectedDosage = std::nan("");
+    double callDosage     = std::nan("");
+    double vcfDosage      = std::nan("");
+};
+
+struct JsAnalysisDetail {
+    std::string chrom;
+    int         pos;
+    std::string ref;
+    std::string alt;
+    std::vector<JsSampleGenotype> samples;
+    std::string errorMessage;
+};
+
 // ---------------------------------------------------------------------------
 // Helpers that map JS strings to enums. Throws std::runtime_error on
 // unknown values; the emscripten exception propagation turns that into a
@@ -116,6 +138,15 @@ static TestSettings buildTestSettings(const std::string& statName, GenotypeSourc
     if (gt == GenotypeSource::VCF_CALL) return TestSettings(GenotypeSource::VCF_CALL, Statistic::SKAT,   Variance::RVS);
     return                                    TestSettings(GenotypeSource::EXPECTED, Statistic::SKAT,   Variance::REGULAR);
 }
+
+// ---------------------------------------------------------------------------
+// Cached state from the most recent runVikNGS, used by getAnalysisDetail
+// for the Manhattan drill-down. Keyed by the flat row index emitted into
+// JsResults.rows.
+// ---------------------------------------------------------------------------
+static Data g_lastAnalysis;
+static bool g_hasLastAnalysis = false;
+static std::vector<std::pair<int,int>> g_detailIndex;  // (vsIdx, variantInVsIdx) per result row
 
 // ---------------------------------------------------------------------------
 // Main entry: build a Request, call startVikNGS, unpack results.
@@ -152,6 +183,9 @@ static JsResults runVikNGS(JsRequest js) {
 
         req.setBatchSize(js.batchSize);
         req.setNumberThreads(js.threads);
+        // Keep per-sample genotypes available for the drill-down table
+        // exposed via getAnalysisDetail.
+        req.setRetainGenotypes(true);
 
         TRACE("calling startVikNGS");
         Data data = startVikNGS(req);
@@ -163,14 +197,19 @@ static JsResults runVikNGS(JsRequest js) {
         auto tests = req.getTests();
         std::string testDesc = tests.empty() ? "" : tests[0].toShortString();
 
+        // Reset detail index alongside the row vector so they stay in sync.
+        g_detailIndex.clear();
+
         // Emit one row per underlying Variant inside each VariantSet with
         // pvals — matches the CLI's output format (one row per variant even
         // when collapsed into multi-variant sets).
-        for (auto& vs : data.variants) {
+        for (size_t vsIdx = 0; vsIdx < data.variants.size(); vsIdx++) {
+            auto& vs = data.variants[vsIdx];
             if (vs.nPvals() == 0) continue;
             double p = vs.getPval(0);
             auto* variants = vs.getVariants();
-            for (auto& v : *variants) {
+            for (size_t vIdx = 0; vIdx < variants->size(); vIdx++) {
+                auto& v = (*variants)[vIdx];
                 if (!v.isValid()) continue;
                 JsResultRow row;
                 row.chrom    = v.getChromosome();
@@ -180,8 +219,13 @@ static JsResults runVikNGS(JsRequest js) {
                 row.pvalue   = p;
                 row.testDesc = testDesc;
                 out.rows.push_back(std::move(row));
+                g_detailIndex.emplace_back(static_cast<int>(vsIdx), static_cast<int>(vIdx));
             }
         }
+        // Cache the full Data so getAnalysisDetail can return per-sample
+        // genotypes without rerunning the analysis.
+        g_lastAnalysis = std::move(data);
+        g_hasLastAnalysis = true;
         TRACE("result packing done");
     } catch (const std::exception& e) {
         emscripten_console_error(e.what());
@@ -189,6 +233,67 @@ static JsResults runVikNGS(JsRequest js) {
     } catch (...) {
         emscripten_console_error("[bindings] unknown (non-std) exception");
         out.errorMessage = "unknown error";
+    }
+    return out;
+}
+
+// ---------------------------------------------------------------------------
+// Per-row drill-down. Pulls per-sample dosages from the cached `Data`
+// for the variant referenced by `rowIdx` (the same flat index used by
+// JsResults.rows). Cheap to call repeatedly — no recomputation.
+// ---------------------------------------------------------------------------
+static JsAnalysisDetail getAnalysisDetail(int rowIdx) {
+    JsAnalysisDetail out;
+    if (!g_hasLastAnalysis) {
+        out.errorMessage = "no analysis result cached; run an analysis first";
+        return out;
+    }
+    if (rowIdx < 0 || static_cast<size_t>(rowIdx) >= g_detailIndex.size()) {
+        out.errorMessage = "rowIdx out of range";
+        return out;
+    }
+    auto [vsIdx, vIdx] = g_detailIndex[rowIdx];
+    auto& vs = g_lastAnalysis.variants[vsIdx];
+    auto* variants = vs.getVariants();
+    auto& v = (*variants)[vIdx];
+
+    out.chrom = v.getChromosome();
+    out.pos   = v.getPosition();
+    out.ref   = v.getRef();
+    out.alt   = v.getAlt();
+
+    // Pull per-sample vectors for whichever sources are populated.
+    auto sources = v.getAllGenotypes();
+    VectorXd* trueGT = nullptr;
+    VectorXd* expGT  = nullptr;
+    VectorXd* callGT = nullptr;
+    VectorXd* vcfGT  = nullptr;
+    for (auto src : sources) {
+        VectorXd* g = v.getGenotype(src);
+        if      (src == GenotypeSource::TRUEGT)   trueGT = g;
+        else if (src == GenotypeSource::EXPECTED) expGT  = g;
+        else if (src == GenotypeSource::CALL)     callGT = g;
+        else if (src == GenotypeSource::VCF_CALL) vcfGT  = g;
+    }
+
+    VectorXd y = g_lastAnalysis.sampleInfo.getY();
+    VectorXi g = g_lastAnalysis.sampleInfo.getG();
+
+    // Pick whichever genotype vector exists to size the table.
+    int n = 0;
+    for (VectorXd* p : {trueGT, expGT, callGT, vcfGT}) if (p) { n = p->size(); break; }
+
+    out.samples.reserve(n);
+    for (int i = 0; i < n; i++) {
+        JsSampleGenotype row;
+        row.sampleIdx = i;
+        row.group     = (i < g.size()) ? g[i] : -1;
+        row.phenotype = (i < y.size()) ? y[i] : std::nan("");
+        if (trueGT) row.trueDosage     = (*trueGT)[i];
+        if (expGT)  row.expectedDosage = (*expGT)[i];
+        if (callGT) row.callDosage     = (*callGT)[i];
+        if (vcfGT)  row.vcfDosage      = (*vcfGT)[i];
+        out.samples.push_back(std::move(row));
     }
     return out;
 }
@@ -452,5 +557,30 @@ EMSCRIPTEN_BINDINGS(vikngs_core) {
     function("runSimulation", &runSimulation);
 
     function("runVikNGS", &runVikNGS);
+
+    // -----------------------------------------------------------------------
+    // Drill-down: per-sample table for one variant.
+    // -----------------------------------------------------------------------
+    value_object<JsSampleGenotype>("SampleGenotype")
+        .field("sampleIdx",      &JsSampleGenotype::sampleIdx)
+        .field("group",          &JsSampleGenotype::group)
+        .field("phenotype",      &JsSampleGenotype::phenotype)
+        .field("trueDosage",     &JsSampleGenotype::trueDosage)
+        .field("expectedDosage", &JsSampleGenotype::expectedDosage)
+        .field("callDosage",     &JsSampleGenotype::callDosage)
+        .field("vcfDosage",      &JsSampleGenotype::vcfDosage);
+
+    register_vector<JsSampleGenotype>("VectorSampleGenotype");
+
+    value_object<JsAnalysisDetail>("AnalysisDetail")
+        .field("chrom",        &JsAnalysisDetail::chrom)
+        .field("pos",          &JsAnalysisDetail::pos)
+        .field("ref",          &JsAnalysisDetail::ref)
+        .field("alt",          &JsAnalysisDetail::alt)
+        .field("samples",      &JsAnalysisDetail::samples)
+        .field("errorMessage", &JsAnalysisDetail::errorMessage);
+
+    function("getAnalysisDetail", &getAnalysisDetail);
+
     function("hello",     &hello);
 }

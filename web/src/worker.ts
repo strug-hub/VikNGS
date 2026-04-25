@@ -1,7 +1,7 @@
 // Web Worker: loads vikngs-core.wasm, streams the uploaded files into MEMFS,
 // runs runVikNGS, and posts a completion message back to the UI thread.
 
-import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
+import type { DetailRequest, RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 // The Emscripten-generated module is UMD/CJS and not module-import-friendly
 // under Vite's ESM pipeline. Load it via importScripts in a classic worker,
@@ -42,7 +42,24 @@ interface VikNGSModule {
         variantsParsed: number;
         errorMessage: string;
     };
+    getAnalysisDetail: (rowIdx: number) => {
+        chrom: string; pos: number; ref: string; alt: string;
+        samples: { size: () => number; get: (i: number) => {
+            sampleIdx: number; group: number; phenotype: number;
+            trueDosage: number; expectedDosage: number;
+            callDosage: number; vcfDosage: number;
+        }};
+        errorMessage: string;
+    };
     hello: (name: string) => string;
+}
+
+// Module is loaded once and reused across messages so the cached
+// analysis state on the WASM side is available for drill-down queries.
+let modulePromise: Promise<VikNGSModule> | null = null;
+function getModule(): Promise<VikNGSModule> {
+    if (!modulePromise) modulePromise = loadModule();
+    return modulePromise;
 }
 
 function post(msg: WorkerMessage) {
@@ -142,10 +159,42 @@ async function runSim(Module: VikNGSModule, req: SimRunRequest) {
     });
 }
 
+async function runDetail(Module: VikNGSModule, req: DetailRequest) {
+    const r = Module.getAnalysisDetail(req.rowIdx);
+    const samples = [];
+    for (let i = 0; i < r.samples.size(); i++) {
+        const s = r.samples.get(i);
+        samples.push({
+            sampleIdx: s.sampleIdx,
+            group: s.group,
+            phenotype: s.phenotype,
+            trueDosage: s.trueDosage,
+            expectedDosage: s.expectedDosage,
+            callDosage: s.callDosage,
+            vcfDosage: s.vcfDosage,
+        });
+    }
+    post({
+        kind: "detail-done",
+        rowIdx: req.rowIdx,
+        detail: {
+            chrom: r.chrom, pos: r.pos, ref: r.ref, alt: r.alt,
+            samples,
+            errorMessage: r.errorMessage,
+        },
+    });
+}
+
 self.onmessage = async (ev: MessageEvent<UiToWorker>) => {
     const req = ev.data;
     try {
-        const Module = await loadModule();
+        const Module = await getModule();
+
+        if ((req as DetailRequest).kind === "detail") {
+            await runDetail(Module, req as DetailRequest);
+            return;
+        }
+
         post({ kind: "log", level: "info", text: "Module ready. Staging inputs…" });
 
         if ((req as SimRunRequest).kind === "sim") {

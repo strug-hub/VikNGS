@@ -59,8 +59,15 @@
         <!-- Analysis results -->
         <div class="tab-pane" data-tab="analysis">
           <h2>Results</h2>
-          <div id="manhattan"></div>
+          <div id="manhattan" title="Click a point for the per-sample drill-down"></div>
           <div id="results-table"></div>
+          <div id="detail-panel" class="detail-panel" hidden>
+            <div class="detail-panel-header">
+              <span id="detail-title"></span>
+              <button id="detail-close" type="button" class="secondary" title="Close">×</button>
+            </div>
+            <div id="detail-body"></div>
+          </div>
         </div>
         <!-- Simulation results -->
         <div class="tab-pane" data-tab="simulation" hidden>

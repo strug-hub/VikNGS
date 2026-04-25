@@ -3,6 +3,7 @@ import { mountSimForm, collectSimForm } from "./ui/simForm";
 import { mountLog } from "./ui/log";
 import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
+import { renderDetail } from "./ui/detail";
 import { renderSimResults, clearSimResults, exportSimHtml } from "./ui/simResults";
 import type { SimReportData } from "./ui/simResults";
 import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
@@ -19,6 +20,10 @@ const simStatusEl = document.getElementById("sim-status") as HTMLElement;
 const logEl       = document.getElementById("log") as HTMLElement;
 const tableEl     = document.getElementById("results-table") as HTMLElement;
 const plotEl      = document.getElementById("manhattan") as HTMLElement;
+const detailPanel = document.getElementById("detail-panel") as HTMLElement;
+const detailTitle = document.getElementById("detail-title") as HTMLElement;
+const detailBody  = document.getElementById("detail-body") as HTMLElement;
+const detailClose = document.getElementById("detail-close") as HTMLButtonElement;
 const simSummaryEl = document.getElementById("sim-summary") as HTMLElement;
 const simPowerEl   = document.getElementById("sim-power") as HTMLElement;
 const simQqEl      = document.getElementById("sim-qq") as HTMLElement;
@@ -49,7 +54,10 @@ for (const b of document.querySelectorAll<HTMLButtonElement>("nav.tabs .tab")) {
 setActiveTab("analysis");
 
 // --- Worker run (shared for analysis + sim) ---
+// Worker is kept alive across runs so the cached analysis state on the
+// WASM side is available for drill-down queries. Stop terminates it.
 let worker: Worker | null = null;
+let activeOnDone: ((m: WorkerMessage) => void) | null = null;
 
 function resetAnalysis(statusText = "") {
     runBtn.disabled = false;
@@ -63,29 +71,59 @@ function resetSim(statusText = "") {
     simStatusEl.className = "";
     simStatusEl.textContent = statusText;
 }
-function endRun() {
+function killWorker() {
     if (worker) { worker.terminate(); worker = null; }
+    activeOnDone = null;
 }
 
-function startWorker(req: UiToWorker, onDone: (m: WorkerMessage) => void) {
+function ensureWorker(): Worker {
+    if (worker) return worker;
     worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
         const m = ev.data;
         if (m.kind === "log") { log[m.level](m.text); return; }
         if (m.kind === "progress") return;
-        onDone(m);
+        if (activeOnDone) activeOnDone(m);
     };
     worker.onerror = (e) => {
         log.error("Worker error: " + e.message);
-        resetAnalysis(); resetSim(); endRun();
+        resetAnalysis(); resetSim(); killWorker();
     };
-    worker.postMessage(req);
+    return worker;
 }
+
+function startWorker(req: UiToWorker, onDone: (m: WorkerMessage) => void) {
+    activeOnDone = onDone;
+    ensureWorker().postMessage(req);
+}
+
+function openDetailFor(rowIdx: number, row: import("./types").ResultRow) {
+    detailPanel.hidden = false;
+    detailTitle.textContent = `${row.chrom}:${row.pos} ${row.ref}>${row.alt} (loading…)`;
+    detailBody.innerHTML = "";
+    activeOnDone = (m) => {
+        if (m.kind === "detail-done" && m.rowIdx === rowIdx) {
+            const d = m.detail;
+            detailTitle.textContent = `${d.chrom}:${d.pos} ${d.ref}>${d.alt} · ${d.samples.length} samples`;
+            renderDetail(detailBody, d);
+        } else if (m.kind === "error") {
+            detailTitle.textContent = "Error";
+            detailBody.innerHTML = `<div style="color:var(--error)">${m.message}</div>`;
+        }
+    };
+    ensureWorker().postMessage({ kind: "detail", rowIdx } satisfies import("./types").DetailRequest);
+}
+
+detailClose.addEventListener("click", () => { detailPanel.hidden = true; });
 
 runBtn.addEventListener("click", () => {
     log.clear();
     tableEl.innerHTML = "";
     plotEl.innerHTML = "";
+    detailPanel.hidden = true;
+    // New run invalidates the cached analysis state in WASM — force a
+    // fresh module by killing the worker.
+    killWorker();
 
     const gathered = collectForm(form);
     if ("error" in gathered) { log.error(gathered.error); return; }
@@ -101,13 +139,13 @@ runBtn.addEventListener("click", () => {
         if (m.kind === "done") {
             log.ok(`Done. ${m.rows.length} rows, parsed ${m.variantsParsed} variants in ${m.evaluationTime.toFixed(2)}s.`);
             renderResultsTable(tableEl, m.rows);
-            renderManhattan(plotEl, m.rows);
-            resetAnalysis(`done — ${m.rows.length} rows`);
-            endRun();
+            renderManhattan(plotEl, m.rows, openDetailFor);
+            resetAnalysis(`done — ${m.rows.length} rows · click a point for detail`);
+            // Worker stays alive so detail queries work.
         } else if (m.kind === "error") {
             log.error("Error: " + m.message);
             resetAnalysis("error");
-            endRun();
+            killWorker();
         }
     });
 });
@@ -115,7 +153,7 @@ runBtn.addEventListener("click", () => {
 stopBtn.addEventListener("click", () => {
     log.info("Stopping…");
     resetAnalysis("stopped");
-    endRun();
+    killWorker();
 });
 
 // Last completed sim request + the data we rendered. The report exporter
@@ -160,11 +198,11 @@ simRunBtn.addEventListener("click", () => {
             lastSimReport = report;
             simExportBtn.disabled = false;
             resetSim(`done — ${m.rows.length} p-values`);
-            endRun();
+            // Worker stays alive — saves WASM reload on subsequent runs.
         } else if (m.kind === "error") {
             log.error("Error: " + m.message);
             resetSim("error");
-            endRun();
+            killWorker();
         }
     });
 });
@@ -172,7 +210,7 @@ simRunBtn.addEventListener("click", () => {
 simStopBtn.addEventListener("click", () => {
     log.info("Stopping…");
     resetSim("stopped");
-    endRun();
+    killWorker();
 });
 
 simExportBtn.addEventListener("click", () => {

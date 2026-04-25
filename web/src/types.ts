@@ -79,13 +79,35 @@ export interface SimDone {
     variantsParsed: number;
 }
 
+export interface SampleGenotype {
+    sampleIdx: number;
+    group: number;
+    phenotype: number;
+    trueDosage: number;      // NaN when source not available
+    expectedDosage: number;
+    callDosage: number;
+    vcfDosage: number;
+}
+
+export interface AnalysisDetail {
+    chrom: string;
+    pos: number;
+    ref: string;
+    alt: string;
+    samples: SampleGenotype[];
+    errorMessage: string;
+}
+
 export type WorkerMessage =
     | { kind: "log"; level: "info" | "error" | "ok"; text: string }
     | { kind: "progress"; percent: number }
     | { kind: "done"; rows: ResultRow[]; variantsParsed: number; evaluationTime: number }
+    | { kind: "detail-done"; rowIdx: number; detail: AnalysisDetail }
     | SimDone
     | { kind: "error"; message: string };
 
+export interface DetailRequest { kind: "detail"; rowIdx: number; }
+
 // Discriminated union for messages UI → worker. Analysis is the legacy
 // request (no `kind` on the wire for backwards-compat; worker type-narrows).
-export type UiToWorker = RunRequest | SimRunRequest;
+export type UiToWorker = RunRequest | SimRunRequest | DetailRequest;

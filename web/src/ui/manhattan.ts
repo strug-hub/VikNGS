@@ -1,12 +1,16 @@
 // Minimal Manhattan plot via uPlot. One scatter series keyed by cumulative
-// genomic position, y = -log10(p-value). Chromosome boundaries drawn as
-// vertical dashed lines. Clicking a point is reserved for Milestone 2.
+// genomic position, y = -log10(p-value). Click a point to fire onPointClick
+// with the row index for the drill-down panel.
 
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 import type { ResultRow } from "../types";
 
-export function renderManhattan(el: HTMLElement, rows: ResultRow[]) {
+export function renderManhattan(
+    el: HTMLElement,
+    rows: ResultRow[],
+    onPointClick?: (rowIdx: number, row: ResultRow) => void,
+) {
     el.innerHTML = "";
     if (rows.length === 0) return;
 
@@ -37,5 +41,18 @@ export function renderManhattan(el: HTMLElement, rows: ResultRow[]) {
         ],
     };
 
-    new uPlot(opts, data, el);
+    const u = new uPlot(opts, data, el);
+
+    if (onPointClick) {
+        // uPlot's `.u-over` overlay receives mouse events; cursor.idx
+        // tracks the closest data index.
+        const over = el.querySelector<HTMLElement>(".u-over");
+        if (over) {
+            over.addEventListener("click", () => {
+                const idx = u.cursor.idx;
+                if (idx == null || idx < 0 || idx >= rows.length) return;
+                onPointClick(idx, rows[idx]);
+            });
+        }
+    }
 }

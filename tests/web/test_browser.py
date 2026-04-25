@@ -77,6 +77,49 @@ def test_example_run_matches_cli_golden(vite_server: str):
             print("page events:\n" + "\n".join(errors))
 
 
+def test_manhattan_click_opens_drilldown(vite_server: str):
+    """Clicking a Manhattan point opens the per-sample drill-down panel
+    with one row per sample for the selected variant."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.on("pageerror", lambda e: print(f"pageerror: {e}"))
+        page.goto(vite_server, wait_until="domcontentloaded")
+
+        page.locator("#f-vcf").set_input_files(str(EXAMPLE_VCF))
+        page.locator("#f-sample").set_input_files(str(EXAMPLE_INFO))
+        page.locator("#run-btn").click()
+        page.wait_for_selector("#results-table table", timeout=90_000)
+
+        # Drive uPlot's cursor to row 0 by simulating a mousemove over the
+        # left edge of the .u-over overlay, then click.
+        over = page.locator("#manhattan .u-over")
+        box = over.bounding_box()
+        assert box is not None
+        # Click roughly at first data point.
+        page.mouse.click(box["x"] + 4, box["y"] + box["height"] / 2)
+
+        # Wait for the panel to be visible and populated.
+        page.wait_for_selector("#detail-panel:not([hidden])", timeout=15_000)
+        # Wait for actual rows (not the "loading…" placeholder).
+        page.wait_for_function(
+            "() => document.querySelectorAll('#detail-body table tbody tr').length > 0",
+            timeout=10_000,
+        )
+        n_rows = page.locator("#detail-body table tbody tr").count()
+        assert n_rows >= 1, f"expected ≥1 sample row in drill-down, got {n_rows}"
+
+        # Title should reflect the variant.
+        title = page.locator("#detail-title").inner_text()
+        assert ":" in title and ">" in title, f"title doesn't look like chr:pos REF>ALT — {title!r}"
+
+        # Close button hides the panel.
+        page.locator("#detail-close").click()
+        assert page.locator("#detail-panel").is_hidden()
+
+        browser.close()
+
+
 def test_preload_example_button(vite_server: str):
     """The 'Preload example' header button should fetch the bundled files and
     populate both file inputs; running after that should produce the same
