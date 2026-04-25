@@ -47,8 +47,8 @@ target_link_libraries(vikngs-core PUBLIC Threads::Threads)
 # reasons. Separate target so the CLI doesn't need to link it.
 # -----------------------------------------------------------------------------
 add_library(vikngs-sim STATIC
-    ${VIKNGS_SRC}/gui/src/simulation/Simulation.cpp
-    ${VIKNGS_SRC}/gui/src/simulation/SimulationHelper.cpp
+    ${VIKNGS_SRC}/Simulation/Simulation.cpp
+    ${VIKNGS_SRC}/Simulation/SimulationHelper.cpp
 )
 target_link_libraries(vikngs-sim PUBLIC vikngs-core)
 

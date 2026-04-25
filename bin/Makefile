@@ -2,7 +2,7 @@ CC=g++ -std=c++14 -O3 -D_GNU_SOURCE
 CFLAGS=-c
 SOURCE=../src/
 CMD=cmd/
-SIM=gui/src/simulation/
+SIM=Simulation/
 all: build
 
 build: vikNGS.o root math test parser Global.o vikNGScmd.o

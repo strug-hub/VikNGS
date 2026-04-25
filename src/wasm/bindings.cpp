@@ -18,7 +18,7 @@
 #include "../Enum/Family.h"
 #include "../Enum/Depth.h"
 #include "../Math/Math.h"
-#include "../gui/src/simulation/Simulation.h"
+#include "../Simulation/Simulation.h"
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>

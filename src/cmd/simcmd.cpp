@@ -9,7 +9,7 @@
 #include "../Enum/Variance.h"
 #include "../Enum/Depth.h"
 #include "../Math/Math.h"
-#include "../gui/src/simulation/Simulation.h"
+#include "../Simulation/Simulation.h"
 #include "CLI11.h"
 
 #include <iostream>

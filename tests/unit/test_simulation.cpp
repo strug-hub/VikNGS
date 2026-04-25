@@ -1,6 +1,6 @@
-// Unit tests for the simulation helpers (src/gui/src/simulation/Simulation*.cpp).
+// Unit tests for the simulation helpers (src/Simulation/Simulation*.cpp).
 #include "catch_amalgamated.hpp"
-#include "gui/src/simulation/Simulation.h"
+#include "Simulation/Simulation.h"
 
 #include <algorithm>
 

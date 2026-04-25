@@ -3,22 +3,49 @@
 Source Code
 ==================================
 
-Compiling the VikNGS User Interface
-------------------------------
+VikNGS ships in two forms:
 
-The VikNGS source code is contained in ``VikNGS/src/`` and the files specific to the graphical user interface (GUI) are found in ``VikNGS/src/gui``. To build the GUI version of the software, we recommend downloading and installing `QT 5.11+ and QT Creator <http://doc.qt.io/qt-5/index.html>`_. 
+- **Browser app** (``web/``) — a vanilla TypeScript + Vite UI driving a
+  WebAssembly build of the C++ core. This replaces the legacy Qt
+  desktop GUI.
+- **Command-line tools** (``src/cmd/``) — ``vikngs`` (analysis) and
+  ``sim-cli`` (simulation), built from the same C++ core.
 
-Open QT Creator after downloading and press the "Open Project" button to load the user interface QT project. Navigate to the directory where the VikNGS was downloaded and load the file ``VikNGS/src/gui/gui.pro``. This should load the source code and prompt you to choose a compiler. After selecting a compiler, the program can be build by switching to "Release" mode and pressing the top green arrow as seen below:
+Compiling the Command-Line Tools
+--------------------------------
 
-.. figure:: resources/qt_build.png
-   :target: source_code.html
-   :alt: QT build button
+The native build uses CMake (CMake 3.16+ and a C++17 compiler).
+From the repo root::
 
-This should begin compiling the code (will take a few minutes) and will automatically open a window when it is complete.
+   cmake -B build
+   cmake --build build -j
 
-Compiling the VikNGS Command Line Tool
-------------------------------
+This produces ``bin/vikngs`` and ``bin/sim-cli``.
 
-The command line-specific files are contained in ``VikNGS/src/cmd``. A Makefile is provided to compile the code for command line use and can be found in ``VikNGS/bin``. Simply going into this ``bin`` directory and typing ``make`` from the command line will begin compiling the code.
+A legacy ``bin/Makefile`` is also available::
 
-.. note:: g++ and C++11 or later is required.
+   cd bin
+   make
+
+.. note:: g++ and C++17 or later is required.
+
+Building the Browser App
+------------------------
+
+The browser app needs Emscripten installed (``emcmake`` in PATH).
+
+1. Build the WASM module::
+
+      ./emcmake-build.sh
+
+2. Build and serve the UI::
+
+      cd web
+      npm install
+      npm run dev
+
+   then open the printed URL.
+
+The C++ entry points used by both builds live in
+``src/vikNGS.h``/``src/vikNGS.cpp`` (analysis) and
+``src/Simulation/Simulation.h``/``Simulation.cpp`` (simulation).
