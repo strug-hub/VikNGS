@@ -155,31 +155,56 @@ def test_sample_info_renders_after_run(vite_server: str):
         browser.close()
 
 
-def test_html_export_button_triggers_download(vite_server: str):
+def test_html_export_is_self_contained_interactive(vite_server: str):
+    """Exported report should be self-contained: inlines uPlot, the
+    viewer script, and the raw p-value rows so the file is fully
+    interactive offline."""
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(vite_server, wait_until="domcontentloaded")
 
         _run_sim(page, seed=11)
-        # Export button should enable after a successful run.
         assert page.locator("#sim-export-btn").is_enabled(), "Export button should be enabled after run"
 
         with page.expect_download(timeout=15_000) as download_info:
             page.locator("#sim-export-btn").click()
         download = download_info.value
         assert download.suggested_filename.endswith(".html"), download.suggested_filename
-        # Sanity: file exists, looks like HTML, embeds the plot images, and
-        # carries the run config block.
         path = download.path()
         assert path is not None, "download has no path"
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()
+
         assert "<!doctype html>" in content.lower()
         assert "VikNGS simulation report" in content
-        # PNG plot data URIs embedded inline.
-        assert content.count("data:image/png;base64,") >= 1
-        # Run-config <details> block present.
+        # uPlot inlined.
+        assert "uPlot" in content
+        # Viewer module inlined and exposes VikngsReport.render.
+        assert "VikngsReport" in content
+        # Raw rows are embedded so the file actually works offline.
+        assert '"rows":' in content
+        assert '"pvalue":' in content
+        # Reproducibility block.
         assert "Run configuration" in content
+
+        # Open the exported file in the browser and verify it actually
+        # produces an interactive plot — uPlot's container class appears.
+        # Use file:// load via context.new_page so the file is offline-rendered.
+        # Copy the downloaded file to a stable path; the playwright
+        # artifacts dir is locked to the originating context.
+        import tempfile, shutil
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tf:
+            stable_path = tf.name
+        shutil.copy(str(path), stable_path)
+
+        ctx = browser.new_context()
+        offline_page = ctx.new_page()
+        offline_page.goto("file://" + stable_path, wait_until="load")
+        offline_page.wait_for_selector("#r-power .u-over", timeout=15_000)
+        # Sample table rendered.
+        n_rows = offline_page.locator("#r-sample table tbody tr").count()
+        assert n_rows >= 1, f"expected sample rows in offline report, got {n_rows}"
+        ctx.close()
 
         browser.close()

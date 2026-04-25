@@ -4,6 +4,12 @@
 
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
+// Raw assets baked into the bundle so the exported HTML report is fully
+// self-contained: open the file anywhere (offline, email attachment) and
+// it works.
+import uplotJsSrc from "uplot/dist/uPlot.iife.min.js?raw";
+import uplotCss   from "uplot/dist/uPlot.min.css?raw";
+import viewerJs   from "./reportViewer.js?raw";
 import type { SimGroup, SimResultRow, SimRunRequest } from "../types";
 
 const COLORS = ["#3c7ccc", "#a62a2a", "#3f7a4a", "#b68a00", "#8c46c6", "#2d8ba3"];
@@ -287,37 +293,35 @@ function drawHist(el: HTMLElement, ps: number[], label: string, step: number) {
 }
 
 // -----------------------------------------------------------------------
-// HTML report export. Snapshots each plot's canvas as PNG data URI and
-// stitches a self-contained, styled HTML page that opens in any browser.
-// Includes summary, plots, sample-info table, and the original request
-// JSON in a <details> for reproducibility.
+// Interactive HTML report. Self-contained file: inlines uPlot, the
+// report-viewer script, and the raw p-value rows + groups so the
+// exported page recreates the same hover/zoom/test-selector experience
+// as the live UI. No network needed once downloaded.
 // -----------------------------------------------------------------------
-function findCanvas(host: HTMLElement): HTMLCanvasElement | null {
-    return host.querySelector("canvas");
-}
-
 function escapeHtml(s: string): string {
     return s.replace(/[&<>"']/g, (c) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
     }[c]!));
 }
 
-export function exportSimHtml(
-    summaryEl: HTMLElement,
-    powerEl: HTMLElement,
-    qqEl: HTMLElement,
-    histEl: HTMLElement,
-    sampleEl: HTMLElement,
-    request: SimRunRequest,
-) {
-    const power = findCanvas(powerEl);
-    if (!power) throw new Error("no power plot to export");
-    const qq    = findCanvas(qqEl);
-    const hist  = findCanvas(histEl);
+export interface SimReportData {
+    rows: SimResultRow[];
+    steps: number;
+    family: "binomial" | "normal";
+    groups: SimGroup[];
+    summary: { variants: number; processingTime: number; evaluationTime: number };
+}
 
-    const summary = summaryEl.textContent?.replace(/\s+/g, " ").trim() ?? "";
-    const sampleHtml = sampleEl.innerHTML;
+export function exportSimHtml(
+    request: SimRunRequest,
+    report: SimReportData,
+) {
     const stamp = new Date().toISOString();
+    // Embed the data as a JSON literal inside <script type="application/json">
+    // to avoid HTML / JS escaping pitfalls. The bootstrap script reads it
+    // back via JSON.parse on textContent.
+    const dataJson = JSON.stringify(report).replace(/</g, "\\u003c");
+    const requestJson = JSON.stringify(request, null, 2);
 
     const html = `<!doctype html>
 <html lang="en">
@@ -325,58 +329,84 @@ export function exportSimHtml(
 <meta charset="utf-8" />
 <title>VikNGS simulation report — ${escapeHtml(stamp)}</title>
 <style>
-  :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          --bg:#f6f1e4; --panel:#fff; --text:#2d0600; --muted:#6f6354;
-          --border:#d9ceb8; --accent:#3c7ccc; }
-  body { margin:0; padding:24px; background:var(--bg); color:var(--text); }
-  header h1 { margin:0 0 4px; font-size:20px; }
-  header .stamp { color:var(--muted); font-size:12px; }
-  .summary { margin:14px 0 18px; font-size:13px; color:var(--muted); }
-  .summary strong { color:var(--text); }
-  .panel { background:var(--panel); border:1px solid var(--border); border-radius:6px;
-           padding:12px 14px; margin-bottom:14px; }
-  .panel h2 { margin:0 0 10px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-              color:var(--muted); font-weight:600; }
-  img { max-width:100%; height:auto; display:block; }
-  .sub-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  table { width:100%; border-collapse:collapse; font-size:12px; }
-  th, td { padding:4px 8px; text-align:left; border-bottom:1px solid var(--border); }
-  th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
-  details { margin-top:16px; font-size:12px; color:var(--muted); }
-  details summary { cursor:pointer; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
-  pre { background:#fdfbf5; border:1px solid var(--border); border-radius:4px;
-        padding:10px; overflow-x:auto; font-size:11px; line-height:1.4; color:var(--text); }
-  footer { color:var(--muted); font-size:11px; margin-top:18px; }
+${uplotCss}
+:root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --bg:#f6f1e4; --panel:#fff; --text:#2d0600; --muted:#6f6354;
+        --border:#d9ceb8; --accent:#3c7ccc; }
+body { margin:0; padding:24px; background:var(--bg); color:var(--text); }
+header h1 { margin:0 0 4px; font-size:20px; }
+header .stamp { color:var(--muted); font-size:12px; }
+.summary { margin:14px 0 18px; font-size:13px; color:var(--muted); }
+.summary strong { color:var(--text); }
+.panel { background:var(--panel); border:1px solid var(--border); border-radius:6px;
+         padding:12px 14px; margin-bottom:14px; }
+.panel h2 { margin:0 0 10px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+            color:var(--muted); font-weight:600; }
+.power-row { display:grid; grid-template-columns:1fr 240px; gap:14px; }
+#r-power { height:300px; min-width:0; }
+.sample { background:#fdfbf5; border:1px solid var(--border); border-radius:4px;
+          padding:6px 8px; font-size:11px; overflow:auto; }
+.sample h3 { margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+             color:var(--muted); font-weight:600; }
+.sample table { width:100%; border-collapse:collapse; }
+.sample th, .sample td { padding:2px 4px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+.sample th { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.04em; font-weight:600; }
+.sub-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+#r-qq, #r-hist { height:280px; display:flex; flex-direction:column; min-width:0; }
+.sim-plot { flex:1 1 auto; min-height:0; }
+details { margin-top:16px; font-size:12px; color:var(--muted); }
+details summary { cursor:pointer; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+pre { background:#fdfbf5; border:1px solid var(--border); border-radius:4px;
+      padding:10px; overflow-x:auto; font-size:11px; line-height:1.4; color:var(--text); }
+footer { color:var(--muted); font-size:11px; margin-top:18px; }
 </style>
 </head>
 <body>
 <header>
   <h1>VikNGS simulation report</h1>
-  <div class="stamp">Generated ${escapeHtml(stamp)}</div>
+  <div class="stamp">Generated ${escapeHtml(stamp)} &middot; interactive (uPlot)</div>
 </header>
-<div class="summary">${summary ? escapeHtml(summary) : ""}</div>
+<div id="r-summary" class="summary"></div>
 
 <section class="panel">
-  <h2>Power curve</h2>
-  <img src="${power.toDataURL("image/png")}" alt="power curve" />
+  <h2>Power curve · hover updates the sample-info panel</h2>
+  <div class="power-row">
+    <div id="r-power"></div>
+    <aside id="r-sample" class="sample"></aside>
+  </div>
 </section>
 
 <section class="sub-row">
-  ${qq ? `<div class="panel"><h2>QQ plot</h2><img src="${qq.toDataURL("image/png")}" alt="qq" /></div>` : ""}
-  ${hist ? `<div class="panel"><h2>P-value histogram</h2><img src="${hist.toDataURL("image/png")}" alt="histogram" /></div>` : ""}
-</section>
-
-<section class="panel">
-  <h2>Sample info</h2>
-  ${sampleHtml || "<em>(no sample info)</em>"}
+  <div class="panel"><h2>QQ plot</h2><div id="r-qq"></div></div>
+  <div class="panel"><h2>P-value histogram</h2><div id="r-hist"></div></div>
 </section>
 
 <details>
   <summary>Run configuration</summary>
-  <pre>${escapeHtml(JSON.stringify(request, null, 2))}</pre>
+  <pre>${escapeHtml(requestJson)}</pre>
 </details>
 
-<footer>VikNGS — variant integration kit for NGS</footer>
+<footer>VikNGS — variant integration kit for NGS · self-contained interactive report</footer>
+
+<script type="application/json" id="r-data">${dataJson}</script>
+<script>
+${uplotJsSrc}
+</script>
+<script>
+${viewerJs}
+</script>
+<script>
+(function(){
+    var data = JSON.parse(document.getElementById("r-data").textContent);
+    VikngsReport.render(data, {
+        summary: document.getElementById("r-summary"),
+        power:   document.getElementById("r-power"),
+        qq:      document.getElementById("r-qq"),
+        hist:    document.getElementById("r-hist"),
+        sample:  document.getElementById("r-sample"),
+    });
+})();
+</script>
 </body>
 </html>`;
 

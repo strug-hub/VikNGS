@@ -4,6 +4,7 @@ import { mountLog } from "./ui/log";
 import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
 import { renderSimResults, clearSimResults, exportSimHtml } from "./ui/simResults";
+import type { SimReportData } from "./ui/simResults";
 import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 const form        = document.getElementById("run-form") as HTMLFormElement;
@@ -117,15 +118,18 @@ stopBtn.addEventListener("click", () => {
     endRun();
 });
 
-// Last completed sim request — Export-report uses it for the
-// reproducibility config block.
+// Last completed sim request + the data we rendered. The report exporter
+// re-runs the same render in a fresh inlined HTML page so it stays
+// fully interactive.
 let lastSimRequest: SimRunRequest | null = null;
+let lastSimReport: SimReportData | null = null;
 
 simRunBtn.addEventListener("click", () => {
     log.clear();
     clearSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl);
     simExportBtn.disabled = true;
     lastSimRequest = null;
+    lastSimReport = null;
 
     const gathered = collectSimForm(simForm);
     if ("error" in gathered) { log.error(gathered.error); return; }
@@ -140,7 +144,7 @@ simRunBtn.addEventListener("click", () => {
     startWorker(req, (m) => {
         if (m.kind === "sim-done") {
             log.ok(`Done. ${m.rows.length} p-values from ${m.variantsParsed} variants × ${m.steps} step(s) in ${m.evaluationTime.toFixed(2)}s.`);
-            renderSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl, {
+            const report: SimReportData = {
                 rows: m.rows,
                 steps: m.steps,
                 family: req.family,
@@ -150,8 +154,10 @@ simRunBtn.addEventListener("click", () => {
                     processingTime: m.processingTime,
                     evaluationTime: m.evaluationTime,
                 },
-            });
+            };
+            renderSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl, report);
             lastSimRequest = req;
+            lastSimReport = report;
             simExportBtn.disabled = false;
             resetSim(`done — ${m.rows.length} p-values`);
             endRun();
@@ -170,9 +176,9 @@ simStopBtn.addEventListener("click", () => {
 });
 
 simExportBtn.addEventListener("click", () => {
-    if (!lastSimRequest) { log.error("No simulation result to export yet."); return; }
+    if (!lastSimRequest || !lastSimReport) { log.error("No simulation result to export yet."); return; }
     try {
-        exportSimHtml(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl, lastSimRequest);
+        exportSimHtml(lastSimRequest, lastSimReport);
     } catch (e) {
         log.error("Export failed: " + (e instanceof Error ? e.message : String(e)));
     }
