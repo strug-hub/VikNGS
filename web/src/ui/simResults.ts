@@ -4,8 +4,7 @@
 
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
-import { jsPDF } from "jspdf";
-import type { SimGroup, SimResultRow } from "../types";
+import type { SimGroup, SimResultRow, SimRunRequest } from "../types";
 
 const COLORS = ["#3c7ccc", "#a62a2a", "#3f7a4a", "#b68a00", "#8c46c6", "#2d8ba3"];
 
@@ -288,64 +287,108 @@ function drawHist(el: HTMLElement, ps: number[], label: string, step: number) {
 }
 
 // -----------------------------------------------------------------------
-// PDF export. Grabs each plot's canvas, snapshots them as PNGs, lays
-// them out on a single landscape A4 page (mirrors the Qt sim PDF
-// layout: power up top, QQ + histogram side-by-side, sample table
-// at the bottom).
+// HTML report export. Snapshots each plot's canvas as PNG data URI and
+// stitches a self-contained, styled HTML page that opens in any browser.
+// Includes summary, plots, sample-info table, and the original request
+// JSON in a <details> for reproducibility.
 // -----------------------------------------------------------------------
 function findCanvas(host: HTMLElement): HTMLCanvasElement | null {
     return host.querySelector("canvas");
 }
 
-export function exportSimPdf(
+function escapeHtml(s: string): string {
+    return s.replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    }[c]!));
+}
+
+export function exportSimHtml(
     summaryEl: HTMLElement,
     powerEl: HTMLElement,
     qqEl: HTMLElement,
     histEl: HTMLElement,
     sampleEl: HTMLElement,
+    request: SimRunRequest,
 ) {
     const power = findCanvas(powerEl);
     if (!power) throw new Error("no power plot to export");
     const qq    = findCanvas(qqEl);
     const hist  = findCanvas(histEl);
 
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const pageW = pdf.internal.pageSize.getWidth();   // ~297
-    const pageH = pdf.internal.pageSize.getHeight();  // ~210
-    const margin = 10;
+    const summary = summaryEl.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    const sampleHtml = sampleEl.innerHTML;
+    const stamp = new Date().toISOString();
 
-    pdf.setFontSize(13);
-    pdf.text("VikNGS simulation report", margin, margin + 4);
-    pdf.setFontSize(9);
-    pdf.text(summaryEl.textContent?.replace(/\s+/g, " ").trim() ?? "", margin, margin + 10);
+    const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>VikNGS simulation report — ${escapeHtml(stamp)}</title>
+<style>
+  :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          --bg:#f6f1e4; --panel:#fff; --text:#2d0600; --muted:#6f6354;
+          --border:#d9ceb8; --accent:#3c7ccc; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--text); }
+  header h1 { margin:0 0 4px; font-size:20px; }
+  header .stamp { color:var(--muted); font-size:12px; }
+  .summary { margin:14px 0 18px; font-size:13px; color:var(--muted); }
+  .summary strong { color:var(--text); }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:6px;
+           padding:12px 14px; margin-bottom:14px; }
+  .panel h2 { margin:0 0 10px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+              color:var(--muted); font-weight:600; }
+  img { max-width:100%; height:auto; display:block; }
+  .sub-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { padding:4px 8px; text-align:left; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
+  details { margin-top:16px; font-size:12px; color:var(--muted); }
+  details summary { cursor:pointer; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; }
+  pre { background:#fdfbf5; border:1px solid var(--border); border-radius:4px;
+        padding:10px; overflow-x:auto; font-size:11px; line-height:1.4; color:var(--text); }
+  footer { color:var(--muted); font-size:11px; margin-top:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>VikNGS simulation report</h1>
+  <div class="stamp">Generated ${escapeHtml(stamp)}</div>
+</header>
+<div class="summary">${summary ? escapeHtml(summary) : ""}</div>
 
-    const innerW = pageW - 2 * margin;
-    const topY = margin + 14;
-    const subY = topY + 78;     // power plot height ~78mm
-    const tblY = subY + 70;     // sub-row plots ~62mm; table starts below
+<section class="panel">
+  <h2>Power curve</h2>
+  <img src="${power.toDataURL("image/png")}" alt="power curve" />
+</section>
 
-    // Power: full width, ~78mm tall
-    pdf.addImage(power.toDataURL("image/png"), "PNG", margin, topY, innerW, 75);
+<section class="sub-row">
+  ${qq ? `<div class="panel"><h2>QQ plot</h2><img src="${qq.toDataURL("image/png")}" alt="qq" /></div>` : ""}
+  ${hist ? `<div class="panel"><h2>P-value histogram</h2><img src="${hist.toDataURL("image/png")}" alt="histogram" /></div>` : ""}
+</section>
 
-    // QQ + histogram: side by side at half width each
-    const halfW = (innerW - 5) / 2;
-    if (qq)   pdf.addImage(qq.toDataURL("image/png"),   "PNG", margin, subY, halfW, 60);
-    if (hist) pdf.addImage(hist.toDataURL("image/png"), "PNG", margin + halfW + 5, subY, halfW, 60);
+<section class="panel">
+  <h2>Sample info</h2>
+  ${sampleHtml || "<em>(no sample info)</em>"}
+</section>
 
-    // Sample table at the bottom — render as text rows.
-    pdf.setFontSize(9);
-    pdf.text("Sample info", margin, tblY);
-    const rows = sampleEl.querySelectorAll("table tr");
-    let y = tblY + 4;
-    rows.forEach((tr) => {
-        if (y > pageH - margin) return;
-        const cells = Array.from(tr.querySelectorAll("th,td")).map(c => c.textContent ?? "");
-        pdf.text(cells.join("    "), margin, y);
-        y += 4;
-    });
+<details>
+  <summary>Run configuration</summary>
+  <pre>${escapeHtml(JSON.stringify(request, null, 2))}</pre>
+</details>
 
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    pdf.save(`vikngs-sim-${stamp}.pdf`);
+<footer>VikNGS — variant integration kit for NGS</footer>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vikngs-sim-${stamp.replace(/[:.]/g, "-")}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function clearSimResults(

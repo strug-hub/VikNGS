@@ -155,25 +155,31 @@ def test_sample_info_renders_after_run(vite_server: str):
         browser.close()
 
 
-def test_pdf_export_button_triggers_download(vite_server: str):
+def test_html_export_button_triggers_download(vite_server: str):
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(vite_server, wait_until="domcontentloaded")
 
         _run_sim(page, seed=11)
-        # PDF button should be enabled after a successful run.
-        assert page.locator("#sim-pdf-btn").is_enabled(), "PDF button should be enabled after run"
+        # Export button should enable after a successful run.
+        assert page.locator("#sim-export-btn").is_enabled(), "Export button should be enabled after run"
 
         with page.expect_download(timeout=15_000) as download_info:
-            page.locator("#sim-pdf-btn").click()
+            page.locator("#sim-export-btn").click()
         download = download_info.value
-        assert download.suggested_filename.endswith(".pdf"), download.suggested_filename
-        # Sanity: file exists and starts with %PDF magic.
+        assert download.suggested_filename.endswith(".html"), download.suggested_filename
+        # Sanity: file exists, looks like HTML, embeds the plot images, and
+        # carries the run config block.
         path = download.path()
         assert path is not None, "download has no path"
-        with open(path, "rb") as f:
-            magic = f.read(4)
-        assert magic == b"%PDF", f"download is not a PDF: magic={magic!r}"
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        assert "<!doctype html>" in content.lower()
+        assert "VikNGS simulation report" in content
+        # PNG plot data URIs embedded inline.
+        assert content.count("data:image/png;base64,") >= 1
+        # Run-config <details> block present.
+        assert "Run configuration" in content
 
         browser.close()

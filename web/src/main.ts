@@ -3,7 +3,7 @@ import { mountSimForm, collectSimForm } from "./ui/simForm";
 import { mountLog } from "./ui/log";
 import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
-import { renderSimResults, clearSimResults, exportSimPdf } from "./ui/simResults";
+import { renderSimResults, clearSimResults, exportSimHtml } from "./ui/simResults";
 import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 const form        = document.getElementById("run-form") as HTMLFormElement;
@@ -23,7 +23,7 @@ const simPowerEl   = document.getElementById("sim-power") as HTMLElement;
 const simQqEl      = document.getElementById("sim-qq") as HTMLElement;
 const simHistEl    = document.getElementById("sim-hist") as HTMLElement;
 const simSampleEl  = document.getElementById("sim-sample-info") as HTMLElement;
-const simPdfBtn    = document.getElementById("sim-pdf-btn") as HTMLButtonElement;
+const simExportBtn = document.getElementById("sim-export-btn") as HTMLButtonElement;
 
 mountForm(form);
 mountSimForm(simForm);
@@ -117,10 +117,15 @@ stopBtn.addEventListener("click", () => {
     endRun();
 });
 
+// Last completed sim request — Export-report uses it for the
+// reproducibility config block.
+let lastSimRequest: SimRunRequest | null = null;
+
 simRunBtn.addEventListener("click", () => {
     log.clear();
     clearSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl);
-    simPdfBtn.disabled = true;
+    simExportBtn.disabled = true;
+    lastSimRequest = null;
 
     const gathered = collectSimForm(simForm);
     if ("error" in gathered) { log.error(gathered.error); return; }
@@ -146,7 +151,8 @@ simRunBtn.addEventListener("click", () => {
                     evaluationTime: m.evaluationTime,
                 },
             });
-            simPdfBtn.disabled = false;
+            lastSimRequest = req;
+            simExportBtn.disabled = false;
             resetSim(`done — ${m.rows.length} p-values`);
             endRun();
         } else if (m.kind === "error") {
@@ -163,11 +169,12 @@ simStopBtn.addEventListener("click", () => {
     endRun();
 });
 
-simPdfBtn.addEventListener("click", () => {
+simExportBtn.addEventListener("click", () => {
+    if (!lastSimRequest) { log.error("No simulation result to export yet."); return; }
     try {
-        exportSimPdf(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl);
+        exportSimHtml(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl, lastSimRequest);
     } catch (e) {
-        log.error("PDF export failed: " + (e instanceof Error ? e.message : String(e)));
+        log.error("Export failed: " + (e instanceof Error ? e.message : String(e)));
     }
 });
 
