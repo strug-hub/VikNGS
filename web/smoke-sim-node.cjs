@@ -14,14 +14,18 @@ const { join, dirname } = require("node:path");
 const SEED = 42;
 const NSNP = 200;
 
-function newGroups(Module) {
+function newGroups(Module, opts = {}) {
     const g = new Module.VectorSimGroup();
-    g.push_back({ n: 200, nIncrement: 0, isCase: true,  meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" });
-    g.push_back({ n: 200, nIncrement: 0, isCase: false, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" });
+    if (opts.family === "normal") {
+        g.push_back({ n: 400, nIncrement: 0, isCase: false, normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" });
+    } else {
+        g.push_back({ n: 200, nIncrement: 0, isCase: true,  normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" });
+        g.push_back({ n: 200, nIncrement: 0, isCase: false, normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" });
+    }
     return g;
 }
 
-function buildReq(groups) {
+function buildReq(groups, overrides = {}) {
     return {
         nsnp: NSNP,
         effectSize: 1.0,
@@ -33,8 +37,11 @@ function buildReq(groups) {
         collapse: 1,
         nboot: 1,
         stopEarly: false,
+        covariate: -1,
+        corX: true,
         groups,
         seed: SEED,
+        ...overrides,
     };
 }
 
@@ -79,5 +86,32 @@ function unpack(result) {
         console.log(`  ${src}: n=${ps.length} KS=${d.toFixed(4)} crit(99%)=${crit.toFixed(4)} ${pass ? "OK" : "WARN"}`);
         if (!pass) { console.error(`FAIL: ${src} p-values reject uniformity`); process.exit(1); }
     }
+    // --- Gate 3: NORMAL family (R²=0 null) ---
+    {
+        const r = unpack(Module.runSimulation(buildReq(newGroups(Module, { family: "normal" }), {
+            family: "normal", effectSize: 0.0,
+        })));
+        if (r.length === 0) { console.error("FAIL: normal sim returned no rows"); process.exit(1); }
+        const ps = r.map(x => x.pvalue);
+        if (ps.some(p => p < 0 || p > 1 || Number.isNaN(p))) {
+            console.error("FAIL: normal p-values outside [0,1]"); process.exit(1);
+        }
+        console.log(`OK: normal family null produced ${r.length} valid p-values`);
+    }
+
+    // --- Gate 4: NORMAL + covariate (deterministic) ---
+    {
+        const cov = buildReq(newGroups(Module, { family: "normal" }), {
+            family: "normal", effectSize: 0.0, covariate: 0.5, corX: true,
+        });
+        const r1 = unpack(Module.runSimulation(cov));
+        const r2 = unpack(Module.runSimulation(cov));
+        if (r1.length !== r2.length) { console.error("FAIL: covariate length differs"); process.exit(1); }
+        let dd = 0;
+        for (let i = 0; i < r1.length; i++) if (r1[i].pvalue !== r2[i].pvalue) dd++;
+        if (dd) { console.error(`FAIL: covariate sim non-deterministic (${dd} diffs)`); process.exit(1); }
+        console.log(`OK: normal+covariate reproduces under seed ${SEED} (${r1.length} rows)`);
+    }
+
     console.log("sim smoke OK");
 })();

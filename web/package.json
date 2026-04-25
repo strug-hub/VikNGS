@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "jspdf": "^4.2.1",
     "uplot": "^1.6.31"
   },
   "devDependencies": {

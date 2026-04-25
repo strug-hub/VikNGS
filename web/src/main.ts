@@ -3,7 +3,7 @@ import { mountSimForm, collectSimForm } from "./ui/simForm";
 import { mountLog } from "./ui/log";
 import { renderResultsTable } from "./ui/results";
 import { renderManhattan } from "./ui/manhattan";
-import { renderSimResults, clearSimResults } from "./ui/simResults";
+import { renderSimResults, clearSimResults, exportSimPdf } from "./ui/simResults";
 import type { RunRequest, SimRunRequest, UiToWorker, WorkerMessage } from "./types";
 
 const form        = document.getElementById("run-form") as HTMLFormElement;
@@ -22,6 +22,8 @@ const simSummaryEl = document.getElementById("sim-summary") as HTMLElement;
 const simPowerEl   = document.getElementById("sim-power") as HTMLElement;
 const simQqEl      = document.getElementById("sim-qq") as HTMLElement;
 const simHistEl    = document.getElementById("sim-hist") as HTMLElement;
+const simSampleEl  = document.getElementById("sim-sample-info") as HTMLElement;
+const simPdfBtn    = document.getElementById("sim-pdf-btn") as HTMLButtonElement;
 
 mountForm(form);
 mountSimForm(simForm);
@@ -117,7 +119,8 @@ stopBtn.addEventListener("click", () => {
 
 simRunBtn.addEventListener("click", () => {
     log.clear();
-    clearSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl);
+    clearSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl);
+    simPdfBtn.disabled = true;
 
     const gathered = collectSimForm(simForm);
     if ("error" in gathered) { log.error(gathered.error); return; }
@@ -132,15 +135,18 @@ simRunBtn.addEventListener("click", () => {
     startWorker(req, (m) => {
         if (m.kind === "sim-done") {
             log.ok(`Done. ${m.rows.length} p-values from ${m.variantsParsed} variants × ${m.steps} step(s) in ${m.evaluationTime.toFixed(2)}s.`);
-            renderSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, {
+            renderSimResults(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl, {
                 rows: m.rows,
                 steps: m.steps,
+                family: req.family,
+                groups: req.groups,
                 summary: {
                     variants: m.variantsParsed,
                     processingTime: m.processingTime,
                     evaluationTime: m.evaluationTime,
                 },
             });
+            simPdfBtn.disabled = false;
             resetSim(`done — ${m.rows.length} p-values`);
             endRun();
         } else if (m.kind === "error") {
@@ -155,6 +161,14 @@ simStopBtn.addEventListener("click", () => {
     log.info("Stopping…");
     resetSim("stopped");
     endRun();
+});
+
+simPdfBtn.addEventListener("click", () => {
+    try {
+        exportSimPdf(simSummaryEl, simPowerEl, simQqEl, simHistEl, simSampleEl);
+    } catch (e) {
+        log.error("PDF export failed: " + (e instanceof Error ? e.message : String(e)));
+    }
 });
 
 // Preload: fetch example VCF + sample info (served from /example/ via symlink

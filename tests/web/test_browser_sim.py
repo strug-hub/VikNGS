@@ -76,3 +76,104 @@ def test_sim_is_deterministic_with_seed(vite_server: str):
         )
 
         browser.close()
+
+
+def test_family_toggle_shows_phenotype_and_covariate(vite_server: str):
+    """Switching family=normal should reveal the Phenotype and Covariate
+    groups (hidden under binomial), and the cohort dropdown should switch
+    to a single 'normal' option."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(vite_server, wait_until="domcontentloaded")
+        page.locator('nav.tabs .tab[data-tab="simulation"]').click()
+        page.wait_for_selector("#sim-form")
+
+        # Binomial (default): phenotype + covariate groups are hidden.
+        assert page.evaluate("() => document.querySelector('#sf-phenotypeMean').closest('details').hidden") is True
+        assert page.evaluate("() => document.querySelector('#sf-covariate').closest('details').hidden") is True
+
+        # Switch family to normal.
+        page.select_option("#sf-family", "normal")
+
+        # Now both groups should be visible.
+        assert page.evaluate("() => document.querySelector('#sf-phenotypeMean').closest('details').hidden") is False
+        assert page.evaluate("() => document.querySelector('#sf-covariate').closest('details').hidden") is False
+
+        # Cohort dropdowns in the groups table should now only offer 'normal'.
+        cohorts = page.evaluate("""() => Array.from(document.querySelectorAll('table.sim-groups tbody tr td:nth-child(2) select'))
+            .map(s => Array.from(s.options).map(o => o.value))""")
+        assert cohorts, "no cohort selects found"
+        for opts in cohorts:
+            assert opts == ["normal"], f"unexpected cohort options under normal family: {opts}"
+
+        browser.close()
+
+
+def test_normal_preset_runs(vite_server: str):
+    """The 'Quant null' preset switches to normal family and produces a
+    valid power curve."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.on("pageerror", lambda e: print(f"pageerror: {e}"))
+        page.goto(vite_server, wait_until="domcontentloaded")
+        page.locator('nav.tabs .tab[data-tab="simulation"]').click()
+        page.wait_for_selector("#sim-form")
+
+        # Click the "Quant null" preset.
+        page.locator("button[title^='Quantitative null']").click()
+        # Make seed input visible to override.
+        page.evaluate("document.querySelectorAll('#sim-form details').forEach(d => d.open = true)")
+        page.fill("#sf-seed", "7")
+        # Reduce work for a fast test.
+        page.fill("#sf-nsnp", "100")
+
+        page.locator("#sim-run-btn").click()
+        page.wait_for_selector("#sim-power .u-over", timeout=180_000)
+
+        data = page.evaluate("() => window.__simData")
+        assert data["rowCount"] > 0
+        # Sample-info table should populate with one 'normal' cohort.
+        cohort_text = page.locator("#sim-sample-info table tbody tr").first.inner_text()
+        assert "normal" in cohort_text.lower(), f"sample table missing normal cohort: {cohort_text!r}"
+
+        browser.close()
+
+
+def test_sample_info_renders_after_run(vite_server: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(vite_server, wait_until="domcontentloaded")
+
+        _run_sim(page, seed=99)
+        # First (default-binomial) sample table should have header + ≥2 rows.
+        n_rows = page.locator("#sim-sample-info table tbody tr").count()
+        assert n_rows >= 2, f"expected ≥2 group rows in sample table, got {n_rows}"
+
+        browser.close()
+
+
+def test_pdf_export_button_triggers_download(vite_server: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(vite_server, wait_until="domcontentloaded")
+
+        _run_sim(page, seed=11)
+        # PDF button should be enabled after a successful run.
+        assert page.locator("#sim-pdf-btn").is_enabled(), "PDF button should be enabled after run"
+
+        with page.expect_download(timeout=15_000) as download_info:
+            page.locator("#sim-pdf-btn").click()
+        download = download_info.value
+        assert download.suggested_filename.endswith(".pdf"), download.suggested_filename
+        # Sanity: file exists and starts with %PDF magic.
+        path = download.path()
+        assert path is not None, "download has no path"
+        with open(path, "rb") as f:
+            magic = f.read(4)
+        assert magic == b"%PDF", f"download is not a PDF: magic={magic!r}"
+
+        browser.close()

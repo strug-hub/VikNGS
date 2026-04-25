@@ -64,9 +64,15 @@
         </div>
         <!-- Simulation results -->
         <div class="tab-pane" data-tab="simulation" hidden>
-          <h2>Simulation results</h2>
+          <div class="sim-results-header">
+            <h2>Simulation results</h2>
+            <button id="sim-pdf-btn" class="secondary" type="button" disabled title="Export plots to PDF">Export PDF</button>
+          </div>
           <div id="sim-summary" class="sim-summary"></div>
-          <div id="sim-power"></div>
+          <div class="sim-power-row">
+            <div id="sim-power"></div>
+            <aside id="sim-sample-info" class="sim-sample"></aside>
+          </div>
           <div class="sim-sub-row">
             <div id="sim-qq"></div>
             <div id="sim-hist"></div>

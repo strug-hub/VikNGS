@@ -199,7 +199,9 @@ static JsResults runVikNGS(JsRequest js) {
 struct JsSimGroup {
     int    n = 500;
     int    nIncrement = 0;           // per-step sample-size increment
-    bool   isCase = true;
+    bool   isCase = true;            // ignored when family=normal
+    double normalMean = 0.0;         // NORMAL family per-group phenotype mean
+    double normalSd = 1.0;           // NORMAL family per-group phenotype SD
     double meanDepth = 20.0;
     double sdDepth = 2.0;
     double errorRate = 0.01;
@@ -213,11 +215,16 @@ struct JsSimRequest {
     double mafMax = 0.5;
     int    steps = 1;
 
-    std::string family = "binomial"; // "binomial" (MVP) | "normal"
+    std::string family = "binomial"; // "binomial" | "normal"
     std::string statistic = "common";
     int    collapse = 1;
     int    nboot = 1;
     bool   stopEarly = false;
+
+    // Covariate simulation. covariate < 0 disables; corX=true correlates
+    // covariate with genotype X, false with phenotype Y.
+    double covariate = -1.0;
+    bool   corX = true;
 
     std::vector<JsSimGroup> groups;
 
@@ -278,6 +285,8 @@ static JsSimResult runSimulation(JsSimRequest js) {
         req.useBootstrap = js.nboot > 1;
         req.stopEarly    = js.stopEarly;
         req.nthreads     = 1;          // WASM MVP: single-threaded
+        req.covariate    = js.covariate;
+        req.corX         = js.corX;
 
         if (js.family == "binomial")    req.family = Family::BINOMIAL;
         else if (js.family == "normal") req.family = Family::NORMAL;
@@ -297,8 +306,8 @@ static JsSimResult runSimulation(JsSimRequest js) {
             g.n_increment = jg.nIncrement;
             g.family      = req.family;
             g.isCase      = jg.isCase;
-            g.normalMean  = 0.0;
-            g.normalSd    = 1.0;
+            g.normalMean  = jg.normalMean;
+            g.normalSd    = jg.normalSd;
             g.meanDepth   = jg.meanDepth;
             g.sdDepth     = jg.sdDepth;
             g.errorRate   = jg.errorRate;
@@ -397,6 +406,8 @@ EMSCRIPTEN_BINDINGS(vikngs_core) {
         .field("n",          &JsSimGroup::n)
         .field("nIncrement", &JsSimGroup::nIncrement)
         .field("isCase",     &JsSimGroup::isCase)
+        .field("normalMean", &JsSimGroup::normalMean)
+        .field("normalSd",   &JsSimGroup::normalSd)
         .field("meanDepth",  &JsSimGroup::meanDepth)
         .field("sdDepth",    &JsSimGroup::sdDepth)
         .field("errorRate",  &JsSimGroup::errorRate)
@@ -415,6 +426,8 @@ EMSCRIPTEN_BINDINGS(vikngs_core) {
         .field("collapse",   &JsSimRequest::collapse)
         .field("nboot",      &JsSimRequest::nboot)
         .field("stopEarly",  &JsSimRequest::stopEarly)
+        .field("covariate",  &JsSimRequest::covariate)
+        .field("corX",       &JsSimRequest::corX)
         .field("groups",     &JsSimRequest::groups)
         .field("seed",       &JsSimRequest::seed);
 

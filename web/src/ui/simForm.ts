@@ -1,16 +1,22 @@
 // Simulation form. Schema-driven like form.ts but includes an editable
-// per-group table (the 5-column grid that mirrors Qt's sim_groupTbl).
+// per-group table (the 6-column grid that mirrors Qt's sim_groupTbl)
+// and family-aware UI: switching between BINOMIAL and NORMAL flips
+// the cohort dropdown, the effect-size label, and shows/hides the
+// phenotype + covariate panels.
 
 import type { SimGroup, SimRunRequest } from "../types";
 
+type Family = "binomial" | "normal";
+type Cohort = "case" | "control" | "normal";
+
 interface SimGroupRow extends SimGroup {
-    sizeText: string;    // "200" or "200:1000" for min:max ranges
-    cohort: "case" | "control";
+    sizeText: string;        // "200" or "200:1000" for min:max ranges
+    cohort: Cohort;
 }
 
 const DEFAULT_ROWS: SimGroupRow[] = [
-    { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
-    { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+    { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+    { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
 ];
 
 let groupRows: SimGroupRow[] = DEFAULT_ROWS.map(r => ({ ...r }));
@@ -18,74 +24,101 @@ let groupRows: SimGroupRow[] = DEFAULT_ROWS.map(r => ({ ...r }));
 // -----------------------------------------------------------------------
 // Presets: common simulation setups that one-click-populate the form.
 // -----------------------------------------------------------------------
+type FieldKey =
+    "family" | "nsnp" | "effectSize" | "mafMin" | "mafMax" | "steps" |
+    "statistic" | "collapse" | "nboot" | "stopEarly" | "seed" |
+    "phenotypeMean" | "phenotypeSd" |
+    "covariateEnabled" | "covariate" | "corX";
+
 interface Preset {
     name: string;
     title: string;
-    fields: Partial<Record<
-        "nsnp" | "effectSize" | "mafMin" | "mafMax" | "steps" |
-        "statistic" | "collapse" | "nboot" | "stopEarly" | "seed", string | number | boolean
-    >>;
+    fields: Partial<Record<FieldKey, string | number | boolean>>;
     groups: SimGroupRow[];
 }
+
+const NORMAL_GROUP_DEFAULT = (sizeText: string, n: number, nIncrement = 0): SimGroupRow => ({
+    sizeText, n, nIncrement, isCase: false, cohort: "normal",
+    normalMean: 0, normalSd: 1, meanDepth: 20, sdDepth: 2, errorRate: 0.01, readDepth: "high",
+});
 
 const PRESETS: Preset[] = [
     {
         name: "Null (Type I)",
         title: "Common-variant null — 500 vs 500, effect=1.0",
-        fields: { nsnp: 500, effectSize: 1.0, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
+        fields: { family: "binomial", nsnp: 500, effectSize: 1.0, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
         groups: [
-            { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
         ],
     },
     {
         name: "Common effect",
         title: "Common-variant OR=1.4, 400 vs 400, high depth",
-        fields: { nsnp: 300, effectSize: 1.4, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
+        fields: { family: "binomial", nsnp: 300, effectSize: 1.4, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
         groups: [
-            { sizeText: "400", n: 400, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "400", n: 400, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "400", n: 400, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "400", n: 400, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
         ],
     },
     {
         name: "Power sweep",
         title: "Common-variant OR=1.3, sample size 200→2000 in 5 steps",
-        fields: { nsnp: 200, effectSize: 1.3, mafMin: 0.05, mafMax: 0.5, steps: 5, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
+        fields: { family: "binomial", nsnp: 200, effectSize: 1.3, mafMin: 0.05, mafMax: 0.5, steps: 5, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
         groups: [
-            { sizeText: "200:2000", n: 200, nIncrement: 450, isCase: true,  cohort: "case",    meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "200:2000", n: 200, nIncrement: 450, isCase: false, cohort: "control", meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "200:2000", n: 200, nIncrement: 450, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "200:2000", n: 200, nIncrement: 450, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 20.0, sdDepth: 2.0, errorRate: 0.01, readDepth: "high" },
         ],
     },
     {
         name: "Rare SKAT",
         title: "Rare-variant SKAT, 500 variants in 25-variant gene sets, OR=2.5",
-        fields: { nsnp: 500, effectSize: 2.5, mafMin: 0.001, mafMax: 0.05, steps: 1, statistic: "skat", collapse: 25, nboot: 1000, stopEarly: true, seed: 0 },
+        fields: { family: "binomial", nsnp: 500, effectSize: 2.5, mafMin: 0.001, mafMax: 0.05, steps: 1, statistic: "skat", collapse: 25, nboot: 1000, stopEarly: true, seed: 0 },
         groups: [
-            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
         ],
     },
     {
         name: "Rare CAST",
         title: "Rare-variant CAST, 500 variants × 25-variant sets, OR=2.5",
-        fields: { nsnp: 500, effectSize: 2.5, mafMin: 0.001, mafMax: 0.05, steps: 1, statistic: "cast", collapse: 25, nboot: 1000, stopEarly: true, seed: 0 },
+        fields: { family: "binomial", nsnp: 500, effectSize: 2.5, mafMin: 0.001, mafMax: 0.05, steps: 1, statistic: "cast", collapse: 25, nboot: 1000, stopEarly: true, seed: 0 },
         groups: [
-            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "1000", n: 1000, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
         ],
     },
     {
         name: "Depth imbalance",
         title: "Unequal depth — cases high (30×) vs controls low (5×). Tests vRVS.",
-        fields: { nsnp: 300, effectSize: 1.0, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
+        fields: { family: "binomial", nsnp: 300, effectSize: 1.0, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0 },
         groups: [
-            { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
-            { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", meanDepth: 5.0,  sdDepth: 1.5, errorRate: 0.01, readDepth: "low"  },
+            { sizeText: "500", n: 500, nIncrement: 0, isCase: true,  cohort: "case",    normalMean: 0, normalSd: 1, meanDepth: 30.0, sdDepth: 3.0, errorRate: 0.01, readDepth: "high" },
+            { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control", normalMean: 0, normalSd: 1, meanDepth: 5.0,  sdDepth: 1.5, errorRate: 0.01, readDepth: "low"  },
         ],
+    },
+    {
+        name: "Quant null",
+        title: "Quantitative null — single normal cohort of 1000, R²=0",
+        fields: { family: "normal", nsnp: 500, effectSize: 0.0, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0, phenotypeMean: 0, phenotypeSd: 1, covariateEnabled: false, covariate: 0.5, corX: true },
+        groups: [ NORMAL_GROUP_DEFAULT("1000", 1000) ],
+    },
+    {
+        name: "Quant effect",
+        title: "Quantitative R²=0.05, single cohort of 1000",
+        fields: { family: "normal", nsnp: 300, effectSize: 0.05, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0, phenotypeMean: 0, phenotypeSd: 1, covariateEnabled: false, covariate: 0.5, corX: true },
+        groups: [ NORMAL_GROUP_DEFAULT("1000", 1000) ],
+    },
+    {
+        name: "Quant + cov",
+        title: "Quantitative R²=0.05 with covariate (corr=0.5, corX)",
+        fields: { family: "normal", nsnp: 300, effectSize: 0.05, mafMin: 0.05, mafMax: 0.5, steps: 1, statistic: "common", collapse: 1, nboot: 1, stopEarly: false, seed: 0, phenotypeMean: 0, phenotypeSd: 1, covariateEnabled: true, covariate: 0.5, corX: true },
+        groups: [ NORMAL_GROUP_DEFAULT("1000", 1000) ],
     },
 ];
 
 let rerenderGroupTableRef: (() => void) | null = null;
+let onFamilyChangeRef: (() => void) | null = null;
 
 function applyPreset(root: HTMLFormElement, preset: Preset) {
     for (const [id, val] of Object.entries(preset.fields)) {
@@ -96,10 +129,10 @@ function applyPreset(root: HTMLFormElement, preset: Preset) {
         } else {
             inp.value = String(val);
         }
-        // Fire change so any listeners update.
         inp.dispatchEvent(new Event("change", { bubbles: true }));
     }
     groupRows = preset.groups.map(r => ({ ...r }));
+    onFamilyChangeRef?.();   // sync labels + visibility to new family
     rerenderGroupTableRef?.();
 }
 
@@ -113,7 +146,13 @@ function parseSize(text: string): { n: number; nIncrement: number } {
     return { n: parseInt(text, 10) || 0, nIncrement: 0 };
 }
 
-function rerenderGroupTable(tbody: HTMLTableSectionElement) {
+function getFamily(root: HTMLFormElement): Family {
+    const sel = root.querySelector<HTMLSelectElement>("#sf-family");
+    return (sel?.value as Family) ?? "binomial";
+}
+
+function rerenderGroupTable(tbody: HTMLTableSectionElement, root: HTMLFormElement) {
+    const fam = getFamily(root);
     tbody.innerHTML = "";
     groupRows.forEach((row, idx) => {
         const tr = document.createElement("tr");
@@ -132,14 +171,20 @@ function rerenderGroupTable(tbody: HTMLTableSectionElement) {
 
         const tdCohort = document.createElement("td");
         const cohortSel = document.createElement("select");
-        for (const opt of ["case", "control"]) {
+        const opts: Cohort[] = fam === "normal" ? ["normal"] : ["case", "control"];
+        // If current cohort isn't valid for the family, reset to first option.
+        if (!opts.includes(row.cohort)) {
+            row.cohort = opts[0];
+            row.isCase = row.cohort === "case";
+        }
+        for (const opt of opts) {
             const o = document.createElement("option");
             o.value = opt; o.textContent = opt;
             if (opt === row.cohort) o.selected = true;
             cohortSel.appendChild(o);
         }
         cohortSel.addEventListener("change", () => {
-            row.cohort = cohortSel.value as "case" | "control";
+            row.cohort = cohortSel.value as Cohort;
             row.isCase = row.cohort === "case";
         });
         tdCohort.appendChild(cohortSel);
@@ -175,7 +220,7 @@ function rerenderGroupTable(tbody: HTMLTableSectionElement) {
         delBtn.title = "Remove this group";
         delBtn.addEventListener("click", () => {
             groupRows.splice(idx, 1);
-            rerenderGroupTable(tbody);
+            rerenderGroupTable(tbody, root);
         });
         tdDel.appendChild(delBtn);
 
@@ -266,16 +311,28 @@ export function mountSimForm(root: HTMLFormElement) {
         return field;
     };
 
-    // Variants group
+    // Variants group (includes family selector at top)
     const gVar = mkGroup("Variants", true);
+    gVar.appendChild(mkSelectField("family", "Family", "binomial", [
+        { value: "binomial", label: "Binomial (case/control)" },
+        { value: "normal",   label: "Normal (quantitative)" },
+    ]));
     gVar.appendChild(mkNumField("nsnp", "Number of variants", 200, "1", 1));
-    gVar.appendChild(mkNumField("effectSize", "Odds ratio (1 = null)", 1.0, "0.05", 0));
+    const effectField = mkNumField("effectSize", "Odds ratio (1 = null)", 1.0, "0.05", 0);
+    gVar.appendChild(effectField);
     gVar.appendChild(mkNumField("mafMin", "MAF min", 0.05, "0.01", 0.0001, 0.5));
     gVar.appendChild(mkNumField("mafMax", "MAF max", 0.5, "0.01", 0.0001, 0.5));
     root.appendChild(gVar);
 
+    // Phenotype group (NORMAL only)
+    const gPheno = mkGroup("Phenotype (normal family)", false);
+    gPheno.appendChild(mkNumField("phenotypeMean", "Mean", 0, "0.1"));
+    gPheno.appendChild(mkNumField("phenotypeSd",   "SD",   1, "0.1", 0.0001));
+    root.appendChild(gPheno);
+
     // Groups table
-    const gGroups = mkGroup("Groups (case/control)", true);
+    const gGroups = mkGroup("Groups", true);
+    const groupsLabel = gGroups.querySelector("summary.group-label") as HTMLElement;
     const table = document.createElement("table");
     table.className = "sim-groups";
     const thead = document.createElement("thead");
@@ -297,17 +354,17 @@ export function mountSimForm(root: HTMLFormElement) {
     const addBtn = document.createElement("button");
     addBtn.type = "button"; addBtn.textContent = "+ Add group"; addBtn.className = "secondary";
     addBtn.addEventListener("click", () => {
-        groupRows.push({
-            sizeText: "500", n: 500, nIncrement: 0,
-            isCase: false, cohort: "control",
-            meanDepth: 20, sdDepth: 2, errorRate: 0.01, readDepth: "high",
-        });
-        rerenderGroupTable(tbody);
+        const fam = getFamily(root);
+        groupRows.push(fam === "normal"
+            ? NORMAL_GROUP_DEFAULT("500", 500)
+            : { sizeText: "500", n: 500, nIncrement: 0, isCase: false, cohort: "control",
+                normalMean: 0, normalSd: 1, meanDepth: 20, sdDepth: 2, errorRate: 0.01, readDepth: "high" });
+        rerenderGroupTable(tbody, root);
     });
     rowActions.appendChild(addBtn);
     gGroups.appendChild(rowActions);
-    rerenderGroupTable(tbody);
-    rerenderGroupTableRef = () => rerenderGroupTable(tbody);
+    rerenderGroupTable(tbody, root);
+    rerenderGroupTableRef = () => rerenderGroupTable(tbody, root);
     root.appendChild(gGroups);
 
     // Power steps
@@ -328,16 +385,49 @@ export function mountSimForm(root: HTMLFormElement) {
     gTest.appendChild(mkCheckField("stopEarly", "Stop bootstrapping early", false));
     root.appendChild(gTest);
 
+    // Covariate group (NORMAL only). Hidden under binomial via onFamilyChange.
+    const gCov = mkGroup("Covariate (normal family)", false);
+    gCov.appendChild(mkCheckField("covariateEnabled", "Enable covariate simulation", false));
+    gCov.appendChild(mkNumField("covariate", "Correlation strength (0–1)", 0.5, "0.05", 0, 1));
+    gCov.appendChild(mkSelectField("corX", "Correlate with", "true", [
+        { value: "true",  label: "Genotype (X)" },
+        { value: "false", label: "Phenotype (Y)" },
+    ]));
+    root.appendChild(gCov);
+
     // Advanced
     const gAdv = mkGroup("Advanced", false);
     gAdv.appendChild(mkNumField("seed", "RNG seed (0 = nondeterministic)", 0, "1", 0));
     root.appendChild(gAdv);
+
+    // ----- Family-driven UI sync -----
+    const familySel = root.querySelector<HTMLSelectElement>("#sf-family")!;
+    const effectLabel = effectField.querySelector("label")!;
+    const onFamilyChange = () => {
+        const fam = familySel.value as Family;
+        if (fam === "normal") {
+            effectLabel.textContent = "R² (0 = null)";
+            gPheno.hidden = false;
+            gCov.hidden = false;
+            groupsLabel.textContent = "Groups";
+        } else {
+            effectLabel.textContent = "Odds ratio (1 = null)";
+            gPheno.hidden = true;
+            gCov.hidden = true;
+            groupsLabel.textContent = "Groups (case/control)";
+        }
+        // Cohort dropdowns depend on family — re-render the table.
+        rerenderGroupTable(tbody, root);
+    };
+    onFamilyChangeRef = onFamilyChange;
+    familySel.addEventListener("change", onFamilyChange);
+    onFamilyChange();   // initial sync
 }
 
 function n(form: HTMLFormElement, id: string): number {
     return parseFloat((form.querySelector(`#sf-${id}`) as HTMLInputElement).value);
 }
-function b(form: HTMLFormElement, id: string): boolean {
+function bool(form: HTMLFormElement, id: string): boolean {
     return (form.querySelector(`#sf-${id}`) as HTMLInputElement).checked;
 }
 function s(form: HTMLFormElement, id: string): string {
@@ -345,23 +435,48 @@ function s(form: HTMLFormElement, id: string): string {
 }
 
 export function collectSimForm(form: HTMLFormElement): SimRunRequest | { error: string } {
-    if (groupRows.length < 2) return { error: "Binomial simulation needs at least one case and one control group." };
-    const cases = groupRows.filter(r => r.isCase).length;
-    const ctrls = groupRows.filter(r => !r.isCase).length;
-    if (cases < 1 || ctrls < 1) return { error: "Need at least one case and one control group." };
+    const family = s(form, "family") as Family;
+
+    if (family === "binomial") {
+        if (groupRows.length < 2) return { error: "Binomial simulation needs at least one case and one control group." };
+        const cases = groupRows.filter(r => r.isCase).length;
+        const ctrls = groupRows.filter(r => !r.isCase).length;
+        if (cases < 1 || ctrls < 1) return { error: "Need at least one case and one control group." };
+    } else {
+        if (groupRows.length < 1) return { error: "Normal simulation needs at least one group." };
+    }
 
     const steps = Math.max(1, Math.floor(n(form, "steps")));
     const seed = Math.floor(n(form, "seed"));
 
+    // For NORMAL, all groups share the same phenotype mean/SD per Qt UI
+    // (sim_quantGrp). Apply those values into each group before building.
+    let phenoMean = 0, phenoSd = 1;
+    if (family === "normal") {
+        phenoMean = n(form, "phenotypeMean");
+        phenoSd   = n(form, "phenotypeSd");
+    }
+
     const groups: SimGroup[] = groupRows.map(r => ({
         n: r.n,
         nIncrement: r.nIncrement,
-        isCase: r.isCase,
+        isCase: family === "binomial" ? r.isCase : false,
+        normalMean: family === "normal" ? phenoMean : 0,
+        normalSd:   family === "normal" ? phenoSd   : 1,
         meanDepth: r.meanDepth,
         sdDepth: r.sdDepth,
         errorRate: r.errorRate,
         readDepth: r.readDepth,
     }));
+
+    // Covariate: only honored under NORMAL family per Qt; if disabled,
+    // emit -1 so the binding skips it.
+    let covariate = -1;
+    let corX = true;
+    if (family === "normal" && bool(form, "covariateEnabled")) {
+        covariate = n(form, "covariate");
+        corX = s(form, "corX") === "true";
+    }
 
     return {
         kind: "sim",
@@ -370,11 +485,13 @@ export function collectSimForm(form: HTMLFormElement): SimRunRequest | { error: 
         mafMin: n(form, "mafMin"),
         mafMax: n(form, "mafMax"),
         steps,
-        family: "binomial",
+        family,
         statistic: s(form, "statistic") as "common" | "cast" | "skat" | "calpha",
         collapse: Math.floor(n(form, "collapse")),
         nboot: Math.floor(n(form, "nboot")),
-        stopEarly: b(form, "stopEarly"),
+        stopEarly: bool(form, "stopEarly"),
+        covariate,
+        corX,
         groups,
         seed,
     };

@@ -4,14 +4,62 @@
 
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
-import type { SimResultRow } from "../types";
+import { jsPDF } from "jspdf";
+import type { SimGroup, SimResultRow } from "../types";
 
 const COLORS = ["#3c7ccc", "#a62a2a", "#3f7a4a", "#b68a00", "#8c46c6", "#2d8ba3"];
 
 export interface SimRenderInput {
     rows: SimResultRow[];
     steps: number;
+    family: "binomial" | "normal";
+    /** Original group definitions, used by the sample-info side table. */
+    groups: SimGroup[];
     summary: { variants: number; processingTime: number; evaluationTime: number };
+}
+
+function cohortLabel(g: SimGroup, family: "binomial" | "normal"): string {
+    if (family === "normal") return "normal";
+    return g.isCase ? "case" : "control";
+}
+
+function fmtDepth(g: SimGroup): string {
+    return `${g.meanDepth.toFixed(1)} ± ${g.sdDepth.toFixed(1)} (${g.readDepth})`;
+}
+
+function sampleSizeAtStep(g: SimGroup, step: number): number {
+    return g.n + g.nIncrement * step;
+}
+
+function rangeText(g: SimGroup, steps: number): string {
+    if (g.nIncrement === 0 || steps <= 1) return String(g.n);
+    return `${g.n} – ${sampleSizeAtStep(g, steps - 1)}`;
+}
+
+export function renderSampleTable(
+    host: HTMLElement,
+    groups: SimGroup[],
+    family: "binomial" | "normal",
+    step: number | null,    // null = show range across all steps
+    steps: number,
+) {
+    const stepLabel = step === null
+        ? (steps > 1 ? "min – max" : "")
+        : `step ${step + 1}`;
+    let html = `<h3>Sample info${stepLabel ? ` (${stepLabel})` : ""}</h3><table><thead><tr>
+        <th>n</th><th>cohort</th><th>depth</th><th>err</th>
+    </tr></thead><tbody>`;
+    for (const g of groups) {
+        const n = step === null ? rangeText(g, steps) : sampleSizeAtStep(g, step);
+        html += `<tr>
+            <td>${n}</td>
+            <td>${cohortLabel(g, family)}</td>
+            <td>${fmtDepth(g)}</td>
+            <td>${g.errorRate.toFixed(3)}</td>
+        </tr>`;
+    }
+    html += "</tbody></table>";
+    host.innerHTML = html;
 }
 
 // Active uPlot instances and their ResizeObservers. Tracked so we can
@@ -50,16 +98,21 @@ export function renderSimResults(
     powerEl: HTMLElement,
     qqEl: HTMLElement,
     histEl: HTMLElement,
+    sampleEl: HTMLElement,
     input: SimRenderInput,
 ) {
-    const { rows, steps, summary } = input;
+    const { rows, steps, summary, groups, family } = input;
     summaryEl.innerHTML = `
       <strong>${summary.variants}</strong> variants &middot;
       processing <strong>${summary.processingTime.toFixed(2)}s</strong> &middot;
       evaluation <strong>${summary.evaluationTime.toFixed(2)}s</strong> &middot;
       <strong>${rows.length}</strong> p-values
     `;
-    clearSimResults(summaryEl, powerEl, qqEl, histEl, /*keepSummary=*/true);
+    clearSimResults(summaryEl, powerEl, qqEl, histEl, sampleEl, /*keepSummary=*/true);
+
+    // Sample-info side panel: defaults to the range across all steps;
+    // hover updates to the specific step under the cursor.
+    renderSampleTable(sampleEl, groups, family, steps > 1 ? null : 0, steps);
 
     // Group rows by (statName, genotypeSource) → list of { sampleSize, p }.
     const byKey = new Map<string, { statName: string; genotypeSource: string; pointsByStep: Map<number, number[]>; sampleSizeByStep: Map<number, number> }>();
@@ -96,6 +149,7 @@ export function renderSimResults(
         return stepIndices.map(s => computePower(entry.pointsByStep.get(s) ?? [], ALPHA));
     })];
 
+    let lastHoverIdx: number | null = null;
     mountPlot(powerEl, {
         width: 0, height: 0,
         title: `Power (alpha=${ALPHA})`,
@@ -113,6 +167,18 @@ export function renderSimResults(
                 points: { show: true, size: 6 },
             })),
         ],
+        hooks: {
+            setCursor: [
+                (u) => {
+                    const idx = u.cursor.idx;
+                    const next = (idx == null) ? null : idx;
+                    if (next !== lastHoverIdx) {
+                        lastHoverIdx = next;
+                        renderSampleTable(sampleEl, groups, family, next, steps);
+                    }
+                },
+            ],
+        },
     }, powerData);
 
     // QQ / histogram panels: each has a small selector row and a plot area
@@ -221,11 +287,74 @@ function drawHist(el: HTMLElement, ps: number[], label: string, step: number) {
     }, [xs, counts] as unknown as uPlot.AlignedData);
 }
 
+// -----------------------------------------------------------------------
+// PDF export. Grabs each plot's canvas, snapshots them as PNGs, lays
+// them out on a single landscape A4 page (mirrors the Qt sim PDF
+// layout: power up top, QQ + histogram side-by-side, sample table
+// at the bottom).
+// -----------------------------------------------------------------------
+function findCanvas(host: HTMLElement): HTMLCanvasElement | null {
+    return host.querySelector("canvas");
+}
+
+export function exportSimPdf(
+    summaryEl: HTMLElement,
+    powerEl: HTMLElement,
+    qqEl: HTMLElement,
+    histEl: HTMLElement,
+    sampleEl: HTMLElement,
+) {
+    const power = findCanvas(powerEl);
+    if (!power) throw new Error("no power plot to export");
+    const qq    = findCanvas(qqEl);
+    const hist  = findCanvas(histEl);
+
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();   // ~297
+    const pageH = pdf.internal.pageSize.getHeight();  // ~210
+    const margin = 10;
+
+    pdf.setFontSize(13);
+    pdf.text("VikNGS simulation report", margin, margin + 4);
+    pdf.setFontSize(9);
+    pdf.text(summaryEl.textContent?.replace(/\s+/g, " ").trim() ?? "", margin, margin + 10);
+
+    const innerW = pageW - 2 * margin;
+    const topY = margin + 14;
+    const subY = topY + 78;     // power plot height ~78mm
+    const tblY = subY + 70;     // sub-row plots ~62mm; table starts below
+
+    // Power: full width, ~78mm tall
+    pdf.addImage(power.toDataURL("image/png"), "PNG", margin, topY, innerW, 75);
+
+    // QQ + histogram: side by side at half width each
+    const halfW = (innerW - 5) / 2;
+    if (qq)   pdf.addImage(qq.toDataURL("image/png"),   "PNG", margin, subY, halfW, 60);
+    if (hist) pdf.addImage(hist.toDataURL("image/png"), "PNG", margin + halfW + 5, subY, halfW, 60);
+
+    // Sample table at the bottom — render as text rows.
+    pdf.setFontSize(9);
+    pdf.text("Sample info", margin, tblY);
+    const rows = sampleEl.querySelectorAll("table tr");
+    let y = tblY + 4;
+    rows.forEach((tr) => {
+        if (y > pageH - margin) return;
+        const cells = Array.from(tr.querySelectorAll("th,td")).map(c => c.textContent ?? "");
+        pdf.text(cells.join("    "), margin, y);
+        y += 4;
+    });
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    pdf.save(`vikngs-sim-${stamp}.pdf`);
+}
+
 export function clearSimResults(
     summary: HTMLElement, power: HTMLElement, qq: HTMLElement, hist: HTMLElement,
+    sample?: HTMLElement,
     keepSummary = false,
 ) {
     if (!keepSummary) summary.innerHTML = "";
     destroyAllPlots();
     for (const el of [power, qq, hist]) el.innerHTML = "";
+    if (sample) sample.innerHTML = "";
 }

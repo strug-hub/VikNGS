@@ -33,7 +33,9 @@ export interface ResultRow {
 export interface SimGroup {
     n: number;
     nIncrement: number;
-    isCase: boolean;
+    isCase: boolean;          // ignored when family=normal
+    normalMean: number;       // only used when family=normal
+    normalSd: number;         // only used when family=normal
     meanDepth: number;
     sdDepth: number;
     errorRate: number;
@@ -47,11 +49,13 @@ export interface SimRunRequest {
     mafMin: number;
     mafMax: number;
     steps: number;
-    family: "binomial";
+    family: "binomial" | "normal";
     statistic: "common" | "cast" | "skat" | "calpha";
     collapse: number;
     nboot: number;
     stopEarly: boolean;
+    covariate: number;        // <0 disables; otherwise correlation strength
+    corX: boolean;            // true = correlate with X (genotype)
     groups: SimGroup[];
     seed: number;
 }

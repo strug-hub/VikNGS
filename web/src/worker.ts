@@ -90,6 +90,8 @@ async function runSim(Module: VikNGSModule, req: SimRunRequest) {
             n: g.n,
             nIncrement: g.nIncrement,
             isCase: g.isCase,
+            normalMean: g.normalMean,
+            normalSd: g.normalSd,
             meanDepth: g.meanDepth,
             sdDepth: g.sdDepth,
             errorRate: g.errorRate,
@@ -108,6 +110,8 @@ async function runSim(Module: VikNGSModule, req: SimRunRequest) {
         collapse: req.collapse,
         nboot: req.nboot,
         stopEarly: req.stopEarly,
+        covariate: req.covariate,
+        corX: req.corX,
         groups: groupVec,
         seed: req.seed,
     };
